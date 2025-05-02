@@ -413,14 +413,21 @@ export class BattleComponent {
     defender: Pokemon,
     isSuperEffective: boolean = false
   ): number {
-    const baseDamage = attacker.stats.attack * 0.5;
-    const defense = defender.stats.defense * 0.3;
-    const randomFactor = Math.random() * 0.3 + 0.85;
+    const baseDamage = attacker.stats.attack * 0.8;
+
+    const defenseFactor = 1 - defender.stats.defense * 0.006;
+
+    const randomFactor = Math.random() * 0.3 + 0.75;
+
     const typeMultiplier = isSuperEffective ? 1.5 : 1.0;
 
+    const calculatedDamage = Math.floor(
+      baseDamage * defenseFactor * randomFactor * typeMultiplier
+    );
+
     return Math.max(
-      1,
-      Math.floor((baseDamage - defense) * randomFactor * typeMultiplier)
+      3,
+      Math.min(calculatedDamage, Math.floor(defender.stats.maxHp * 0.6))
     );
   }
 
@@ -467,8 +474,6 @@ export class BattleComponent {
     if (this.teamTwoBuilder) {
       this.teamTwoBuilder.team.set([]);
     }
-
-    // Não adicionar mensagem ao log, já que estamos limpando o log
   }
 
   getActiveTeamOneCount(): number {
