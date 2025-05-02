@@ -1,4 +1,3 @@
-<!-- home.component.html -->
 <div class="home-container">
   <div class="pokemon-logo">
     <img src="/assets/images/pokemon-logo.png" alt="Pokemon Logo">
@@ -31,9 +30,15 @@
     </div>
   </div>
 
-  <button mat-raised-button color="primary" routerLink="/battle" class="start-button">
-    Iniciar Batalha
-  </button>
+  <div class="action-buttons">
+    <button mat-raised-button color="primary" routerLink="/battle" class="start-button">
+      Iniciar Batalha
+    </button>
+
+    <button mat-raised-button color="accent" routerLink="/pokedex" class="pokedex-button">
+      Acessar Pokédex
+    </button>
+  </div>
 
   <div class="pokeball-decoration"></div>
 </div>

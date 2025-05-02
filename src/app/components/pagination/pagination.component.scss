@@ -1,0 +1,38 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin: 20px 0;
+
+  .pagination-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: var(--pokemon-blue);
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background-color: var(--pokemon-blue);
+      color: white;
+      border-color: var(--pokemon-blue);
+    }
+
+    &.active {
+      background-color: var(--pokemon-red);
+      color: white;
+      border-color: var(--pokemon-red);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}

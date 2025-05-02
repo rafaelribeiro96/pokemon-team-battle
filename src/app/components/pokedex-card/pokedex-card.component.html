@@ -1,0 +1,15 @@
+<div class="pokedex-card" (click)="navigateToDetail()">
+  <div class="pokemon-id">#{{ formatPokemonId(pokemon.id) }}</div>
+  <div class="pokemon-image">
+    <img [src]="pokemon.image || pokemon.sprites?.front_default" [alt]="pokemon.name">
+  </div>
+  <div class="pokemon-name">{{ capitalizeFirstLetter(pokemon.name) }}</div>
+  <div class="pokemon-types">
+    <span
+      *ngFor="let type of pokemon.types || pokemon.type"
+      class="type-badge"
+      [ngClass]="type.toLowerCase()">
+      {{ capitalizeFirstLetter(type) }}
+    </span>
+  </div>
+</div>

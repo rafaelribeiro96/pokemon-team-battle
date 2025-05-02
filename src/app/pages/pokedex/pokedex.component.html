@@ -1,0 +1,43 @@
+<div class="pokedex-container">
+  <div class="pokedex-header">
+    <h1>Pokédex</h1>
+    <p>Search for Pokémon by name, ID or filter by type</p>
+
+    <div class="search-section">
+      <app-search-bar (search)="onSearch($event)"></app-search-bar>
+    </div>
+
+    <app-type-filter
+      [types]="pokemonTypes"
+      [selectedType]="selectedType"
+      (typeSelect)="onTypeSelect($event)">
+    </app-type-filter>
+  </div>
+
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading Pokémon...</p>
+  </div>
+
+  <div *ngIf="!loading && pokemonList.length === 0" class="no-results">
+    <p>No Pokémon found. Try a different search or filter.</p>
+  </div>
+
+  <div class="pokemon-grid">
+    <app-pokedex-card
+      *ngFor="let pokemon of searchResults || pokemonList"
+      [pokemon]="pokemon">
+    </app-pokedex-card>
+  </div>
+
+  <app-pagination
+    *ngIf="!searchResults && totalPages > 1"
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    (pageChange)="onPageChange($event)">
+  </app-pagination>
+
+  <div class="back-to-home">
+    <a routerLink="/" class="back-button">Back to Home</a>
+  </div>
+</div>

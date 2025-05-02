@@ -1,0 +1,20 @@
+<div class="type-filter">
+  <h3>Filter by Type</h3>
+  <div class="type-buttons">
+    <button
+      class="type-button all"
+      [class.active]="selectedType === null"
+      (click)="selectType(null)">
+      All Types
+    </button>
+
+    <button
+      *ngFor="let type of types"
+      class="type-button"
+      [ngClass]="type"
+      [class.active]="selectedType === type"
+      (click)="selectType(type)">
+      {{ capitalizeFirstLetter(type) }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+.type-filter {
+  margin-bottom: 20px;
+
+  h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    color: var(--pokemon-black);
+  }
+
+  .type-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .type-button {
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: none;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: capitalize;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      &.active {
+        box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+      }
+
+      &.all {
+        background: linear-gradient(45deg, var(--pokemon-red), var(--pokemon-blue));
+        color: white;
+      }
+    }
+  }
+}
