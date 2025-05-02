@@ -16,9 +16,10 @@
     </div>
   </div>
 
-  <h3>Lista de Pokémon</h3>
-  <app-pokemon-list
-    [pokemons]="availablePokemons()"
-    (selectPokemon)="addPokemonToTeam($event)"
-  ></app-pokemon-list>
+  <h3 *ngIf="team().length < 6">Lista de Pokémon</h3>
+<app-pokemon-list
+  *ngIf="team().length < 6"
+  [pokemons]="availablePokemons()"
+  (selectPokemon)="addPokemonToTeam($event)"
+></app-pokemon-list>
 </div>

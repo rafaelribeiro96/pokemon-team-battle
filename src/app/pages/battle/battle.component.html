@@ -4,6 +4,39 @@
     <app-team-builder></app-team-builder>
     <app-team-builder></app-team-builder>
   </div>
-  <button mat-raised-button color="accent" (click)="startBattle()">Lutar!</button>
-  <app-battle-report *ngIf="battleLog().length > 0" [log]="battleLog()"></app-battle-report>
+
+  <!-- Exibição dos Pokémon em batalha -->
+  <div class="current-battle" *ngIf="currentBattle().p1 && currentBattle().p2">
+    <div class="pokemon-slot">
+      <img
+        [src]="currentBattle().p1?.image"
+        [alt]="currentBattle().p1?.name"
+        class="pokemon-image"
+      />
+      <h3>{{ currentBattle().p1?.name }}</h3>
+    </div>
+    <div class="vs">VS</div>
+    <div class="pokemon-slot">
+      <img
+        [src]="currentBattle().p2?.image"
+        [alt]="currentBattle().p2?.name"
+        class="pokemon-image"
+      />
+      <h3>{{ currentBattle().p2?.name }}</h3>
+    </div>
+  </div>
+
+  <button
+    mat-raised-button
+    color="accent"
+    [disabled]="battleInProgress()"
+    (click)="startBattle()"
+  >
+    Lutar!
+  </button>
+
+  <app-battle-report
+    *ngIf="battleLog().length > 0"
+    [log]="battleLog()"
+  ></app-battle-report>
 </div>
