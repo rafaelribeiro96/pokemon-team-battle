@@ -1,7 +1,18 @@
 <!-- pokemon-card.component.html -->
 <div class="pokemon-card"
      [ngClass]="getCardClasses()"
-     [@attackEffect]="attackEffectState">
+     [@attackEffect]="attackEffectState"
+     [id]="'pokemon-' + pokemon.id">
+  <div class="status-icons">
+    <app-pokemon-icon *ngIf="isStrongest" iconId="crown" size="sm"
+                     [title]="'Pokémon mais forte da batalha'"
+                     [@iconAnimation]></app-pokemon-icon>
+
+    <app-pokemon-icon *ngIf="justAttacked" iconId="fight" size="sm"
+                     [title]="'Atacou recentemente'"
+                     [@iconAnimation]></app-pokemon-icon>
+  </div>
+
   <img [src]="pokemon.image" [alt]="pokemon.name" />
   <h4>{{ pokemon.name }}</h4>
 
@@ -15,6 +26,9 @@
 
   <div class="type-badges">
     <span *ngFor="let type of pokemon.type" class="type-badge" [ngClass]="type.toLowerCase()">
+      <app-pokemon-icon *ngIf="getTypeIcon(type)"
+                       [iconId]="getTypeIcon(type) ?? null"
+                       size="xs"></app-pokemon-icon>
       {{ type }}
     </span>
   </div>

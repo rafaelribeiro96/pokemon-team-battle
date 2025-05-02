@@ -84,27 +84,6 @@ export class PokemonIconsService {
       category: 'pokemon',
       tags: ['water', 'psychic'],
     },
-    {
-      id: 'articuno',
-      name: 'Articuno',
-      path: 'assets/icons/pokemon_articuro_icon-icons.com_67526.svg',
-      category: 'pokemon',
-      tags: ['ice', 'flying', 'legendary'],
-    },
-    {
-      id: 'moltres',
-      name: 'Moltres',
-      path: 'assets/icons/pokemon_moltres_icon-icons.com_67518.svg',
-      category: 'pokemon',
-      tags: ['fire', 'flying', 'legendary'],
-    },
-    {
-      id: 'zapdos',
-      name: 'Zapdos',
-      path: 'assets/icons/pokemon_zapdos_icon-icons.com_67513.svg',
-      category: 'pokemon',
-      tags: ['electric', 'flying', 'legendary'],
-    },
 
     // Itens
     {
@@ -276,6 +255,27 @@ export class PokemonIconsService {
       path: 'assets/icons/Settings_icon-icons.com_67507.svg',
       category: 'interface',
       tags: ['configuration', 'options'],
+    },
+    {
+      id: 'fire-gym',
+      name: 'Ginásio Vermelho',
+      path: 'assets/icons/pokemon_moltres_icon-icons.com_67518.svg',
+      category: 'interface',
+      tags: ['gym', 'fire', 'red'],
+    },
+    {
+      id: 'water-gym',
+      name: 'Ginásio Azul',
+      path: 'assets/icons/pokemon_articuro_icon-icons.com_67526.svg',
+      category: 'interface',
+      tags: ['gym', 'water', 'blue'],
+    },
+    {
+      id: 'electric-gym',
+      name: 'Ginásio Amarelo',
+      path: 'assets/icons/pokemon_zapdos_icon-icons.com_67513.svg',
+      category: 'interface',
+      tags: ['gym', 'electric', 'yellow'],
     },
 
     // Tipos

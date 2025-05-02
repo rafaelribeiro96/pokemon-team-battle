@@ -1,8 +1,12 @@
+/* pokemon-list.component.ts */
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Pokemon } from '../../models/pokemon.model';
 import { CommonModule } from '@angular/common';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { FormsModule } from '@angular/forms';
+import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
+import { PokemonIconsService } from '../../services/pokemon-icons.service';
+import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
 import {
   trigger,
   state,
@@ -16,7 +20,13 @@ import {
   selector: 'app-pokemon-list',
   templateUrl: './pokemon-list.component.html',
   styleUrls: ['./pokemon-list.component.scss'],
-  imports: [CommonModule, MatGridListModule, FormsModule],
+  imports: [
+    CommonModule,
+    MatGridListModule,
+    FormsModule,
+    PokemonIconsModule,
+    PokemonIconComponent,
+  ],
   animations: [
     trigger('cardFlip', [
       state(
@@ -42,6 +52,8 @@ export class PokemonListComponent {
 
   searchTerm: string = '';
 
+  constructor(private pokemonIconsService: PokemonIconsService) {}
+
   get filteredPokemons(): Pokemon[] {
     if (!this.searchTerm.trim()) {
       return this.pokemons;
@@ -55,5 +67,15 @@ export class PokemonListComponent {
 
   onPokemonClick(pokemon: Pokemon) {
     this.selectPokemon.emit(pokemon);
+  }
+
+  getPokemonIconId(name: string): string | null {
+    // Converter o nome do Pokémon para minúsculas para corresponder aos IDs dos ícones
+    const pokemonName = name.toLowerCase();
+
+    // Verificar se existe um ícone com este ID
+    const icon = this.pokemonIconsService.getIconById(pokemonName);
+
+    return icon ? icon.id : null;
   }
 }

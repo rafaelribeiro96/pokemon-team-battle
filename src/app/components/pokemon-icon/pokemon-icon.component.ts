@@ -91,7 +91,7 @@ import {
   ],
 })
 export class PokemonIconComponent implements OnChanges {
-  @Input() iconId?: string;
+  @Input() iconId: string | null = '';
   @Input() size: 'xs' | 'sm' | 'md' | 'lg' | 'xl' = 'md';
   @Input() clickable: boolean = false;
   @Input() showPlaceholder: boolean = true;

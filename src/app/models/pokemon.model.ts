@@ -14,4 +14,5 @@ export interface Pokemon {
   isDefeated?: boolean;
   isAttacking?: boolean;
   isFainted?: boolean;
+  selected?: boolean;
 }

@@ -10,28 +10,52 @@
 
   <div class="battle-layout">
     <div class="team-column team-one" [class.winner]="winner() === 'Time 1'">
-      <h3>Time 1</h3>
+      <h3>
+        <app-pokemon-icon iconId="trainer" size="sm"></app-pokemon-icon>
+        Time 1
+      </h3>
       <app-team-builder #teamOneBuilder [battleInProgress]="battleInProgress()" (teamChange)="setTeamOne($event)"></app-team-builder>
+
+      <!-- Indicador de Pokébolas do Time -->
+      <div class="team-pokeballs" *ngIf="battleInProgress() || battleEnded()">
+        <div class="pokeball-container" *ngFor="let pokemon of teamOne(); let i = index">
+          <app-pokemon-icon
+            [iconId]="pokemon.isFainted ? 'fainted-pokeball' : 'pokeball'"
+            size="sm"
+            [title]="pokemon.name">
+          </app-pokemon-icon>
+        </div>
+      </div>
     </div>
 
     <div class="battle-arena">
+      <!-- Ícone do Ginásio -->
+      <div class="gym-icon">
+        <app-pokemon-icon [iconId]="selectedGym" size="lg"></app-pokemon-icon>
+      </div>
+
       <app-battle-header></app-battle-header>
 
       <div *ngIf="battleInProgress()" class="current-battle">
-        <h2>Turno: {{ turnNumber() }}</h2>
+        <h2>
+          <app-pokemon-icon iconId="fight" size="md"></app-pokemon-icon>
+          Turno: {{ turnNumber() }}
+        </h2>
         <div class="battle-cards" *ngIf="currentBattle().p1 && currentBattle().p2">
           <app-pokemon-card
             [pokemon]="currentBattle().p1!"
             [isAttacking]="currentBattle().p1IsAttacking ?? false"
             [isDefending]="currentBattle().p1IsDefending ?? false"
-            [isSuperEffective]="currentBattle().p1IsSuperEffective ?? false">
+            [isSuperEffective]="currentBattle().p1IsSuperEffective ?? false"
+            [isStrongest]="isPokemonStrongest(currentBattle().p1!)">
           </app-pokemon-card>
           <div class="vs">VS</div>
           <app-pokemon-card
             [pokemon]="currentBattle().p2!"
             [isAttacking]="currentBattle().p2IsAttacking ?? false"
             [isDefending]="currentBattle().p2IsDefending ?? false"
-            [isSuperEffective]="currentBattle().p2IsSuperEffective ?? false">
+            [isSuperEffective]="currentBattle().p2IsSuperEffective ?? false"
+            [isStrongest]="isPokemonStrongest(currentBattle().p2!)">
           </app-pokemon-card>
         </div>
       </div>
@@ -43,6 +67,7 @@
           [disabled]="battleInProgress()"
           (click)="startBattle()"
         >
+          <app-pokemon-icon iconId="battle" size="sm"></app-pokemon-icon>
           Lutar!
         </button>
         <button
@@ -51,6 +76,7 @@
           *ngIf="battleInProgress()"
           (click)="cancelBattle()"
         >
+          <app-pokemon-icon iconId="cancel" size="sm"></app-pokemon-icon>
           Cancelar Luta
         </button>
         <button
@@ -59,6 +85,7 @@
           *ngIf="battleEnded()"
           (click)="resetBattle()"
         >
+          <app-pokemon-icon iconId="reset" size="sm"></app-pokemon-icon>
           Reiniciar
         </button>
       </div>
@@ -67,8 +94,39 @@
     </div>
 
     <div class="team-column team-two" [class.winner]="winner() === 'Time 2'">
-      <h3>Time 2</h3>
+      <h3>
+        <app-pokemon-icon iconId="trainer" size="sm"></app-pokemon-icon>
+        Time 2
+      </h3>
       <app-team-builder #teamTwoBuilder [battleInProgress]="battleInProgress()" (teamChange)="setTeamTwo($event)"></app-team-builder>
+
+      <!-- Indicador de Pokébolas do Time -->
+      <div class="team-pokeballs" *ngIf="battleInProgress() || battleEnded()">
+        <div class="pokeball-container" *ngFor="let pokemon of teamTwo(); let i = index">
+          <app-pokemon-icon
+            [iconId]="pokemon.isFainted ? 'fainted-pokeball' : 'pokeball'"
+            size="sm"
+            [title]="pokemon.name">
+          </app-pokemon-icon>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Animação de ataque -->
+  <div class="attack-animation" *ngIf="showAttackIcon"
+       [style.left.px]="attackIconPosition.x"
+       [style.top.px]="attackIconPosition.y"
+       [@iconAnimation]>
+    <app-pokemon-icon [iconId]="attackIconType" size="xl"></app-pokemon-icon>
+  </div>
+
+  <!-- Animação de novo Pokémon -->
+  <div class="new-pokemon-animation" *ngIf="newPokemonAnimation.show"
+       [style.left.px]="newPokemonAnimation.position.x"
+       [style.top.px]="newPokemonAnimation.position.y"
+       [class.player-1]="newPokemonAnimation.player === 1"
+       [class.player-2]="newPokemonAnimation.player === 2">
+    <app-pokemon-icon iconId="open-pokeball" size="xl"></app-pokemon-icon>
   </div>
 </div>

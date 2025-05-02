@@ -8,6 +8,8 @@ import {
 } from '@angular/core';
 import { Pokemon } from '../../models/pokemon.model';
 import { CommonModule } from '@angular/common';
+import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
+import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
 import {
   trigger,
   state,
@@ -22,7 +24,7 @@ import {
   templateUrl: './pokemon-card.component.html',
   styleUrls: ['./pokemon-card.component.scss'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PokemonIconsModule, PokemonIconComponent],
   animations: [
     trigger('hpChange', [transition('* => *', [animate('0.5s ease-out')])]),
     trigger('damageEffect', [
@@ -258,6 +260,15 @@ import {
         animate('0.3s', style({ opacity: 0, transform: 'scale(0)' })),
       ]),
     ]),
+    trigger('iconAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.5)' }),
+        animate('0.3s ease-out', style({ opacity: 1, transform: 'scale(1)' })),
+      ]),
+      transition(':leave', [
+        animate('0.2s ease-in', style({ opacity: 0, transform: 'scale(0.5)' })),
+      ]),
+    ]),
   ],
 })
 export class PokemonCardComponent implements OnChanges, OnInit {
@@ -265,6 +276,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
   @Input() isAttacking = false;
   @Input() isDefending = false;
   @Input() isSuperEffective = false;
+  @Input() isStrongest = false;
 
   displayHp: number = 0;
   damageState = 'inactive';
@@ -274,6 +286,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
   damageAmount: number = 0;
   Math = Math;
   typeClass: string = '';
+  justAttacked: boolean = false;
 
   ngOnInit() {
     if (this.pokemon) {
@@ -336,6 +349,13 @@ export class PokemonCardComponent implements OnChanges, OnInit {
         this.superEffectiveState = 'inactive';
       }, 800);
     }
+
+    if (changes['isAttacking'] && this.isAttacking) {
+      this.justAttacked = true;
+      setTimeout(() => {
+        this.justAttacked = false;
+      }, 2000);
+    }
   }
 
   setTypeClass() {
@@ -372,6 +392,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
       fainted: this.pokemon.isFainted ?? false,
       defending: this.isDefending,
       'type-themed': true,
+      strongest: this.isStrongest,
     };
 
     if (this.typeClass) {
@@ -379,5 +400,30 @@ export class PokemonCardComponent implements OnChanges, OnInit {
     }
 
     return classes;
+  }
+
+  getTypeIcon(type: string): string | null {
+    const typeMap: { [key: string]: string } = {
+      fire: 'fire-type',
+      water: 'water-type',
+      grass: 'grass-type',
+      electric: 'electric-type',
+      psychic: 'psychic-type',
+      ice: 'ice-type',
+      dragon: 'dragon-type',
+      dark: 'dark-type',
+      normal: 'normal-type',
+      fighting: 'fighting-type',
+      flying: 'flying-type',
+      poison: 'poison-type',
+      ground: 'ground-type',
+      rock: 'rock-type',
+      bug: 'bug-type',
+      ghost: 'ghost-type',
+      steel: 'steel-type',
+      fairy: 'fairy-type',
+    };
+
+    return typeMap[type.toLowerCase()] || null;
   }
 }

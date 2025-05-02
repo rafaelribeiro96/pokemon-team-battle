@@ -1,192 +1,202 @@
 /* battle-report.component.ts */
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  Input,
-  ElementRef,
-  ViewChild,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
-import { trigger, transition, style, animate } from '@angular/animations';
+import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
+import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
+
+interface BattleStats {
+  totalAttacks: number;
+  strongestPokemon: {
+    name: string;
+    attack: number;
+  } | null;
+  totalPokemon: number;
+  pointsEarned: number;
+}
+
+interface LogEntry {
+  type: 'attack' | 'faint' | 'switch' | 'info';
+  message: string;
+}
 
 @Component({
   selector: 'app-battle-report',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PokemonIconsModule, PokemonIconComponent],
   template: `
-    <div class="report-container">
-      <h2>Relatório da Batalha</h2>
-      <div class="report-content" #scrollBox>
-        <ul>
-          <li
-            *ngFor="let entry of reversedLog"
-            @newLogEntry
-            [ngClass]="{
-              'attack-entry': entry.includes('ataca'),
-              'fainted-entry': entry.includes('desmaiou'),
-              'victory-entry': entry.includes('venceu'),
-              'super-effective-entry': entry.includes('SUPER EFETIVO')
-            }"
-          >
-            <span [innerHTML]="formatLogEntry(entry)"></span>
-          </li>
-        </ul>
+    <div class="battle-report">
+      <div class="report-header">
+        <app-pokemon-icon iconId="crown" size="md"></app-pokemon-icon>
+        <h3>Relatório de Batalha</h3>
+      </div>
+
+      <div class="report-content">
+        <div class="winner-section" *ngIf="winner">
+          <h4>Vencedor</h4>
+          <div class="winner-info">
+            <app-pokemon-icon
+              [iconId]="winner.avatar || 'pikachu'"
+              size="lg"
+            ></app-pokemon-icon>
+            <div class="winner-name">{{ winner.name }}</div>
+          </div>
+        </div>
+
+        <div class="stats-section">
+          <h4>Estatísticas</h4>
+
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="fight" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Total de Ataques:</div>
+            <div class="stat-value">{{ battleStats.totalAttacks }}</div>
+          </div>
+
+          <div class="stat-item" *ngIf="battleStats.strongestPokemon">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="crown" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Pokémon Mais Forte:</div>
+            <div class="stat-value">
+              {{ battleStats.strongestPokemon?.name }}
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="pokeball" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Pokémon Utilizados:</div>
+            <div class="stat-value">{{ battleStats.totalPokemon }}</div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="coin" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Pontos Ganhos:</div>
+            <div class="stat-value">{{ battleStats.pointsEarned }}</div>
+          </div>
+        </div>
+
+        <div class="battle-log">
+          <h4>Log da Batalha</h4>
+          <div class="log-entries">
+            <div *ngFor="let entry of logEntries" class="log-entry">
+              <div class="log-icon" [ngSwitch]="entry.type">
+                <app-pokemon-icon
+                  *ngSwitchCase="'attack'"
+                  iconId="fight"
+                  size="xs"
+                ></app-pokemon-icon>
+                <app-pokemon-icon
+                  *ngSwitchCase="'faint'"
+                  iconId="open-pokeball"
+                  size="xs"
+                ></app-pokemon-icon>
+                <app-pokemon-icon
+                  *ngSwitchCase="'switch'"
+                  iconId="pokeball"
+                  size="xs"
+                ></app-pokemon-icon>
+                <app-pokemon-icon
+                  *ngSwitchDefault
+                  iconId="pokedex"
+                  size="xs"
+                ></app-pokemon-icon>
+              </div>
+              <div class="log-message">{{ entry.message }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-actions">
+        <button class="action-btn" (click)="closeReport()">Fechar</button>
+        <button class="action-btn primary" (click)="newBattle()">
+          Nova Batalha
+        </button>
       </div>
     </div>
   `,
-  styles: [
-    `
-      .report-container {
-        max-height: 400px;
-        overflow-y: auto;
-        border: 3px solid #3b4cca;
-        padding: 15px;
-        background-color: #f8f8f8;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        font-family: 'Press Start 2P', cursive, sans-serif;
-        margin-top: 20px;
-
-        h2 {
-          text-align: center;
-          color: #ff0000;
-          text-shadow: 1px 1px 2px #000;
-          font-size: 1.5rem;
-          margin-bottom: 15px;
-        }
-      }
-
-      .report-content {
-        max-height: 300px;
-        overflow-y: auto;
-
-        ul {
-          list-style-type: none;
-          padding: 0;
-          margin: 0;
-
-          li {
-            padding: 8px 10px;
-            margin-bottom: 8px;
-            border-radius: 5px;
-            background-color: rgba(255, 203, 5, 0.3);
-            border-left: 4px solid #ffcb05;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            color: #333;
-            font-weight: normal;
-
-            &:hover {
-              background-color: rgba(255, 203, 5, 0.4);
-              transform: translateX(5px);
-            }
-
-            &.attack-entry {
-              background-color: rgba(255, 87, 34, 0.3);
-              border-left: 4px solid #ff5722;
-            }
-
-            &.fainted-entry {
-              background-color: rgba(158, 158, 158, 0.4);
-              border-left: 4px solid #9e9e9e;
-            }
-
-            &.victory-entry {
-              background-color: rgba(76, 175, 80, 0.4);
-              border-left: 4px solid #4caf50;
-              font-weight: bold;
-            }
-
-            &.super-effective-entry {
-              background-color: rgba(255, 215, 0, 0.4);
-              border-left: 4px solid #ffd700;
-              font-weight: bold;
-            }
-          }
-        }
-      }
-
-      .winner {
-        color: #4caf50;
-        font-weight: bold;
-      }
-
-      .attack {
-        color: #ff5722;
-        font-weight: bold;
-      }
-
-      .fainted {
-        color: #9e9e9e;
-        font-style: italic;
-      }
-
-      .super-effective {
-        color: #ffd700;
-        font-weight: bold;
-        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
-      }
-    `,
-  ],
-  animations: [
-    trigger('newLogEntry', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-10px)' }),
-        animate(
-          '300ms ease-out',
-          style({ opacity: 1, transform: 'translateY(0)' })
-        ),
-      ]),
-    ]),
-  ],
+  styleUrls: ['./battle-report.component.scss'],
 })
-export class BattleReportComponent implements OnChanges {
+export class BattleReportComponent {
   @Input() log: string[] = [];
-  @ViewChild('scrollBox') private scrollBox!: ElementRef;
+  @Output() close = new EventEmitter<void>();
+  @Output() restart = new EventEmitter<void>();
 
-  reversedLog: string[] = [];
+  winner: { name: string; avatar?: string } | null = null;
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['log']) {
-      // Reverse the log to show newest entries at the top
-      this.reversedLog = [...this.log].reverse();
+  battleStats: BattleStats = {
+    totalAttacks: 0,
+    strongestPokemon: null,
+    totalPokemon: 0,
+    pointsEarned: 0,
+  };
 
-      // Scroll to top after update
-      setTimeout(() => {
-        if (this.scrollBox) {
-          this.scrollBox.nativeElement.scrollTop = 0;
-        }
-      }, 0);
-    }
+  get logEntries(): LogEntry[] {
+    return this.log.map((message) => {
+      if (message.includes('ataca')) {
+        return { type: 'attack', message };
+      } else if (message.includes('desmaiou')) {
+        return { type: 'faint', message };
+      } else if (message.includes('enfrenta')) {
+        return { type: 'switch', message };
+      } else {
+        return { type: 'info', message };
+      }
+    });
   }
 
-  formatLogEntry(entry: string): string {
-    // Highlight Pokemon names, attacks, and battle events
-    if (entry.includes('venceu a batalha')) {
-      return entry.replace(
-        /(.*) venceu a batalha!/,
-        '<span class="winner">$1</span> venceu a batalha!'
-      );
+  ngOnInit() {
+    this.processLog();
+  }
+
+  ngOnChanges() {
+    this.processLog();
+  }
+
+  processLog() {
+    // Processar o log para extrair estatísticas
+    let attacks = 0;
+    let pokemonNames = new Set<string>();
+    let strongestPokemon = { name: '', attack: 0 };
+
+    for (const entry of this.log) {
+      if (entry.includes('ataca')) {
+        attacks++;
+
+        // Extrair nome do Pokémon atacante
+        const attackerName = entry.split(' ataca ')[0];
+        pokemonNames.add(attackerName);
+      } else if (entry.includes('enfrenta')) {
+        const parts = entry.split(': ')[1].split(' enfrenta ');
+        pokemonNames.add(parts[0]);
+        pokemonNames.add(parts[1]);
+      } else if (entry.includes('venceu a batalha')) {
+        const winner = entry.includes('Time 1') ? 'Time 1' : 'Time 2';
+        this.winner = {
+          name: winner,
+          avatar: winner === 'Time 1' ? 'trainer-red' : 'trainer-blue',
+        };
+      }
     }
-    if (entry.includes('SUPER EFETIVO')) {
-      return entry.replace(
-        /(.*) ataca (.*) e causa (.*) de dano! $$SUPER EFETIVO!$$/,
-        '<span class="attack">$1</span> ataca <span class="attack">$2</span> e causa <span class="attack">$3</span> de dano! <span class="super-effective">(SUPER EFETIVO!)</span>'
-      );
-    }
-    if (entry.includes('ataca')) {
-      return entry.replace(
-        /(.*) ataca (.*) e causa (.*) de dano!/,
-        '<span class="attack">$1</span> ataca <span class="attack">$2</span> e causa <span class="attack">$3</span> de dano!'
-      );
-    }
-    if (entry.includes('desmaiou')) {
-      return entry.replace(
-        /(.*) desmaiou!/,
-        '<span class="fainted">$1</span> desmaiou!'
-      );
-    }
-    return entry;
+
+    this.battleStats = {
+      totalAttacks: attacks,
+      strongestPokemon: strongestPokemon.name ? strongestPokemon : null,
+      totalPokemon: pokemonNames.size,
+      pointsEarned: Math.floor(attacks * 1.5 + pokemonNames.size * 2),
+    };
+  }
+
+  closeReport() {
+    this.close.emit();
+  }
+
+  newBattle() {
+    this.restart.emit();
   }
 }

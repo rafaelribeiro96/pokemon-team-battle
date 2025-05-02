@@ -1,59 +1,144 @@
-/* battle-report.component.scss */
-.report-container {
-  max-height: 400px;
-  overflow-y: auto;
-  border: 3px solid #3b4cca;
-  padding: 15px;
-  background-color: #f8f8f8;
+.battle-report {
+  background-color: white;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  font-family: 'Press Start 2P', cursive, sans-serif;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  margin: 0 auto;
+  overflow: hidden;
 
-  h2 {
-    text-align: center;
-    color: #ff0000;
-    text-shadow: 1px 1px 2px #000;
-    font-size: 1.5rem;
-    margin-bottom: 15px;
+  .report-header {
+    background-color: #3b4cca;
+    color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    h3 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
   }
-}
 
-.report-content {
-  max-height: 100%;
-  overflow-y: scroll;
+  .report-content {
+    padding: 20px;
 
-  ul {
-    list-style-type: none;
-    padding: 0;
+    .winner-section {
+      text-align: center;
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
 
-    li {
-      padding: 8px 10px;
-      margin-bottom: 8px;
-      border-radius: 5px;
-      background-color: rgba(255, 203, 5, 0.1);
-      border-left: 4px solid #ffcb05;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
+      h4 {
+        color: #ff0000;
+        margin-bottom: 15px;
+      }
 
-      &:hover {
-        background-color: rgba(255, 203, 5, 0.2);
-        transform: translateX(5px);
+      .winner-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .winner-name {
+          margin-top: 10px;
+          font-size: 1.2rem;
+          font-weight: bold;
+        }
+      }
+    }
+
+    .stats-section {
+      margin-bottom: 25px;
+
+      h4 {
+        color: #3b4cca;
+        margin-bottom: 15px;
+      }
+
+      .stat-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+
+        .stat-icon {
+          margin-right: 10px;
+        }
+
+        .stat-label {
+          flex: 1;
+          font-weight: bold;
+        }
+
+        .stat-value {
+          font-weight: bold;
+          color: #3b4cca;
+        }
+      }
+    }
+
+    .battle-log {
+      h4 {
+        color: #3b4cca;
+        margin-bottom: 15px;
+      }
+
+      .log-entries {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        border-radius: 5px;
+        padding: 10px;
+
+        .log-entry {
+          display: flex;
+          align-items: center;
+          padding: 5px 0;
+          border-bottom: 1px solid #f5f5f5;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          .log-icon {
+            margin-right: 10px;
+          }
+
+          .log-message {
+            font-size: 0.9rem;
+          }
+        }
       }
     }
   }
-}
 
-.winner {
-  color: #4caf50;
-  font-weight: bold;
-}
+  .report-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background-color: #f5f5f5;
 
-.attack {
-  color: #ff5722;
-  font-weight: bold;
-}
+    .action-btn {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
 
-.fainted {
-  color: #9e9e9e;
-  font-style: italic;
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      &.primary {
+        background-color: #3b4cca;
+        color: white;
+
+        &:hover {
+          background-color: #2a3ba9;
+        }
+      }
+    }
+  }
 }

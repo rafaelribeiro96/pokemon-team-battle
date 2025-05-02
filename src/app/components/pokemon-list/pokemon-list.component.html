@@ -1,4 +1,8 @@
+<!-- pokemon-list.component.html -->
 <div class="search-container">
+  <div class="search-icon">
+    <app-pokemon-icon iconId="pokedex" size="sm"></app-pokemon-icon>
+  </div>
   <input
     type="text"
     [(ngModel)]="searchTerm"
@@ -16,6 +20,14 @@
     >
       <div class="card-inner">
         <div class="card-front">
+          <div class="pokemon-icon">
+            <!-- Usar o ícone correspondente ao Pokémon se disponível -->
+            <app-pokemon-icon
+              [iconId]="getPokemonIconId(pokemon.name)"
+              [showPlaceholder]="!getPokemonIconId(pokemon.name)"
+              size="md">
+            </app-pokemon-icon>
+          </div>
           <img [src]="pokemon.image" [alt]="pokemon.name" class="pokemon-image" />
           <div class="pokemon-info">
             <h4 class="pokemon-name">{{ pokemon.name }}</h4>
@@ -58,8 +70,16 @@
               <span class="stat-value">{{ pokemon.stats.speed }}</span>
             </div>
           </div>
-          <div class="select-prompt">Clique para selecionar</div>
+          <div class="select-prompt">
+            <app-pokemon-icon iconId="pokeball" size="xs"></app-pokemon-icon>
+            Clique para selecionar
+          </div>
         </div>
+      </div>
+
+      <!-- Ícone de Pokébola para indicar que o Pokémon foi selecionado -->
+      <div class="selection-indicator" *ngIf="pokemon.selected">
+        <app-pokemon-icon iconId="pokeball" size="sm"></app-pokemon-icon>
       </div>
     </div>
   </div>

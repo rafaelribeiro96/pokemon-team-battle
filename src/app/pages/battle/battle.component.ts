@@ -1,3 +1,4 @@
+/* battle.component.ts */
 import { Component, signal, ViewChild } from '@angular/core';
 import { TeamBuilderComponent } from '../../components/team-builder/team-builder.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +8,15 @@ import { BattleReportComponent } from '../../components/battle-report/battle-rep
 import { BattleHeaderComponent } from '../../components/battle-header/battle-header.component';
 import { PokemonCardComponent } from '../../components/pokemon-card/pokemon-card.component';
 import { ScoreboardComponent } from '../../components/scoreboard/scoreboard.component';
+import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
+import { PokemonIconComponent } from '../../components/pokemon-icon/pokemon-icon.component';
+import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 
 @Component({
   standalone: true,
@@ -21,6 +31,55 @@ import { ScoreboardComponent } from '../../components/scoreboard/scoreboard.comp
     BattleHeaderComponent,
     PokemonCardComponent,
     ScoreboardComponent,
+    PokemonIconsModule,
+    PokemonIconComponent,
+  ],
+  animations: [
+    trigger('battleStart', [
+      state(
+        'hidden',
+        style({
+          opacity: 0,
+          transform: 'scale(0.5)',
+        })
+      ),
+      state(
+        'visible',
+        style({
+          opacity: 1,
+          transform: 'scale(1)',
+        })
+      ),
+      transition('hidden => visible', [animate('0.5s ease-out')]),
+    ]),
+    trigger('vsAnimation', [
+      state(
+        'hidden',
+        style({
+          opacity: 0,
+          transform: 'scale(0.2) rotate(-20deg)',
+        })
+      ),
+      state(
+        'visible',
+        style({
+          opacity: 1,
+          transform: 'scale(1) rotate(0)',
+        })
+      ),
+      transition('hidden => visible', [
+        animate('0.7s 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'),
+      ]),
+    ]),
+    trigger('iconAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.5)' }),
+        animate('0.5s ease-out', style({ opacity: 1, transform: 'scale(1)' })),
+      ]),
+      transition(':leave', [
+        animate('0.3s ease-in', style({ opacity: 0, transform: 'scale(0.5)' })),
+      ]),
+    ]),
   ],
 })
 export class BattleComponent {
@@ -49,6 +108,24 @@ export class BattleComponent {
   winner = signal<string | null>(null);
   teamOneScore = signal(0);
   teamTwoScore = signal(0);
+  battleStartState = 'hidden';
+  vsState = 'hidden';
+  selectedGym = 'fire-gym'; // Pode ser 'fire-gym', 'water-gym', ou 'electric-gym'
+
+  // Novas propriedades para animações de ícones
+  showAttackIcon = false;
+  attackIconPosition = { x: 0, y: 0 };
+  attackIconType = '';
+
+  // Propriedade para o Pokémon mais forte da batalha
+  strongestPokemon: Pokemon | null = null;
+
+  // Propriedade para animação de novo Pokémon
+  newPokemonAnimation = {
+    show: false,
+    position: { x: 0, y: 0 },
+    player: 1, // 1 ou 2
+  };
 
   // Flag para controlar o cancelamento da batalha
   private battleCancelled = false;
@@ -91,6 +168,10 @@ export class BattleComponent {
       return;
     }
 
+    // Mostrar animação de início de batalha com o ícone do ginásio selecionado
+    this.showBattleStartAnimation();
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Resetar a flag de cancelamento
     this.battleCancelled = false;
     this.battleInProgress.set(true);
@@ -100,6 +181,7 @@ export class BattleComponent {
     this.teamOneScore.set(0);
     this.teamTwoScore.set(0);
     this.battleLog.set([]);
+    this.strongestPokemon = null;
 
     let teamOnePokemons = [...this.teamOne()].map((p) => ({
       ...p,
@@ -125,6 +207,12 @@ export class BattleComponent {
 
       const p1 = teamOnePokemons[p1Index];
       const p2 = teamTwoPokemons[p2Index];
+
+      // Mostrar animação de novo Pokémon selecionado
+      this.showNewPokemonAnimation(p1, 1);
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      this.showNewPokemonAnimation(p2, 2);
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       const logEntry = `Turno ${this.turnNumber()}: ${p1.name} enfrenta ${
         p2.name
@@ -165,6 +253,9 @@ export class BattleComponent {
           p1IsSuperEffective: false,
           p2IsSuperEffective: isSuperEffective1,
         });
+
+        // Mostrar animação de ataque com ícone
+        this.showAttackAnimation(p1, p2, isSuperEffective1);
       } else {
         this.currentBattle.set({
           p1,
@@ -176,6 +267,9 @@ export class BattleComponent {
           p1IsSuperEffective: isSuperEffective1,
           p2IsSuperEffective: false,
         });
+
+        // Mostrar animação de ataque com ícone
+        this.showAttackAnimation(p2, p1, isSuperEffective1);
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -269,6 +363,9 @@ export class BattleComponent {
             p1IsSuperEffective: false,
             p2IsSuperEffective: isSuperEffective2,
           });
+
+          // Mostrar animação de ataque com ícone
+          this.showAttackAnimation(p1, p2, isSuperEffective2);
         } else {
           this.currentBattle.set({
             p1,
@@ -280,6 +377,9 @@ export class BattleComponent {
             p1IsSuperEffective: isSuperEffective2,
             p2IsSuperEffective: false,
           });
+
+          // Mostrar animação de ataque com ícone
+          this.showAttackAnimation(p2, p1, isSuperEffective2);
         }
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -357,6 +457,9 @@ export class BattleComponent {
           }
         }
       }
+
+      // Atualizar o Pokémon mais forte da batalha
+      this.updateStrongestPokemon([...teamOnePokemons, ...teamTwoPokemons]);
 
       this.turnNumber.set(this.turnNumber() + 1);
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -442,6 +545,7 @@ export class BattleComponent {
     this.winner.set(null);
     this.teamOneScore.set(0);
     this.teamTwoScore.set(0);
+    this.strongestPokemon = null;
 
     if (this.teamOneBuilder) {
       this.teamOneBuilder.team.set([]);
@@ -466,6 +570,7 @@ export class BattleComponent {
     this.winner.set(null);
     this.teamOneScore.set(0);
     this.teamTwoScore.set(0);
+    this.strongestPokemon = null;
 
     // Limpar os times nos builders
     if (this.teamOneBuilder) {
@@ -484,5 +589,117 @@ export class BattleComponent {
   getActiveTeamTwoCount(): number {
     return this.teamTwo().filter((pokemon) => pokemon.isFainted !== true)
       .length;
+  }
+
+  // Novos métodos para animações com ícones
+
+  showBattleStartAnimation() {
+    // Implementação da animação de início de batalha com o ícone do ginásio
+    const battleArena = document.querySelector('.battle-arena');
+    if (battleArena) {
+      const rect = battleArena.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      // Criar elemento de animação
+      const animationElement = document.createElement('div');
+      animationElement.className = 'battle-start-animation';
+      animationElement.style.position = 'absolute';
+      animationElement.style.left = `${centerX}px`;
+      animationElement.style.top = `${centerY}px`;
+      animationElement.style.transform = 'translate(-50%, -50%)';
+      animationElement.style.zIndex = '1000';
+
+      // Adicionar ícone do ginásio
+      const iconElement = document.createElement('div');
+      iconElement.setAttribute('appPokemonIcon', this.selectedGym);
+      iconElement.setAttribute('size', 'xl');
+
+      animationElement.appendChild(iconElement);
+      document.body.appendChild(animationElement);
+
+      // Animar e remover após a animação
+      setTimeout(() => {
+        document.body.removeChild(animationElement);
+      }, 2000);
+    }
+  }
+
+  showAttackAnimation(
+    attacker: Pokemon,
+    defender: Pokemon,
+    isSuperEffective: boolean
+  ) {
+    // Determinar o tipo de ícone de ataque com base no tipo do Pokémon
+    let attackIconId = 'fight';
+    if (attacker.type && attacker.type.length > 0) {
+      const type = attacker.type[0].toLowerCase();
+      if (type === 'fire') attackIconId = 'fire-attack';
+      else if (type === 'water') attackIconId = 'water-attack';
+      else if (type === 'grass') attackIconId = 'grass-attack';
+      else if (type === 'electric') attackIconId = 'electric-attack';
+    }
+
+    // Configurar a animação
+    this.showAttackIcon = true;
+    this.attackIconType = attackIconId;
+
+    // Obter posição do defensor para animar o ícone
+    const defenderElement = document.getElementById(`pokemon-${defender.id}`);
+    if (defenderElement) {
+      const rect = defenderElement.getBoundingClientRect();
+      this.attackIconPosition = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      };
+    }
+
+    // Esconder o ícone após a animação
+    setTimeout(() => {
+      this.showAttackIcon = false;
+    }, 800);
+  }
+
+  showNewPokemonAnimation(pokemon: Pokemon, player: number) {
+    const pokemonElement = document.getElementById(`pokemon-${pokemon.id}`);
+
+    if (pokemonElement) {
+      const rect = pokemonElement.getBoundingClientRect();
+
+      this.newPokemonAnimation = {
+        show: true,
+        position: {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        },
+        player: player,
+      };
+
+      // Esconder a animação após um tempo
+      setTimeout(() => {
+        this.newPokemonAnimation.show = false;
+      }, 1500);
+    }
+  }
+
+  updateStrongestPokemon(pokemons: Pokemon[]) {
+    if (!pokemons || pokemons.length === 0) {
+      this.strongestPokemon = null;
+      return;
+    }
+
+    // Encontrar o Pokémon com maior ataque
+    let strongest = pokemons[0];
+    for (const pokemon of pokemons) {
+      if (pokemon.stats.attack > strongest.stats.attack) {
+        strongest = pokemon;
+      }
+    }
+
+    this.strongestPokemon = strongest;
+  }
+
+  isPokemonStrongest(pokemon: Pokemon): boolean {
+    return this.strongestPokemon?.id === pokemon.id;
   }
 }

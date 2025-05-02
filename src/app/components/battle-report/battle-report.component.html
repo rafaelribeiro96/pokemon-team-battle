@@ -1,11 +1,72 @@
-<!-- battle-report.component.html -->
-<div class="report-container">
-  <h2>Relatório da Batalha</h2>
-  <div class="report-content" #scrollBox>
-    <ul>
-      <li *ngFor="let entry of log" @newLogEntry>
-        <span [innerHTML]="formatLogEntry(entry)"></span>
-      </li>
-    </ul>
+<div class="battle-report">
+  <div class="report-header">
+    <app-pokemon-icon iconId="crown" size="md"></app-pokemon-icon>
+    <h3>Relatório de Batalha</h3>
+  </div>
+
+  <div class="report-content">
+    <div class="winner-section" *ngIf="winner">
+      <h4>Vencedor</h4>
+      <div class="winner-info">
+        <app-pokemon-icon [iconId]="winner.avatar || 'pikachu'" size="lg"></app-pokemon-icon>
+        <div class="winner-name">{{ winner.name }}</div>
+      </div>
+    </div>
+
+    <div class="stats-section">
+      <h4>Estatísticas</h4>
+
+      <div class="stat-item">
+        <div class="stat-icon">
+          <app-pokemon-icon iconId="fight" size="sm"></app-pokemon-icon>
+        </div>
+        <div class="stat-label">Total de Ataques:</div>
+        <div class="stat-value">{{ battleStats.totalAttacks }}</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-icon">
+          <app-pokemon-icon iconId="crown" size="sm"></app-pokemon-icon>
+        </div>
+        <div class="stat-label">Pokémon Mais Forte:</div>
+        <div class="stat-value">{{ battleStats.strongestPokemon?.name }}</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-icon">
+          <app-pokemon-icon iconId="pokeball" size="sm"></app-pokemon-icon>
+        </div>
+        <div class="stat-label">Pokémon Utilizados:</div>
+        <div class="stat-value">{{ battleStats.totalPokemon }}</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-icon">
+          <app-pokemon-icon iconId="coin" size="sm"></app-pokemon-icon>
+        </div>
+        <div class="stat-label">Pontos Ganhos:</div>
+        <div class="stat-value">{{ battleStats.pointsEarned }}</div>
+      </div>
+    </div>
+
+    <div class="battle-log">
+      <h4>Log da Batalha</h4>
+      <div class="log-entries">
+        <div *ngFor="let entry of battleLog" class="log-entry">
+          <div class="log-icon" [ngSwitch]="entry.type">
+            <app-pokemon-icon *ngSwitchCase="'attack'" iconId="fight" size="xs"></app-pokemon-icon>
+            <app-pokemon-icon *ngSwitchCase="'faint'" iconId="open-pokeball" size="xs"></app-pokemon-icon>
+            <app-pokemon-icon *ngSwitchCase="'switch'" iconId="pokeball" size="xs"></app-pokemon-icon>
+            <app-pokemon-icon *ngSwitchDefault iconId="pokedex" size="xs"></app-pokemon-icon>
+          </div>
+          <div class="log-message">{{ entry.message }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-actions">
+    <button class="action-btn" (click)="closeReport()">Fechar</button>
+    <button class="action-btn primary" (click)="newBattle()">Nova Batalha</button>
   </div>
 </div>
