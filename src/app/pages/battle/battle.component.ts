@@ -448,38 +448,27 @@ export class BattleComponent {
     // Definir a flag para interromper o loop de batalha
     this.battleCancelled = true;
 
-    this.battleInProgress.set(false);
-    this.battleEnded.set(false);
+    // Limpar todos os estados, igual ao resetBattle()
+    this.teamOne.set([]);
+    this.teamTwo.set([]);
+    this.battleLog.set([]); // Limpar o relatório de batalha
     this.currentBattle.set({ p1: null, p2: null });
+    this.turnNumber.set(0);
+    this.battleEnded.set(false);
+    this.battleInProgress.set(false);
+    this.winner.set(null);
+    this.teamOneScore.set(0);
+    this.teamTwoScore.set(0);
 
-    // Restaurar HP de todos os Pokémon
-    const resetTeamOne = this.teamOne().map((pokemon) => ({
-      ...pokemon,
-      stats: { ...pokemon.stats, hp: pokemon.stats.maxHp },
-      isFainted: false,
-    }));
-
-    const resetTeamTwo = this.teamTwo().map((pokemon) => ({
-      ...pokemon,
-      stats: { ...pokemon.stats, hp: pokemon.stats.maxHp },
-      isFainted: false,
-    }));
-
-    this.teamOne.set(resetTeamOne);
-    this.teamTwo.set(resetTeamTwo);
-
-    // Atualizar os times nos builders
+    // Limpar os times nos builders
     if (this.teamOneBuilder) {
-      this.teamOneBuilder.team.set(resetTeamOne);
+      this.teamOneBuilder.team.set([]);
     }
     if (this.teamTwoBuilder) {
-      this.teamTwoBuilder.team.set(resetTeamTwo);
+      this.teamTwoBuilder.team.set([]);
     }
 
-    this.battleLog.update((currentLog) => [
-      ...currentLog,
-      'Batalha cancelada pelo usuário.',
-    ]);
+    // Não adicionar mensagem ao log, já que estamos limpando o log
   }
 
   getActiveTeamOneCount(): number {
