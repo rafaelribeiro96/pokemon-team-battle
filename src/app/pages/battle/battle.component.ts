@@ -1,3 +1,4 @@
+/* battle.component.ts */
 import { Component, signal, ViewChild } from '@angular/core';
 import { TeamBuilderComponent } from '../../components/team-builder/team-builder.component';
 import { MatButtonModule } from '@angular/material/button';

@@ -1,3 +1,4 @@
+/* app.routes.ts */
 import { Route } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { BattleComponent } from './pages/battle/battle.component';

@@ -1,3 +1,4 @@
+/* team-builder.component.ts */
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { PokemonService } from '../../services/pokemon.service';
 import { Pokemon } from '../../models/pokemon.model';

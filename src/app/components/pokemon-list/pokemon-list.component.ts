@@ -1,3 +1,4 @@
+/* pokemon-list.component.ts */
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Pokemon } from '../../models/pokemon.model';
 import { CommonModule } from '@angular/common';

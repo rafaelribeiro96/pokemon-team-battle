@@ -1,3 +1,4 @@
+/* pokemon.service.ts */
 import { Injectable, signal } from '@angular/core';
 import axios from 'axios';
 import { Pokemon } from '../models/pokemon.model';

@@ -1,3 +1,4 @@
+/* battle.animations.ts */
 import { trigger, transition, style, animate } from '@angular/animations';
 
 export const battleAnimations = [
