@@ -1,12 +1,13 @@
-import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-battle-report',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './battle-report.component.html',
-  styleUrl: './battle-report.component.scss'
+  styleUrls: ['./battle-report.component.scss'],
 })
 export class BattleReportComponent {
-
+  @Input() log: string[] = [];
 }

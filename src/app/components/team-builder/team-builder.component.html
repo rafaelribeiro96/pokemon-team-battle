@@ -7,7 +7,7 @@
 
   <h3>Time Atual</h3>
   <div class="team">
-    <div *ngFor="let pokemon of team()">
+    <div *ngFor="let pokemon of team()" class="pokemon-card" [class.defeated]="pokemon.isDefeated">
       <img [src]="pokemon.image" [alt]="pokemon.name" />
       <span>{{ pokemon.name }}</span>
       <button mat-button color="warn" (click)="removePokemonFromTeam(pokemon)">

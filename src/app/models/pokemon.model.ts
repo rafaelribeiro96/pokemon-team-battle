@@ -4,9 +4,10 @@ export interface Pokemon {
   image: string;
   type: string[];
   stats: {
-    hp: number;
     attack: number;
     defense: number;
     speed: number;
+    hp: number;
   };
+  isDefeated?: boolean;
 }

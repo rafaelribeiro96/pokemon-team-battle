@@ -71,3 +71,26 @@
     }
   }
 }
+
+.pokemon-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f9f9f9;
+  transition: transform 0.3s, opacity 0.3s;
+
+  img {
+    width: 50px;
+    height: 50px;
+  }
+
+  &.defeated {
+    opacity: 0.5;
+    transform: scale(0.9);
+    filter: grayscale(100%);
+    background: #ffe6e6; /* Fundo vermelho claro para indicar derrota */
+  }
+}
