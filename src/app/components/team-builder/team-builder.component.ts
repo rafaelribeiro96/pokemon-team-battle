@@ -20,7 +20,7 @@ export class TeamBuilderComponent {
     this.pokemonService.fetchPokemons().then(() => {
       const pokemons = this.pokemonService.pokemons().map((pokemon) => ({
         ...pokemon,
-        stats: { ...pokemon.stats, maxHp: pokemon.stats.hp }, // Define maxHp inicial
+        stats: { ...pokemon.stats, maxHp: pokemon.stats.hp },
       }));
       this.availablePokemons.set(pokemons);
     });

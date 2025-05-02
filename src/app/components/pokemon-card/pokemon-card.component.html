@@ -1,7 +1,7 @@
-<div class="pokemon-card" [ngClass]="{ 'attacking': isAttacking, 'fainted': isFainted }">
+<div class="pokemon-card" [ngClass]="{ 'attacking': isAttacking, 'fainted': pokemon.isFainted }">
   <img [src]="pokemon.image" [alt]="pokemon.name" />
   <h4>{{ pokemon.name }}</h4>
   <div class="hp-bar">
-    <div class="hp" [style.width.%]="(pokemon.stats.hp / 100) * 100"></div>
+    <div class="hp" [style.width.%]="(pokemon.stats.hp / pokemon.stats.maxHp) * 100"></div>
   </div>
 </div>
