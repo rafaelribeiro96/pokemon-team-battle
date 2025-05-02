@@ -1,0 +1,24 @@
+<div class="team-builder">
+  <h2>Monte Seu Time</h2>
+  <div class="team-actions">
+    <button mat-raised-button color="primary" (click)="addRandomToTeam()">Escolha Aleatória</button>
+    <button mat-raised-button color="accent" (click)="autoCompleteTeam()">Auto-Completar</button>
+  </div>
+
+  <h3>Time Atual</h3>
+  <div class="team">
+    <div *ngFor="let pokemon of team()">
+      <img [src]="pokemon.image" [alt]="pokemon.name" />
+      <span>{{ pokemon.name }}</span>
+      <button mat-button color="warn" (click)="removePokemonFromTeam(pokemon)">
+        Remover
+      </button>
+    </div>
+  </div>
+
+  <h3>Lista de Pokémon</h3>
+  <app-pokemon-list
+    [pokemons]="availablePokemons()"
+    (selectPokemon)="addPokemonToTeam($event)"
+  ></app-pokemon-list>
+</div>

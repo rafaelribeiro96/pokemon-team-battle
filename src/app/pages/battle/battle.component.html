@@ -1,0 +1,14 @@
+<div class="battle-container">
+  <h1>Batalha Pokémon</h1>
+  <div class="teams">
+    <app-team-builder></app-team-builder>
+    <app-team-builder></app-team-builder>
+  </div>
+  <button mat-raised-button color="accent" (click)="startBattle()">Lutar!</button>
+  <div class="battle-log">
+    <h2>Relatório da Batalha</h2>
+    <ul>
+      <li *ngFor="let log of battleLog()">{{ log }}</li>
+    </ul>
+  </div>
+</div>

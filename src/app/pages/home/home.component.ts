@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  selector: 'app-home',
   standalone: true,
   imports: [RouterModule],
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.scss',
 })
-export class AppComponent {}
+export class HomeComponent {}

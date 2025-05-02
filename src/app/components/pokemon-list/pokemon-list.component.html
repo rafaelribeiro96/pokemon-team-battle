@@ -1,0 +1,19 @@
+<div class="pokemon-list">
+  <div
+    class="pokemon-card"
+    *ngFor="let pokemon of pokemons"
+    (click)="onPokemonClick(pokemon)"
+  >
+    <img [src]="pokemon.image" [alt]="pokemon.name" class="pokemon-image" />
+    <div class="pokemon-info">
+      <h4 class="pokemon-name">{{ pokemon.name }}</h4>
+    </div>
+    <div class="pokemon-hover">
+      <p><strong>Tipos:</strong> {{ pokemon.type.join(', ') }}</p>
+      <p><strong>HP:</strong> {{ pokemon.stats.hp }}</p>
+      <p><strong>Ataque:</strong> {{ pokemon.stats.attack }}</p>
+      <p><strong>Defesa:</strong> {{ pokemon.stats.defense }}</p>
+      <p><strong>Velocidade:</strong> {{ pokemon.stats.speed }}</p>
+    </div>
+  </div>
+</div>
