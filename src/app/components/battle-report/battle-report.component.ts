@@ -59,7 +59,7 @@ interface LogEntry {
             </div>
             <div class="stat-label">Pokémon Mais Forte:</div>
             <div class="stat-value">
-              {{ battleStats.strongestPokemon?.name }}
+              {{ battleStats.strongestPokemon.name }}
             </div>
           </div>
 
