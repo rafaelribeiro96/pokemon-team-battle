@@ -1,0 +1,12 @@
+<div class="items-per-page-container">
+  <span class="items-per-page-label">Itens por página:</span>
+  <div class="items-per-page-options">
+    <button
+      *ngFor="let option of options"
+      [class.active]="selected === option"
+      (click)="onSelectionChange(option)"
+      class="items-per-page-button">
+      {{ option }}
+    </button>
+  </div>
+</div>

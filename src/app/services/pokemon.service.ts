@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 import {
   Pokemon,
   PokemonDetail,
@@ -16,13 +17,155 @@ export class PokemonService {
   private cachedTypes: string[] = [];
   private cachedEvolutions: Map<number, EvolutionPokemon[]> = new Map();
   private _pokemons = signal<Pokemon[]>([]);
-  private totalPokemonCount = 898; // Número total de Pokémon na API (até a 8ª geração)
 
-  constructor() {}
+  // Observables para monitorar o progresso do carregamento
+  private loadingProgress = new BehaviorSubject<number>(0);
+  private isLoadingComplete = new BehaviorSubject<boolean>(false);
+  private isPreloadingActive = false;
+
+  constructor() {
+    // Iniciar pré-carregamento quando o serviço for injetado
+    this.preloadAllPokemon();
+  }
+
+  // Método para pré-carregar todos os Pokémon em segundo plano
+  async preloadAllPokemon(): Promise<void> {
+    if (this.isPreloadingActive) {
+      return; // Evitar múltiplos carregamentos simultâneos
+    }
+
+    this.isPreloadingActive = true;
+
+    try {
+      // Primeiro, obter o número total de Pokémon
+      const totalCount = await this.getTotalPokemonCount();
+      console.log(
+        `Iniciando pré-carregamento de ${totalCount} Pokémon regulares...`
+      );
+
+      // Definir o tamanho do lote para não sobrecarregar a API
+      const batchSize = 50;
+      const totalBatches = Math.ceil(totalCount / batchSize);
+
+      // Carregar Pokémon regulares em lotes
+      for (let i = 0; i < totalBatches; i++) {
+        const offset = i * batchSize;
+        const limit = Math.min(batchSize, totalCount - offset);
+
+        await this.fetchPokemonList(offset, limit);
+
+        // Atualizar o progresso (90% para Pokémon regulares)
+        const progress = Math.min(
+          90,
+          Math.round((((i + 1) * batchSize) / totalCount) * 90)
+        );
+        this.loadingProgress.next(progress);
+
+        console.log(
+          `Progresso: ${progress}% (${this.cachedList.length} Pokémon regulares)`
+        );
+
+        // Pequena pausa para não sobrecarregar a API
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      // Agora carregar Pokémon especiais (IDs 10001+)
+      console.log(
+        'Carregando Pokémon especiais (formas alternativas, mega evoluções, etc.)...'
+      );
+      await this.loadSpecialPokemon();
+
+      console.log(
+        `Pré-carregamento concluído! ${this.cachedList.length} Pokémon carregados no total.`
+      );
+      this.isLoadingComplete.next(true);
+    } catch (error) {
+      console.error('Erro durante o pré-carregamento:', error);
+    } finally {
+      this.isPreloadingActive = false;
+    }
+  }
+
+  // Método para carregar Pokémon especiais (IDs 10001+)
+  private async loadSpecialPokemon(): Promise<void> {
+    try {
+      // IDs conhecidos de Pokémon especiais (10001-10277)
+      const startId = 10001;
+      const endId = 10277;
+
+      // Carregar em lotes menores para não sobrecarregar a API
+      const batchSize = 20;
+      const totalSpecial = endId - startId + 1;
+
+      for (let i = 0; i < totalSpecial; i += batchSize) {
+        const batchPromises = [];
+
+        for (let j = 0; j < batchSize && i + j < totalSpecial; j++) {
+          const id = startId + i + j;
+          batchPromises.push(
+            this.fetchBasicPokemonData(id).catch((err) => {
+              console.log(
+                `Pokémon especial ${id} não encontrado ou indisponível`
+              );
+              return null;
+            })
+          );
+        }
+
+        const batchResults = await Promise.all(batchPromises);
+        const validResults = batchResults.filter((pokemon) => pokemon !== null);
+
+        // Adicionar ao cache
+        for (const pokemon of validResults) {
+          if (pokemon && !this.cachedList.some((p) => p.id === pokemon.id)) {
+            this.cachedList.push(pokemon);
+          }
+        }
+
+        // Atualizar progresso (90-100% para Pokémon especiais)
+        const specialProgress = Math.min(
+          10,
+          Math.round(((i + batchSize) / totalSpecial) * 10)
+        );
+        this.loadingProgress.next(90 + specialProgress);
+
+        console.log(
+          `Progresso especiais: ${90 + specialProgress}% (${
+            this.cachedList.length
+          } Pokémon no total)`
+        );
+
+        // Pausa para não sobrecarregar a API
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // Ordenar a lista completa por ID
+      this.cachedList.sort((a, b) => a.id - b.id);
+    } catch (error) {
+      console.error('Erro ao carregar Pokémon especiais:', error);
+    }
+  }
+
+  // Observables para monitorar o progresso
+  getLoadingProgress(): Observable<number> {
+    return this.loadingProgress.asObservable();
+  }
+
+  getLoadingStatus(): Observable<boolean> {
+    return this.isLoadingComplete.asObservable();
+  }
 
   // Método para compatibilidade com TeamBuilderComponent
   async fetchPokemons(limit: number = 151): Promise<Pokemon[]> {
     try {
+      // Se já temos todos os Pokémon em cache, use-os
+      if (this.cachedList.length >= limit) {
+        const result = this.cachedList.slice(0, limit);
+        this._pokemons.set(result);
+        return result;
+      }
+
+      // Caso contrário, busque-os
       const pokemonList = await this.fetchPokemonList(0, limit);
       this._pokemons.set(pokemonList);
       return pokemonList;
@@ -74,11 +217,16 @@ export class PokemonService {
       if (offset === 0) {
         this.cachedList = pokemonList;
       } else {
-        // Garantir que não haja duplicatas
+        // Garantir que não haja duplicatas e manter a ordem correta
         const newPokemon = pokemonList.filter(
           (pokemon) => !this.cachedList.some((p) => p.id === pokemon.id)
         );
+
+        // Adicionar os novos Pokémon ao cache
         this.cachedList = [...this.cachedList, ...newPokemon];
+
+        // Ordenar por ID
+        this.cachedList.sort((a, b) => a.id - b.id);
       }
 
       console.log(
@@ -94,19 +242,24 @@ export class PokemonService {
   // Método para obter o número total de Pokémon
   async getTotalPokemonCount(): Promise<number> {
     try {
-      // Se já temos o valor em cache, retornamos
-      if (this.totalPokemonCount > 0) {
-        return this.totalPokemonCount;
-      }
-
       const response = await fetch(`${this.apiUrl}/pokemon?limit=1`);
       const data = await response.json();
-      this.totalPokemonCount = data.count;
-      return this.totalPokemonCount;
+      return data.count;
     } catch (error) {
       console.error('Erro ao buscar contagem total de Pokémon:', error);
-      return 898; // Valor padrão caso ocorra erro
+      return 1025; // Valor padrão caso ocorra erro (atualizado para incluir todas as gerações)
     }
+  }
+
+  // Método para obter uma página específica de Pokémon do cache
+  getPokemonPage(page: number, itemsPerPage: number): Pokemon[] {
+    const startIndex = (page - 1) * itemsPerPage;
+    return this.cachedList.slice(startIndex, startIndex + itemsPerPage);
+  }
+
+  // Método para obter o número total de páginas com base no tamanho da página
+  getTotalPages(itemsPerPage: number): number {
+    return Math.ceil(this.cachedList.length / itemsPerPage);
   }
 
   async fetchAllPokemonTypes(): Promise<string[]> {
@@ -136,7 +289,7 @@ export class PokemonService {
       const data = await response.json();
 
       const pokemonPromises = data.pokemon
-        .slice(0, 50) // Aumentado para 50 para mostrar mais Pokémon por tipo
+        .slice(0, 100) // Aumentado para 100 para mostrar mais Pokémon por tipo
         .map(async (entry: { pokemon: { name: string; url: string } }) => {
           const id = this.extractIdFromUrl(entry.pokemon.url);
           return this.fetchBasicPokemonData(id);
@@ -151,7 +304,7 @@ export class PokemonService {
 
   async searchPokemon(query: string): Promise<Pokemon[]> {
     if (!query) {
-      return this.fetchPokemonList(0, 20);
+      return this.getPokemonPage(1, 20);
     }
 
     query = query.toLowerCase();
@@ -168,11 +321,15 @@ export class PokemonService {
         }
       }
 
-      // Buscar todos os Pokémon para pesquisa por nome parcial
-      // Aumentamos o limite para garantir que mais Pokémon sejam carregados
-      if (this.cachedList.length < 251) {
-        await this.fetchPokemonList(0, 251); // Carregar pelo menos os 251 primeiros
+      // Se temos Pokémon em cache, usamos o cache para pesquisa
+      if (this.cachedList.length > 0) {
+        return this.cachedList.filter((pokemon) =>
+          pokemon.name.toLowerCase().includes(query)
+        );
       }
+
+      // Caso contrário, carregamos mais Pokémon para a pesquisa
+      await this.fetchPokemonList(0, 500); // Carregar mais Pokémon para pesquisa
 
       // Filtrar por nome parcial
       return this.cachedList.filter((pokemon) =>

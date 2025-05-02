@@ -1,0 +1,36 @@
+.items-per-page-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 15px;
+}
+
+.items-per-page-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.items-per-page-options {
+  display: flex;
+  gap: 5px;
+}
+
+.items-per-page-button {
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #e0e0e0;
+  }
+
+  &.active {
+    background-color: #e3350d;
+    color: white;
+    border-color: #e3350d;
+  }
+}

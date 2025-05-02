@@ -50,6 +50,7 @@
     transition: background-color 0.3s ease;
     white-space: nowrap;
     min-width: 100px;
+    z-index: 100;
 
     &:hover {
       background-color: darken(#ff0000, 10%);

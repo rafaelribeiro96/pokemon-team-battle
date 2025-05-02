@@ -1,23 +1,24 @@
 <div class="pokedex-container">
   <div class="pokedex-header">
     <div class="pokedex-title">
-      <span class="pokedex-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <circle cx="12" cy="12" r="3"></circle>
-          <line x1="12" y1="2" x2="12" y2="4"></line>
-          <line x1="12" y1="20" x2="12" y2="22"></line>
-          <line x1="4" y1="12" x2="2" y2="12"></line>
-          <line x1="22" y1="12" x2="20" y2="12"></line>
-        </svg>
-      </span>
+      <i class="pokedex-icon"></i>
       <h1>Pokédex</h1>
     </div>
 
-    <div class="search-section">
-      <app-search-bar (search)="onSearch($event)"></app-search-bar>
-    </div>
+    <app-search-bar (search)="onSearch($event)"></app-search-bar>
+  </div>
 
+  <!-- Barra de progresso do carregamento global -->
+  <div *ngIf="!isLoadingComplete" class="global-loading-progress">
+    <div class="progress-text">
+      Carregando todos os Pokémon: {{ loadingProgress }}%
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="loadingProgress"></div>
+    </div>
+  </div>
+
+  <div class="filters-container">
     <app-type-filter
       [types]="pokemonTypes"
       [selectedType]="selectedType"
@@ -30,22 +31,28 @@
     <p>Carregando Pokémon...</p>
   </div>
 
-  <div *ngIf="!loading && pokemonList.length === 0" class="no-results">
-    <img src="/assets/images/pikachu-notfound.gif" alt="Nenhum resultado" class="pikachu-notfound">
-    <p>Nenhum Pokémon encontrado. Tente uma pesquisa ou filtro diferente.</p>
-  </div>
-
-  <div class="pokemon-grid">
+  <div *ngIf="!loading" class="pokemon-grid">
     <app-pokedex-card
-      *ngFor="let pokemon of searchResults || pokemonList"
+      *ngFor="let pokemon of (searchResults || pokemonList)"
       [pokemon]="pokemon">
     </app-pokedex-card>
+
+    <div *ngIf="(searchResults || pokemonList).length === 0" class="no-results">
+      <p>Nenhum Pokémon encontrado.</p>
+    </div>
   </div>
 
-  <app-pagination
-    *ngIf="!searchResults && totalPages > 1"
-    [currentPage]="currentPage"
-    [totalPages]="totalPages"
-    (pageChange)="onPageChange($event)">
-  </app-pagination>
+  <div *ngIf="!loading && !searchResults && !selectedType" class="pagination-controls">
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+
+    <app-items-per-page
+      [options]="itemsPerPageOptions"
+      [selected]="itemsPerPage"
+      (selectionChange)="onItemsPerPageChange($event)">
+    </app-items-per-page>
+  </div>
 </div>
