@@ -14,7 +14,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('/assets/images/pokemon-pattern.png');
+    background: url('/assets/images/pokemon-pattern.PNG');
     opacity: 0.05;
     z-index: 0;
   }
@@ -22,6 +22,9 @@
   .pokemon-logo {
     max-width: 300px;
     margin: 0 auto 20px;
+    position: relative;
+    z-index: 1;
+    animation: float 3s infinite ease-in-out;
 
     img {
       width: 100%;
@@ -42,6 +45,8 @@
   .battle-intro {
     max-width: 600px;
     margin: 0 auto 40px;
+    position: relative;
+    z-index: 1;
 
     p {
       font-size: 1.2rem;
@@ -57,6 +62,8 @@
     gap: 30px;
     margin-bottom: 50px;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
 
     .feature {
       background-color: white;
@@ -74,6 +81,7 @@
       .feature-icon {
         font-size: 2.5rem;
         margin-bottom: 15px;
+        animation: pulse 2s infinite ease-in-out;
       }
 
       h3 {
@@ -92,7 +100,7 @@
   .start-button {
     font-size: 1.2rem;
     padding: 12px 30px;
-    background-color: var(--pokemon-red);
+    background: linear-gradient(45deg, #ff0000, #cc0000);
     color: white;
     border: none;
     border-radius: 30px;
@@ -102,10 +110,29 @@
     transition: all 0.3s ease;
     position: relative;
     z-index: 1;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent);
+      transition: all 0.5s ease;
+    }
 
     &:hover {
       transform: translateY(-5px);
       box-shadow: 0 8px 25px rgba(255, 0, 0, 0.4);
+
+      &::before {
+        animation: shine 1.5s infinite;
+      }
     }
   }
 

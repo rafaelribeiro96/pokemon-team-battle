@@ -1,7 +1,6 @@
 <!-- pokemon-card.component.html -->
 <div class="pokemon-card"
-     [ngClass]="{ 'attacking': isAttacking, 'fainted': pokemon.isFainted, 'defending': isDefending, 'type-themed': true }"
-     [class]="typeClass"
+     [ngClass]="getCardClasses()"
      [@attackEffect]="attackEffectState">
   <img [src]="pokemon.image" [alt]="pokemon.name" />
   <h4>{{ pokemon.name }}</h4>

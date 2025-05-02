@@ -1,4 +1,3 @@
-/* battle.component.ts */
 import { Component, signal, ViewChild } from '@angular/core';
 import { TeamBuilderComponent } from '../../components/team-builder/team-builder.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -51,6 +50,9 @@ export class BattleComponent {
   teamOneScore = signal(0);
   teamTwoScore = signal(0);
 
+  // Flag para controlar o cancelamento da batalha
+  private battleCancelled = false;
+
   // Mapeamento de tipos e suas fraquezas
   typeWeaknesses: { [key: string]: string[] } = {
     fire: ['water', 'ground', 'rock'],
@@ -89,6 +91,8 @@ export class BattleComponent {
       return;
     }
 
+    // Resetar a flag de cancelamento
+    this.battleCancelled = false;
     this.battleInProgress.set(true);
     this.battleEnded.set(false);
     this.turnNumber.set(1);
@@ -110,7 +114,12 @@ export class BattleComponent {
       isAttacking: false,
     }));
 
-    while (teamOnePokemons.length > 0 && teamTwoPokemons.length > 0) {
+    // Loop principal da batalha com verificação de cancelamento
+    while (
+      teamOnePokemons.length > 0 &&
+      teamTwoPokemons.length > 0 &&
+      !this.battleCancelled
+    ) {
       const p1Index = Math.floor(Math.random() * teamOnePokemons.length);
       const p2Index = Math.floor(Math.random() * teamTwoPokemons.length);
 
@@ -134,6 +143,7 @@ export class BattleComponent {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (this.battleCancelled) break;
 
       const firstAttacker = p1.stats.speed >= p2.stats.speed ? p1 : p2;
       const secondAttacker = firstAttacker === p1 ? p2 : p1;
@@ -169,6 +179,7 @@ export class BattleComponent {
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (this.battleCancelled) break;
 
       const damage1 = this.calculateDamage(
         firstAttacker,
@@ -193,6 +204,7 @@ export class BattleComponent {
       ]);
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (this.battleCancelled) break;
 
       this.currentBattle.set({
         p1,
@@ -206,6 +218,7 @@ export class BattleComponent {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 500));
+      if (this.battleCancelled) break;
 
       if (secondAttacker === p1) {
         this.teamOneBuilder.updateTeamPokemon(secondAttacker);
@@ -270,6 +283,7 @@ export class BattleComponent {
         }
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (this.battleCancelled) break;
 
         const damage2 = this.calculateDamage(
           secondAttacker,
@@ -294,6 +308,7 @@ export class BattleComponent {
         ]);
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (this.battleCancelled) break;
 
         this.currentBattle.set({
           p1,
@@ -307,6 +322,7 @@ export class BattleComponent {
         });
 
         await new Promise((resolve) => setTimeout(resolve, 500));
+        if (this.battleCancelled) break;
 
         if (firstAttacker === p1) {
           this.teamOneBuilder.updateTeamPokemon(firstAttacker);
@@ -344,26 +360,30 @@ export class BattleComponent {
 
       this.turnNumber.set(this.turnNumber() + 1);
       await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (this.battleCancelled) break;
     }
 
-    this.currentBattle.set({ p1: null, p2: null });
-    this.battleInProgress.set(false);
+    // Se a batalha não foi cancelada, definir o vencedor
+    if (!this.battleCancelled) {
+      this.currentBattle.set({ p1: null, p2: null });
+      this.battleInProgress.set(false);
 
-    if (teamOnePokemons.length > 0) {
-      this.winner.set('Time 1');
-      this.battleLog.update((currentLog) => [
-        ...currentLog,
-        'Time 1 venceu a batalha!',
-      ]);
-    } else {
-      this.winner.set('Time 2');
-      this.battleLog.update((currentLog) => [
-        ...currentLog,
-        'Time 2 venceu a batalha!',
-      ]);
+      if (teamOnePokemons.length > 0) {
+        this.winner.set('Time 1');
+        this.battleLog.update((currentLog) => [
+          ...currentLog,
+          'Time 1 venceu a batalha!',
+        ]);
+      } else {
+        this.winner.set('Time 2');
+        this.battleLog.update((currentLog) => [
+          ...currentLog,
+          'Time 2 venceu a batalha!',
+        ]);
+      }
+
+      this.battleEnded.set(true);
     }
-
-    this.battleEnded.set(true);
   }
 
   isAttackSuperEffective(attacker: Pokemon, defender: Pokemon): boolean {
@@ -425,6 +445,9 @@ export class BattleComponent {
   }
 
   cancelBattle() {
+    // Definir a flag para interromper o loop de batalha
+    this.battleCancelled = true;
+
     this.battleInProgress.set(false);
     this.battleEnded.set(false);
     this.currentBattle.set({ p1: null, p2: null });

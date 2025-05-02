@@ -25,7 +25,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
             [ngClass]="{
               'attack-entry': entry.includes('ataca'),
               'fainted-entry': entry.includes('desmaiou'),
-              'victory-entry': entry.includes('venceu')
+              'victory-entry': entry.includes('venceu'),
+              'super-effective-entry': entry.includes('SUPER EFETIVO')
             }"
           >
             <span [innerHTML]="formatLogEntry(entry)"></span>
@@ -69,29 +70,37 @@ import { trigger, transition, style, animate } from '@angular/animations';
             padding: 8px 10px;
             margin-bottom: 8px;
             border-radius: 5px;
-            background-color: rgba(255, 203, 5, 0.1);
+            background-color: rgba(255, 203, 5, 0.3);
             border-left: 4px solid #ffcb05;
             font-size: 0.9rem;
             transition: all 0.3s ease;
+            color: #333;
+            font-weight: normal;
 
             &:hover {
-              background-color: rgba(255, 203, 5, 0.2);
+              background-color: rgba(255, 203, 5, 0.4);
               transform: translateX(5px);
             }
 
             &.attack-entry {
-              background-color: rgba(255, 87, 34, 0.1);
+              background-color: rgba(255, 87, 34, 0.3);
               border-left: 4px solid #ff5722;
             }
 
             &.fainted-entry {
-              background-color: rgba(158, 158, 158, 0.2);
+              background-color: rgba(158, 158, 158, 0.4);
               border-left: 4px solid #9e9e9e;
             }
 
             &.victory-entry {
-              background-color: rgba(76, 175, 80, 0.2);
+              background-color: rgba(76, 175, 80, 0.4);
               border-left: 4px solid #4caf50;
+              font-weight: bold;
+            }
+
+            &.super-effective-entry {
+              background-color: rgba(255, 215, 0, 0.4);
+              border-left: 4px solid #ffd700;
               font-weight: bold;
             }
           }
@@ -111,6 +120,12 @@ import { trigger, transition, style, animate } from '@angular/animations';
       .fainted {
         color: #9e9e9e;
         font-style: italic;
+      }
+
+      .super-effective {
+        color: #ffd700;
+        font-weight: bold;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
       }
     `,
   ],
@@ -154,10 +169,16 @@ export class BattleReportComponent implements OnChanges {
         '<span class="winner">$1</span> venceu a batalha!'
       );
     }
+    if (entry.includes('SUPER EFETIVO')) {
+      return entry.replace(
+        /(.*) ataca (.*) e causa (.*) de dano! $$SUPER EFETIVO!$$/,
+        '<span class="attack">$1</span> ataca <span class="attack">$2</span> e causa <span class="attack">$3</span> de dano! <span class="super-effective">(SUPER EFETIVO!)</span>'
+      );
+    }
     if (entry.includes('ataca')) {
       return entry.replace(
-        /(.*) ataca (.*) e causa (.*)/,
-        '<span class="attack">$1</span> ataca <span class="attack">$2</span> e causa <span class="attack">$3</span>'
+        /(.*) ataca (.*) e causa (.*) de dano!/,
+        '<span class="attack">$1</span> ataca <span class="attack">$2</span> e causa <span class="attack">$3</span> de dano!'
       );
     }
     if (entry.includes('desmaiou')) {

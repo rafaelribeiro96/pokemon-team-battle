@@ -1,3 +1,4 @@
+/* pokemon-card.component.ts */
 import {
   Component,
   Input,
@@ -363,5 +364,20 @@ export class PokemonCardComponent implements OnChanges, OnInit {
     };
 
     requestAnimationFrame(updateHp);
+  }
+
+  getCardClasses() {
+    const classes: { [key: string]: boolean } = {
+      attacking: this.isAttacking,
+      fainted: this.pokemon.isFainted ?? false,
+      defending: this.isDefending,
+      'type-themed': true,
+    };
+
+    if (this.typeClass) {
+      classes[this.typeClass] = true;
+    }
+
+    return classes;
   }
 }
