@@ -1,12 +1,23 @@
 <!-- pokemon-card.component.html -->
 <div class="pokemon-card"
-     [ngClass]="{ 'attacking': isAttacking, 'fainted': pokemon.isFainted, 'defending': isDefending }"
+     [ngClass]="{ 'attacking': isAttacking, 'fainted': pokemon.isFainted, 'defending': isDefending, 'type-themed': true }"
+     [class]="typeClass"
      [@attackEffect]="attackEffectState">
   <img [src]="pokemon.image" [alt]="pokemon.name" />
   <h4>{{ pokemon.name }}</h4>
 
   <div class="damage-indicator" [@damageEffect]="damageState" *ngIf="damageAmount > 0">
     -{{ damageAmount }}
+  </div>
+
+  <div class="super-effective" [@superEffectiveText]="superEffectiveState" *ngIf="isSuperEffective">
+    SUPER EFETIVO!
+  </div>
+
+  <div class="type-badges">
+    <span *ngFor="let type of pokemon.type" class="type-badge" [ngClass]="type.toLowerCase()">
+      {{ type }}
+    </span>
   </div>
 
   <div class="hp-bar">

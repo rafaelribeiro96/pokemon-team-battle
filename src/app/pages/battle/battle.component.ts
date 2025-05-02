@@ -38,6 +38,8 @@ export class BattleComponent {
     p2IsAttacking?: boolean;
     p1IsDefending?: boolean;
     p2IsDefending?: boolean;
+    p1IsSuperEffective?: boolean;
+    p2IsSuperEffective?: boolean;
   }>({
     p1: null,
     p2: null,
@@ -48,6 +50,28 @@ export class BattleComponent {
   winner = signal<string | null>(null);
   teamOneScore = signal(0);
   teamTwoScore = signal(0);
+
+  // Mapeamento de tipos e suas fraquezas
+  typeWeaknesses: { [key: string]: string[] } = {
+    fire: ['water', 'ground', 'rock'],
+    water: ['electric', 'grass'],
+    grass: ['fire', 'ice', 'poison', 'flying', 'bug'],
+    electric: ['ground'],
+    ice: ['fire', 'fighting', 'rock', 'steel'],
+    fighting: ['flying', 'psychic', 'fairy'],
+    poison: ['ground', 'psychic'],
+    ground: ['water', 'grass', 'ice'],
+    flying: ['electric', 'ice', 'rock'],
+    psychic: ['bug', 'ghost', 'dark'],
+    bug: ['fire', 'flying', 'rock'],
+    rock: ['water', 'grass', 'fighting', 'ground', 'steel'],
+    ghost: ['ghost', 'dark'],
+    dragon: ['ice', 'dragon', 'fairy'],
+    dark: ['fighting', 'bug', 'fairy'],
+    steel: ['fire', 'fighting', 'ground'],
+    fairy: ['poison', 'steel'],
+    normal: ['fighting'],
+  };
 
   setTeamOne(team: Pokemon[]) {
     this.teamOne.set(team);
@@ -105,12 +129,20 @@ export class BattleComponent {
         p2IsAttacking: false,
         p1IsDefending: false,
         p2IsDefending: false,
+        p1IsSuperEffective: false,
+        p2IsSuperEffective: false,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const firstAttacker = p1.stats.speed >= p2.stats.speed ? p1 : p2;
       const secondAttacker = firstAttacker === p1 ? p2 : p1;
+
+      // Primeiro ataque
+      const isSuperEffective1 = this.isAttackSuperEffective(
+        firstAttacker,
+        secondAttacker
+      );
 
       if (firstAttacker === p1) {
         this.currentBattle.set({
@@ -120,6 +152,8 @@ export class BattleComponent {
           p2IsAttacking: false,
           p1IsDefending: false,
           p2IsDefending: true,
+          p1IsSuperEffective: false,
+          p2IsSuperEffective: isSuperEffective1,
         });
       } else {
         this.currentBattle.set({
@@ -129,18 +163,36 @@ export class BattleComponent {
           p2IsAttacking: true,
           p1IsDefending: true,
           p2IsDefending: false,
+          p1IsSuperEffective: isSuperEffective1,
+          p2IsSuperEffective: false,
         });
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const damage1 = this.calculateDamage(firstAttacker, secondAttacker);
+      const damage1 = this.calculateDamage(
+        firstAttacker,
+        secondAttacker,
+        isSuperEffective1
+      );
+
+      // Atualiza o HP diretamente no objeto do Pokémon
       secondAttacker.stats.hp = Math.max(0, secondAttacker.stats.hp - damage1);
 
+      // Atualiza o objeto currentBattle para refletir a mudança de HP
+      this.currentBattle.update((current) => ({
+        ...current,
+        p1: current.p1 === secondAttacker ? { ...secondAttacker } : current.p1,
+        p2: current.p2 === secondAttacker ? { ...secondAttacker } : current.p2,
+      }));
+
+      const effectivenessText = isSuperEffective1 ? ' (SUPER EFETIVO!)' : '';
       this.battleLog.update((currentLog) => [
         ...currentLog,
-        `${firstAttacker.name} ataca ${secondAttacker.name} e causa ${damage1} de dano!`,
+        `${firstAttacker.name} ataca ${secondAttacker.name} e causa ${damage1} de dano!${effectivenessText}`,
       ]);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       this.currentBattle.set({
         p1,
@@ -149,9 +201,11 @@ export class BattleComponent {
         p2IsAttacking: false,
         p1IsDefending: false,
         p2IsDefending: false,
+        p1IsSuperEffective: false,
+        p2IsSuperEffective: false,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       if (secondAttacker === p1) {
         this.teamOneBuilder.updateTeamPokemon(secondAttacker);
@@ -166,6 +220,15 @@ export class BattleComponent {
           `${secondAttacker.name} desmaiou!`,
         ]);
 
+        // Atualiza o objeto currentBattle para refletir o desmaio
+        this.currentBattle.update((current) => ({
+          ...current,
+          p1:
+            current.p1 === secondAttacker ? { ...secondAttacker } : current.p1,
+          p2:
+            current.p2 === secondAttacker ? { ...secondAttacker } : current.p2,
+        }));
+
         if (secondAttacker === p1) {
           this.teamOneBuilder.updateTeamPokemon(secondAttacker);
           teamOnePokemons.splice(p1Index, 1);
@@ -176,6 +239,12 @@ export class BattleComponent {
           this.teamOneScore.update((val) => val + 1);
         }
       } else {
+        // Segundo ataque (se o segundo atacante ainda estiver consciente)
+        const isSuperEffective2 = this.isAttackSuperEffective(
+          secondAttacker,
+          firstAttacker
+        );
+
         if (secondAttacker === p1) {
           this.currentBattle.set({
             p1,
@@ -184,6 +253,8 @@ export class BattleComponent {
             p2IsAttacking: false,
             p1IsDefending: false,
             p2IsDefending: true,
+            p1IsSuperEffective: false,
+            p2IsSuperEffective: isSuperEffective2,
           });
         } else {
           this.currentBattle.set({
@@ -193,18 +264,36 @@ export class BattleComponent {
             p2IsAttacking: true,
             p1IsDefending: true,
             p2IsDefending: false,
+            p1IsSuperEffective: isSuperEffective2,
+            p2IsSuperEffective: false,
           });
         }
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        const damage2 = this.calculateDamage(secondAttacker, firstAttacker);
+        const damage2 = this.calculateDamage(
+          secondAttacker,
+          firstAttacker,
+          isSuperEffective2
+        );
+
+        // Atualiza o HP diretamente no objeto do Pokémon
         firstAttacker.stats.hp = Math.max(0, firstAttacker.stats.hp - damage2);
 
+        // Atualiza o objeto currentBattle para refletir a mudança de HP
+        this.currentBattle.update((current) => ({
+          ...current,
+          p1: current.p1 === firstAttacker ? { ...firstAttacker } : current.p1,
+          p2: current.p2 === firstAttacker ? { ...firstAttacker } : current.p2,
+        }));
+
+        const effectivenessText2 = isSuperEffective2 ? ' (SUPER EFETIVO!)' : '';
         this.battleLog.update((currentLog) => [
           ...currentLog,
-          `${secondAttacker.name} ataca ${firstAttacker.name} e causa ${damage2} de dano!`,
+          `${secondAttacker.name} ataca ${firstAttacker.name} e causa ${damage2} de dano!${effectivenessText2}`,
         ]);
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         this.currentBattle.set({
           p1,
@@ -213,9 +302,11 @@ export class BattleComponent {
           p2IsAttacking: false,
           p1IsDefending: false,
           p2IsDefending: false,
+          p1IsSuperEffective: false,
+          p2IsSuperEffective: false,
         });
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         if (firstAttacker === p1) {
           this.teamOneBuilder.updateTeamPokemon(firstAttacker);
@@ -229,6 +320,15 @@ export class BattleComponent {
             ...currentLog,
             `${firstAttacker.name} desmaiou!`,
           ]);
+
+          // Atualiza o objeto currentBattle para refletir o desmaio
+          this.currentBattle.update((current) => ({
+            ...current,
+            p1:
+              current.p1 === firstAttacker ? { ...firstAttacker } : current.p1,
+            p2:
+              current.p2 === firstAttacker ? { ...firstAttacker } : current.p2,
+          }));
 
           if (firstAttacker === p1) {
             this.teamOneBuilder.updateTeamPokemon(firstAttacker);
@@ -266,12 +366,42 @@ export class BattleComponent {
     this.battleEnded.set(true);
   }
 
-  calculateDamage(attacker: Pokemon, defender: Pokemon): number {
+  isAttackSuperEffective(attacker: Pokemon, defender: Pokemon): boolean {
+    if (
+      !attacker.type ||
+      !defender.type ||
+      attacker.type.length === 0 ||
+      defender.type.length === 0
+    ) {
+      return false;
+    }
+
+    const attackerType = attacker.type[0].toLowerCase();
+
+    for (const defenderType of defender.type) {
+      const weaknesses = this.typeWeaknesses[defenderType.toLowerCase()] || [];
+      if (weaknesses.includes(attackerType)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  calculateDamage(
+    attacker: Pokemon,
+    defender: Pokemon,
+    isSuperEffective: boolean = false
+  ): number {
     const baseDamage = attacker.stats.attack * 0.5;
     const defense = defender.stats.defense * 0.3;
     const randomFactor = Math.random() * 0.3 + 0.85;
+    const typeMultiplier = isSuperEffective ? 1.5 : 1.0;
 
-    return Math.max(1, Math.floor((baseDamage - defense) * randomFactor));
+    return Math.max(
+      1,
+      Math.floor((baseDamage - defense) * randomFactor * typeMultiplier)
+    );
   }
 
   resetBattle() {
@@ -292,6 +422,41 @@ export class BattleComponent {
     if (this.teamTwoBuilder) {
       this.teamTwoBuilder.team.set([]);
     }
+  }
+
+  cancelBattle() {
+    this.battleInProgress.set(false);
+    this.battleEnded.set(false);
+    this.currentBattle.set({ p1: null, p2: null });
+
+    // Restaurar HP de todos os Pokémon
+    const resetTeamOne = this.teamOne().map((pokemon) => ({
+      ...pokemon,
+      stats: { ...pokemon.stats, hp: pokemon.stats.maxHp },
+      isFainted: false,
+    }));
+
+    const resetTeamTwo = this.teamTwo().map((pokemon) => ({
+      ...pokemon,
+      stats: { ...pokemon.stats, hp: pokemon.stats.maxHp },
+      isFainted: false,
+    }));
+
+    this.teamOne.set(resetTeamOne);
+    this.teamTwo.set(resetTeamTwo);
+
+    // Atualizar os times nos builders
+    if (this.teamOneBuilder) {
+      this.teamOneBuilder.team.set(resetTeamOne);
+    }
+    if (this.teamTwoBuilder) {
+      this.teamTwoBuilder.team.set(resetTeamTwo);
+    }
+
+    this.battleLog.update((currentLog) => [
+      ...currentLog,
+      'Batalha cancelada pelo usuário.',
+    ]);
   }
 
   getActiveTeamOneCount(): number {

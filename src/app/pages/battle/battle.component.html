@@ -23,13 +23,15 @@
           <app-pokemon-card
             [pokemon]="currentBattle().p1!"
             [isAttacking]="currentBattle().p1IsAttacking ?? false"
-            [isDefending]="currentBattle().p1IsDefending ?? false">
+            [isDefending]="currentBattle().p1IsDefending ?? false"
+            [isSuperEffective]="currentBattle().p1IsSuperEffective ?? false">
           </app-pokemon-card>
           <div class="vs">VS</div>
           <app-pokemon-card
             [pokemon]="currentBattle().p2!"
             [isAttacking]="currentBattle().p2IsAttacking ?? false"
-            [isDefending]="currentBattle().p2IsDefending ?? false">
+            [isDefending]="currentBattle().p2IsDefending ?? false"
+            [isSuperEffective]="currentBattle().p2IsSuperEffective ?? false">
           </app-pokemon-card>
         </div>
       </div>
@@ -42,6 +44,14 @@
           (click)="startBattle()"
         >
           Lutar!
+        </button>
+        <button
+          mat-raised-button
+          color="warn"
+          *ngIf="battleInProgress()"
+          (click)="cancelBattle()"
+        >
+          Cancelar Luta
         </button>
         <button
           mat-raised-button
