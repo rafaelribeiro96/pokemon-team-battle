@@ -251,24 +251,28 @@
 
 .hp-bar {
   width: 100%;
+  margin-top: 5px;
+}
+
+.hp-container {
+  width: 100%;
   height: 8px;
   background-color: #ccc;
   border-radius: 4px;
   overflow: hidden;
-  margin-top: 5px;
+}
 
-  .hp {
-    height: 100%;
-    background-color: #4caf50;
-    transition: width 0.5s ease;
+.hp {
+  height: 100%;
+  background-color: #4caf50;
+  transition: width 0.5s ease;
 
-    &.low {
-      background-color: #ff9800;
-    }
+  &.low {
+    background-color: #ff9800;
+  }
 
-    &.critical {
-      background-color: #f44336;
-    }
+  &.critical {
+    background-color: #f44336;
   }
 }
 
@@ -429,6 +433,18 @@
   80% { transform: translateX(5px); }
   90% { transform: translateX(-5px); }
   100% { transform: translateX(0); }
+}
+
+@keyframes pulse-warn {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+@keyframes pulse-critical {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
 }
 
 // Responsividade

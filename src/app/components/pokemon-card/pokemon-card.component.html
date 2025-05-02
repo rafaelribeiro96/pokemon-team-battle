@@ -53,13 +53,15 @@
           <div class="hp-label">
             HP: {{ getCurrentHp() }}/{{ getMaxHp() }}
           </div>
-          <div class="hp"
-               [@hpChange]
-               [ngClass]="{
-                 'low': (displayHp / getMaxHp()) <= 0.5 && (displayHp / getMaxHp()) > 0.25,
-                 'critical': (displayHp / getMaxHp()) <= 0.25
-               }"
-               [style.width.%]="(displayHp / getMaxHp()) * 100"></div>
+          <div class="hp-container">
+            <div class="hp"
+                [@hpChange]
+                [ngClass]="{
+                  'low': (displayHp / getMaxHp()) <= 0.5 && (displayHp / getMaxHp()) > 0.25,
+                  'critical': (displayHp / getMaxHp()) <= 0.25
+                }"
+                [style.width.%]="(displayHp / getMaxHp()) * 100"></div>
+          </div>
         </div>
 
         <div class="stat-row" *ngIf="pokemon.stats?.attack">

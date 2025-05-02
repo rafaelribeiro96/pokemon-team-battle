@@ -1,16 +1,24 @@
 /* team-builder.component.ts */
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  signal,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { PokemonService } from '../../services/pokemon.service';
 import { Pokemon } from '../../models/pokemon.model';
 import { PokemonListComponent } from '../pokemon-list/pokemon-list.component';
 import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   standalone: true,
   selector: 'app-team-builder',
   templateUrl: './team-builder.component.html',
   styleUrls: ['./team-builder.component.scss'],
-  imports: [PokemonListComponent, CommonModule],
+  imports: [PokemonListComponent, CommonModule, MatButtonModule],
 })
 export class TeamBuilderComponent {
   availablePokemons = signal<Pokemon[]>([]);
@@ -18,7 +26,10 @@ export class TeamBuilderComponent {
   @Output() teamChange = new EventEmitter<Pokemon[]>();
   @Input() battleInProgress = false;
 
-  constructor(private pokemonService: PokemonService) {
+  constructor(
+    private pokemonService: PokemonService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.pokemonService.fetchPokemons().then(() => {
       const pokemons = this.pokemonService.pokemons().map((pokemon) => ({
         ...pokemon,
@@ -89,6 +100,7 @@ export class TeamBuilderComponent {
       const updatedTeam = [...this.team()];
       updatedTeam[index] = { ...updatedPokemon };
       this.team.set(updatedTeam);
+      this.cdr.detectChanges();
     }
   }
 }

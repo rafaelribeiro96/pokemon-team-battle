@@ -5,6 +5,7 @@ import {
   SimpleChanges,
   OnChanges,
   OnInit,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { Pokemon } from '../../models/pokemon.model';
 import { CommonModule } from '@angular/common';
@@ -18,13 +19,19 @@ import {
   transition,
   keyframes,
 } from '@angular/animations';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-pokemon-card',
   templateUrl: './pokemon-card.component.html',
   styleUrls: ['./pokemon-card.component.scss'],
   standalone: true,
-  imports: [CommonModule, PokemonIconsModule, PokemonIconComponent],
+  imports: [
+    CommonModule,
+    PokemonIconsModule,
+    PokemonIconComponent,
+    MatProgressBarModule,
+  ],
   animations: [
     trigger('hpChange', [transition('* => *', [animate('0.5s ease-out')])]),
     trigger('damageEffect', [
@@ -292,6 +299,8 @@ export class PokemonCardComponent implements OnChanges, OnInit {
   hpPercentage: number = 100;
   hpColor: string = 'primary';
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   ngOnInit() {
     if (this.pokemon) {
       this.displayHp = this.pokemon.stats?.hp || 0;
@@ -328,6 +337,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
       }
 
       this.updateHpStatus();
+      this.cdr.detectChanges();
     }
 
     if (changes['isDefending'] && this.isDefending) {
@@ -392,11 +402,15 @@ export class PokemonCardComponent implements OnChanges, OnInit {
       const progress = Math.min(elapsed / duration, 1);
 
       this.displayHp = startHp - diff * progress;
+      this.updateHpStatus();
+      this.cdr.detectChanges();
 
       if (progress < 1) {
         requestAnimationFrame(updateHp);
       } else {
         this.displayHp = targetHp;
+        this.updateHpStatus();
+        this.cdr.detectChanges();
       }
     };
 
@@ -445,7 +459,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
     return typeMap[type.toLowerCase()] || null;
   }
 
-  private updateHpStatus(): void {
+  updateHpStatus(): void {
     if (this.pokemon && this.pokemon.stats) {
       const maxHp = this.pokemon.stats.maxHp || 100;
       const currentHp = this.pokemon.stats.hp || 0;
@@ -479,5 +493,12 @@ export class PokemonCardComponent implements OnChanges, OnInit {
 
   getCurrentHp(): number {
     return this.pokemon?.stats?.hp || 0;
+  }
+
+  getHpPercentage(): number {
+    if (this.pokemon && this.pokemon.stats) {
+      return (this.pokemon.stats.hp / this.pokemon.stats.maxHp) * 100;
+    }
+    return 0;
   }
 }

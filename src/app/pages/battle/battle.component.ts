@@ -1,5 +1,5 @@
 /* battle.component.ts */
-import { Component, signal, ViewChild } from '@angular/core';
+import { Component, signal, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { TeamBuilderComponent } from '../../components/team-builder/team-builder.component';
 import { MatButtonModule } from '@angular/material/button';
 import { Pokemon } from '../../models/pokemon.model';
@@ -130,6 +130,8 @@ export class BattleComponent {
   // Flag para controlar o cancelamento da batalha
   private battleCancelled = false;
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   // Mapeamento de tipos e suas fraquezas
   typeWeaknesses: { [key: string]: string[] } = {
     fire: ['water', 'ground', 'rock'],
@@ -160,6 +162,16 @@ export class BattleComponent {
   setTeamTwo(team: Pokemon[]) {
     this.teamTwo.set(team);
     this.updateStrongestPokemon([...this.teamOne(), ...team]);
+  }
+
+  // Método para atualizar os times
+  updateTeams() {
+    // Atualiza os sinais para forçar a renderização
+    this.teamOne.set([...this.teamOne()]);
+    this.teamTwo.set([...this.teamTwo()]);
+
+    // Força a detecção de mudanças
+    this.cdr.detectChanges();
   }
 
   async startBattle() {
@@ -199,6 +211,11 @@ export class BattleComponent {
 
     // Atualizar o Pokémon mais forte da batalha
     this.updateStrongestPokemon([...teamOnePokemons, ...teamTwoPokemons]);
+
+    // Atualizar os times no início da batalha
+    this.teamOne.set(teamOnePokemons);
+    this.teamTwo.set(teamTwoPokemons);
+    this.updateTeams();
 
     // Loop principal da batalha com verificação de cancelamento
     while (
@@ -295,6 +312,10 @@ export class BattleComponent {
         p2: current.p2 === secondAttacker ? { ...secondAttacker } : current.p2,
       }));
 
+      // Atualiza os times para refletir as mudanças
+      this.updateTeamPokemon(secondAttacker);
+      this.updateTeams();
+
       const effectivenessText = isSuperEffective1 ? ' (SUPER EFETIVO!)' : '';
       this.battleLog.update((currentLog) => [
         ...currentLog,
@@ -318,12 +339,6 @@ export class BattleComponent {
       await new Promise((resolve) => setTimeout(resolve, 500));
       if (this.battleCancelled) break;
 
-      if (secondAttacker === p1) {
-        this.teamOneBuilder.updateTeamPokemon(secondAttacker);
-      } else {
-        this.teamTwoBuilder.updateTeamPokemon(secondAttacker);
-      }
-
       if (secondAttacker.stats.hp <= 0) {
         secondAttacker.isFainted = true;
         this.battleLog.update((currentLog) => [
@@ -340,12 +355,14 @@ export class BattleComponent {
             current.p2 === secondAttacker ? { ...secondAttacker } : current.p2,
         }));
 
+        // Atualiza os times para refletir as mudanças
+        this.updateTeamPokemon(secondAttacker);
+        this.updateTeams();
+
         if (secondAttacker === p1) {
-          this.teamOneBuilder.updateTeamPokemon(secondAttacker);
           teamOnePokemons.splice(p1Index, 1);
           this.teamTwoScore.update((val) => val + 1);
         } else {
-          this.teamTwoBuilder.updateTeamPokemon(secondAttacker);
           teamTwoPokemons.splice(p2Index, 1);
           this.teamOneScore.update((val) => val + 1);
         }
@@ -405,6 +422,10 @@ export class BattleComponent {
           p2: current.p2 === firstAttacker ? { ...firstAttacker } : current.p2,
         }));
 
+        // Atualiza os times para refletir as mudanças
+        this.updateTeamPokemon(firstAttacker);
+        this.updateTeams();
+
         const effectivenessText2 = isSuperEffective2 ? ' (SUPER EFETIVO!)' : '';
         this.battleLog.update((currentLog) => [
           ...currentLog,
@@ -428,12 +449,6 @@ export class BattleComponent {
         await new Promise((resolve) => setTimeout(resolve, 500));
         if (this.battleCancelled) break;
 
-        if (firstAttacker === p1) {
-          this.teamOneBuilder.updateTeamPokemon(firstAttacker);
-        } else {
-          this.teamTwoBuilder.updateTeamPokemon(firstAttacker);
-        }
-
         if (firstAttacker.stats.hp <= 0) {
           firstAttacker.isFainted = true;
           this.battleLog.update((currentLog) => [
@@ -450,12 +465,14 @@ export class BattleComponent {
               current.p2 === firstAttacker ? { ...firstAttacker } : current.p2,
           }));
 
+          // Atualiza os times para refletir as mudanças
+          this.updateTeamPokemon(firstAttacker);
+          this.updateTeams();
+
           if (firstAttacker === p1) {
-            this.teamOneBuilder.updateTeamPokemon(firstAttacker);
             teamOnePokemons.splice(p1Index, 1);
             this.teamTwoScore.update((val) => val + 1);
           } else {
-            this.teamTwoBuilder.updateTeamPokemon(firstAttacker);
             teamTwoPokemons.splice(p2Index, 1);
             this.teamOneScore.update((val) => val + 1);
           }
@@ -490,6 +507,28 @@ export class BattleComponent {
       }
 
       this.battleEnded.set(true);
+
+      // Atualiza os times uma última vez para garantir que todos os estados estejam corretos
+      this.updateTeams();
+    }
+  }
+
+  // Método para atualizar um Pokémon específico no time
+  updateTeamPokemon(pokemon: Pokemon) {
+    // Verifica se o Pokémon está no time 1
+    const teamOneIndex = this.teamOne().findIndex((p) => p.id === pokemon.id);
+    if (teamOneIndex !== -1) {
+      const updatedTeam = [...this.teamOne()];
+      updatedTeam[teamOneIndex] = { ...pokemon };
+      this.teamOne.set(updatedTeam);
+    }
+
+    // Verifica se o Pokémon está no time 2
+    const teamTwoIndex = this.teamTwo().findIndex((p) => p.id === pokemon.id);
+    if (teamTwoIndex !== -1) {
+      const updatedTeam = [...this.teamTwo()];
+      updatedTeam[teamTwoIndex] = { ...pokemon };
+      this.teamTwo.set(updatedTeam);
     }
   }
 
