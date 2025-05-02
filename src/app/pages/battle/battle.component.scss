@@ -1,8 +1,11 @@
 .battle-container {
-  padding: 20px;
-  background: url('/assets/images/battle-background.jpg') no-repeat center center;
-  background-size: cover;
-  min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #3b4cca, #1a237e);
+    /* background: url('/assets/images/battle-background.jpg') no-repeat center center;
+    background-size: cover; */
+    min-height: 100vh;
+    color: white;
+
 
   &::before {
     content: '';
