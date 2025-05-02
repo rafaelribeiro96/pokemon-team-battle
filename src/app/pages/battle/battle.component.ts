@@ -30,7 +30,14 @@ export class BattleComponent {
   teamOne = signal<Pokemon[]>([]);
   teamTwo = signal<Pokemon[]>([]);
   battleLog = signal<string[]>([]);
-  currentBattle = signal<{ p1: Pokemon | null; p2: Pokemon | null }>({
+  currentBattle = signal<{
+    p1: Pokemon | null;
+    p2: Pokemon | null;
+    p1IsAttacking?: boolean;
+    p2IsAttacking?: boolean;
+    p1IsDefending?: boolean;
+    p2IsDefending?: boolean;
+  }>({
     p1: null,
     p2: null,
   });
@@ -61,14 +68,21 @@ export class BattleComponent {
     this.battleEnded.set(false);
     this.turnNumber.set(1);
     this.winner.set(null);
+    this.teamOneScore.set(0);
+    this.teamTwoScore.set(0);
+    this.battleLog.set([]);
 
     let teamOnePokemons = [...this.teamOne()].map((p) => ({
       ...p,
       stats: { ...p.stats },
+      isFainted: false,
+      isAttacking: false,
     }));
     let teamTwoPokemons = [...this.teamTwo()].map((p) => ({
       ...p,
       stats: { ...p.stats },
+      isFainted: false,
+      isAttacking: false,
     }));
 
     while (teamOnePokemons.length > 0 && teamTwoPokemons.length > 0) {
@@ -82,15 +96,41 @@ export class BattleComponent {
         p2.name
       }`;
       this.battleLog.update((currentLog) => [...currentLog, logEntry]);
-      this.currentBattle.set({ p1, p2 });
+
+      this.currentBattle.set({
+        p1,
+        p2,
+        p1IsAttacking: false,
+        p2IsAttacking: false,
+        p1IsDefending: false,
+        p2IsDefending: false,
+      });
 
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const firstAttacker = p1.stats.speed >= p2.stats.speed ? p1 : p2;
       const secondAttacker = firstAttacker === p1 ? p2 : p1;
 
-      firstAttacker.isAttacking = true;
-      this.currentBattle.set({ p1, p2 });
+      if (firstAttacker === p1) {
+        this.currentBattle.set({
+          p1,
+          p2,
+          p1IsAttacking: true,
+          p2IsAttacking: false,
+          p1IsDefending: false,
+          p2IsDefending: true,
+        });
+      } else {
+        this.currentBattle.set({
+          p1,
+          p2,
+          p1IsAttacking: false,
+          p2IsAttacking: true,
+          p1IsDefending: true,
+          p2IsDefending: false,
+        });
+      }
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const damage1 = this.calculateDamage(firstAttacker, secondAttacker);
@@ -101,16 +141,22 @@ export class BattleComponent {
         `${firstAttacker.name} ataca ${secondAttacker.name} e causa ${damage1} de dano!`,
       ]);
 
-      // Atualiza o construtor de equipe
+      this.currentBattle.set({
+        p1,
+        p2,
+        p1IsAttacking: false,
+        p2IsAttacking: false,
+        p1IsDefending: false,
+        p2IsDefending: false,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       if (secondAttacker === p1) {
         this.teamOneBuilder.updateTeamPokemon(secondAttacker);
       } else {
         this.teamTwoBuilder.updateTeamPokemon(secondAttacker);
       }
-
-      firstAttacker.isAttacking = false;
-      this.currentBattle.set({ p1, p2 });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (secondAttacker.stats.hp <= 0) {
         secondAttacker.isFainted = true;
@@ -119,23 +165,36 @@ export class BattleComponent {
           `${secondAttacker.name} desmaiou!`,
         ]);
 
-        // Atualiza o construtor de equipe
         if (secondAttacker === p1) {
           this.teamOneBuilder.updateTeamPokemon(secondAttacker);
-        } else {
-          this.teamTwoBuilder.updateTeamPokemon(secondAttacker);
-        }
-
-        if (secondAttacker === p1) {
           teamOnePokemons.splice(p1Index, 1);
           this.teamTwoScore.update((val) => val + 1);
         } else {
+          this.teamTwoBuilder.updateTeamPokemon(secondAttacker);
           teamTwoPokemons.splice(p2Index, 1);
           this.teamOneScore.update((val) => val + 1);
         }
       } else {
-        secondAttacker.isAttacking = true;
-        this.currentBattle.set({ p1, p2 });
+        if (secondAttacker === p1) {
+          this.currentBattle.set({
+            p1,
+            p2,
+            p1IsAttacking: true,
+            p2IsAttacking: false,
+            p1IsDefending: false,
+            p2IsDefending: true,
+          });
+        } else {
+          this.currentBattle.set({
+            p1,
+            p2,
+            p1IsAttacking: false,
+            p2IsAttacking: true,
+            p1IsDefending: true,
+            p2IsDefending: false,
+          });
+        }
+
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         const damage2 = this.calculateDamage(secondAttacker, firstAttacker);
@@ -146,9 +205,22 @@ export class BattleComponent {
           `${secondAttacker.name} ataca ${firstAttacker.name} e causa ${damage2} de dano!`,
         ]);
 
-        secondAttacker.isAttacking = false;
-        this.currentBattle.set({ p1, p2 });
+        this.currentBattle.set({
+          p1,
+          p2,
+          p1IsAttacking: false,
+          p2IsAttacking: false,
+          p1IsDefending: false,
+          p2IsDefending: false,
+        });
+
         await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        if (firstAttacker === p1) {
+          this.teamOneBuilder.updateTeamPokemon(firstAttacker);
+        } else {
+          this.teamTwoBuilder.updateTeamPokemon(firstAttacker);
+        }
 
         if (firstAttacker.stats.hp <= 0) {
           firstAttacker.isFainted = true;
@@ -157,17 +229,14 @@ export class BattleComponent {
             `${firstAttacker.name} desmaiou!`,
           ]);
 
-          // Atualiza o construtor de equipe
           if (firstAttacker === p1) {
             this.teamOneBuilder.updateTeamPokemon(firstAttacker);
+            teamOnePokemons.splice(p1Index, 1);
+            this.teamTwoScore.update((val) => val + 1);
           } else {
             this.teamTwoBuilder.updateTeamPokemon(firstAttacker);
-          }
-
-          if (firstAttacker === p1) {
-            teamOnePokemons.splice(p1Index, 1);
-          } else {
             teamTwoPokemons.splice(p2Index, 1);
+            this.teamOneScore.update((val) => val + 1);
           }
         }
       }
@@ -201,14 +270,7 @@ export class BattleComponent {
     const defense = defender.stats.defense * 0.3;
     const randomFactor = Math.random() * 0.3 + 0.85;
 
-    return Math.floor((baseDamage - defense) * randomFactor);
-  }
-
-  fight(p1: Pokemon, p2: Pokemon): Pokemon {
-    const p1Score = p1.stats.attack + p1.stats.speed - p2.stats.defense;
-    const p2Score = p2.stats.attack + p2.stats.speed - p1.stats.defense;
-
-    return p1Score > p2Score ? p1 : p2;
+    return Math.max(1, Math.floor((baseDamage - defense) * randomFactor));
   }
 
   resetBattle() {
@@ -220,6 +282,15 @@ export class BattleComponent {
     this.battleEnded.set(false);
     this.battleInProgress.set(false);
     this.winner.set(null);
+    this.teamOneScore.set(0);
+    this.teamTwoScore.set(0);
+
+    if (this.teamOneBuilder) {
+      this.teamOneBuilder.team.set([]);
+    }
+    if (this.teamTwoBuilder) {
+      this.teamTwoBuilder.team.set([]);
+    }
   }
 
   getActiveTeamOneCount(): number {

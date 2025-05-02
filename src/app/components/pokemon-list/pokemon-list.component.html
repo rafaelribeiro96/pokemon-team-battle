@@ -4,16 +4,52 @@
     *ngFor="let pokemon of pokemons"
     (click)="onPokemonClick(pokemon)"
   >
-    <img [src]="pokemon.image" [alt]="pokemon.name" class="pokemon-image" />
-    <div class="pokemon-info">
-      <h4 class="pokemon-name">{{ pokemon.name }}</h4>
-    </div>
-    <div class="pokemon-hover">
-      <p><strong>Tipos:</strong> {{ pokemon.type.join(', ') }}</p>
-      <p><strong>HP:</strong> {{ pokemon.stats.hp }}</p>
-      <p><strong>Ataque:</strong> {{ pokemon.stats.attack }}</p>
-      <p><strong>Defesa:</strong> {{ pokemon.stats.defense }}</p>
-      <p><strong>Velocidade:</strong> {{ pokemon.stats.speed }}</p>
+    <div class="card-inner">
+      <div class="card-front">
+        <img [src]="pokemon.image" [alt]="pokemon.name" class="pokemon-image" />
+        <div class="pokemon-info">
+          <h4 class="pokemon-name">{{ pokemon.name }}</h4>
+          <div class="type-badges">
+            <span *ngFor="let type of pokemon.type" class="type-badge" [ngClass]="type.toLowerCase()">
+              {{ type }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="card-back">
+        <h4 class="pokemon-name">{{ pokemon.name }}</h4>
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label">HP:</span>
+            <div class="stat-bar">
+              <div class="stat-fill hp" [style.width.%]="(pokemon.stats.hp / 150) * 100"></div>
+            </div>
+            <span class="stat-value">{{ pokemon.stats.hp }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">ATK:</span>
+            <div class="stat-bar">
+              <div class="stat-fill atk" [style.width.%]="(pokemon.stats.attack / 150) * 100"></div>
+            </div>
+            <span class="stat-value">{{ pokemon.stats.attack }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">DEF:</span>
+            <div class="stat-bar">
+              <div class="stat-fill def" [style.width.%]="(pokemon.stats.defense / 150) * 100"></div>
+            </div>
+            <span class="stat-value">{{ pokemon.stats.defense }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">SPD:</span>
+            <div class="stat-bar">
+              <div class="stat-fill spd" [style.width.%]="(pokemon.stats.speed / 150) * 100"></div>
+            </div>
+            <span class="stat-value">{{ pokemon.stats.speed }}</span>
+          </div>
+        </div>
+        <div class="select-prompt">Clique para selecionar</div>
+      </div>
     </div>
   </div>
 </div>

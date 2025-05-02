@@ -1,11 +1,37 @@
-<div class="battle-container">
-  <app-scoreboard
-    [teamOneScore]="teamOneScore()"
-    [teamTwoScore]="teamTwoScore()"
-    [teamOneCount]="teamOne().filter(p => !p.isFainted).length"
-    [teamTwoCount]="teamTwo().filter(p => !p.isFainted).length"
-    [winner]="winner()">
-  </app-scoreboard>
+<div class="scoreboard">
+  <div class="team team-one" [class.winning]="teamOneScore > teamTwoScore">
+    <div class="team-header">
+      <div class="team-icon">
+        <img src="/assets/images/team1-icon.png" alt="Team 1" onerror="this.src='/assets/images/pokeball.png'">
+      </div>
+      <h3>Time 1</h3>
+    </div>
+    <div class="score" [@scoreChange]="teamOneScore">{{ teamOneScore }}</div>
+    <div class="pokemon-count">
+      <span class="count-label">Pokémon:</span>
+      <span class="count-value">{{ teamOneCount }}</span>
+    </div>
+  </div>
 
-  <!-- Rest of your battle component HTML -->
+  <div class="vs-container">
+    <div class="vs" *ngIf="!winner">VS</div>
+    <div class="winner-announcement" *ngIf="winner" [@winnerAnnounce]>
+      <div class="trophy-icon">🏆</div>
+      <div class="winner-text">{{ winner }} VENCEU!</div>
+    </div>
+  </div>
+
+  <div class="team team-two" [class.winning]="teamTwoScore > teamOneScore">
+    <div class="team-header">
+      <div class="team-icon">
+        <img src="/assets/images/team2-icon.png" alt="Team 2" onerror="this.src='/assets/images/pokeball.png'">
+      </div>
+      <h3>Time 2</h3>
+    </div>
+    <div class="score" [@scoreChange]="teamTwoScore">{{ teamTwoScore }}</div>
+    <div class="pokemon-count">
+      <span class="count-label">Pokémon:</span>
+      <span class="count-value">{{ teamTwoCount }}</span>
+    </div>
+  </div>
 </div>

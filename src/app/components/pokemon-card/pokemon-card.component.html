@@ -1,4 +1,6 @@
-<div class="pokemon-card" [ngClass]="{ 'attacking': isAttacking, 'fainted': pokemon.isFainted }">
+<div class="pokemon-card"
+     [ngClass]="{ 'attacking': isAttacking, 'fainted': pokemon.isFainted, 'defending': isDefending }"
+     [@attackEffect]="attackEffectState">
   <img [src]="pokemon.image" [alt]="pokemon.name" />
   <h4>{{ pokemon.name }}</h4>
 
@@ -18,4 +20,6 @@
   <div class="hp-text">
     {{ displayHp > 0 ? Math.floor(displayHp) : 0 }} / {{ pokemon.stats.maxHp }}
   </div>
+
+  <div class="attack-effect" *ngIf="isDefending"></div>
 </div>

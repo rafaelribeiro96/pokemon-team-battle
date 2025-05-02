@@ -18,7 +18,15 @@ import { trigger, transition, style, animate } from '@angular/animations';
       <h2>Relatório da Batalha</h2>
       <div class="report-content" #scrollBox>
         <ul>
-          <li *ngFor="let entry of reversedLog" @newLogEntry>
+          <li
+            *ngFor="let entry of reversedLog"
+            @newLogEntry
+            [ngClass]="{
+              'attack-entry': entry.includes('ataca'),
+              'fainted-entry': entry.includes('desmaiou'),
+              'victory-entry': entry.includes('venceu')
+            }"
+          >
             <span [innerHTML]="formatLogEntry(entry)"></span>
           </li>
         </ul>
@@ -69,6 +77,22 @@ import { trigger, transition, style, animate } from '@angular/animations';
               background-color: rgba(255, 203, 5, 0.2);
               transform: translateX(5px);
             }
+
+            &.attack-entry {
+              background-color: rgba(255, 87, 34, 0.1);
+              border-left: 4px solid #ff5722;
+            }
+
+            &.fainted-entry {
+              background-color: rgba(158, 158, 158, 0.2);
+              border-left: 4px solid #9e9e9e;
+            }
+
+            &.victory-entry {
+              background-color: rgba(76, 175, 80, 0.2);
+              border-left: 4px solid #4caf50;
+              font-weight: bold;
+            }
           }
         }
       }
@@ -111,15 +135,22 @@ export class BattleReportComponent implements OnChanges {
     if (changes['log']) {
       // Reverse the log to show newest entries at the top
       this.reversedLog = [...this.log].reverse();
+
+      // Scroll to top after update
+      setTimeout(() => {
+        if (this.scrollBox) {
+          this.scrollBox.nativeElement.scrollTop = 0;
+        }
+      }, 0);
     }
   }
 
   formatLogEntry(entry: string): string {
     // Highlight Pokemon names, attacks, and battle events
-    if (entry.includes('venceu')) {
+    if (entry.includes('venceu a batalha')) {
       return entry.replace(
-        /(.*) venceu (.*)/,
-        '<span class="winner">$1</span> venceu $2'
+        /(.*) venceu a batalha!/,
+        '<span class="winner">$1</span> venceu a batalha!'
       );
     }
     if (entry.includes('ataca')) {
@@ -134,7 +165,6 @@ export class BattleReportComponent implements OnChanges {
         '<span class="fainted">$1</span> desmaiou!'
       );
     }
-    // Add more formatting rules as needed
     return entry;
   }
 }
