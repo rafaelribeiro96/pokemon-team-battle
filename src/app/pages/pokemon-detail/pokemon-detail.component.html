@@ -1,10 +1,19 @@
-<div class="pokemon-detail-container">
+<div class="pokemon-detail-container" [style.--type-color]="getMainTypeColor()">
   <div class="navigation-buttons">
     <button
-      class="nav-button"
-      *ngIf="pokemon && pokemon.id > 1"
-      (click)="navigateToPokemon(pokemon.id - 1)">
-      &lsaquo; Anterior
+      class="nav-button prev"
+      *ngIf="previousPokemon"
+      (click)="navigateToPokemon(previousPokemon.id)">
+      <div class="nav-content">
+        <span class="nav-arrow">&lsaquo;</span>
+        <div class="nav-text">
+          <span class="nav-label">Anterior</span>
+          <span class="nav-name">{{ capitalizeFirstLetter(previousPokemon.name) }}</span>
+        </div>
+        <div class="nav-image">
+          <img [src]="previousPokemon.image" [alt]="previousPokemon.name">
+        </div>
+      </div>
     </button>
 
     <button class="nav-button back" (click)="backToPokedex()">
@@ -12,10 +21,19 @@
     </button>
 
     <button
-      class="nav-button"
-      *ngIf="pokemon"
-      (click)="navigateToPokemon(pokemon.id + 1)">
-      Próximo &rsaquo;
+      class="nav-button next"
+      *ngIf="nextPokemon"
+      (click)="navigateToPokemon(nextPokemon.id)">
+      <div class="nav-content">
+        <div class="nav-image">
+          <img [src]="nextPokemon.image" [alt]="nextPokemon.name">
+        </div>
+        <div class="nav-text">
+          <span class="nav-label">Próximo</span>
+          <span class="nav-name">{{ capitalizeFirstLetter(nextPokemon.name) }}</span>
+        </div>
+        <span class="nav-arrow">&rsaquo;</span>
+      </div>
     </button>
   </div>
 
@@ -40,9 +58,9 @@
 
       <div class="pokemon-types">
         <span
-          *ngFor="let type of pokemon.types"
+          *ngFor="let type of pokemon.type"
           class="type-badge"
-          [ngClass]="type.toLowerCase()">
+          [style.background-color]="getTypeColor(type)">
           {{ translateType(type) }}
         </span>
       </div>
@@ -66,11 +84,11 @@
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">Altura</span>
-              <span class="info-value">{{ pokemon.height }} m</span>
+              <span class="info-value">{{ pokemon.height / 10 }} m</span>
             </div>
             <div class="info-item">
               <span class="info-label">Peso</span>
-              <span class="info-value">{{ pokemon.weight }} kg</span>
+              <span class="info-value">{{ pokemon.weight / 10 }} kg</span>
             </div>
           </div>
         </div>
@@ -158,6 +176,63 @@
                   [style.width.%]="getStatPercentage(pokemon.stats.speed)"
                   [style.background-color]="getStatColor(pokemon.stats.speed)">
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nova seção de Fraquezas e Forças -->
+        <div class="info-section">
+          <h2>Fraquezas e Forças</h2>
+
+          <div class="type-effectiveness">
+            <div class="effectiveness-group">
+              <h3>Fraco contra:</h3>
+              <div class="type-list">
+                <span
+                  *ngFor="let type of getWeaknesses()"
+                  class="type-badge"
+                  [style.background-color]="getTypeColor(type)">
+                  {{ translateType(type) }}
+                </span>
+                <span *ngIf="getWeaknesses().length === 0" class="no-types">Nenhuma fraqueza conhecida</span>
+              </div>
+            </div>
+
+            <div class="effectiveness-group">
+              <h3>Forte contra:</h3>
+              <div class="type-list">
+                <span
+                  *ngFor="let type of getStrengths()"
+                  class="type-badge"
+                  [style.background-color]="getTypeColor(type)">
+                  {{ translateType(type) }}
+                </span>
+                <span *ngIf="getStrengths().length === 0" class="no-types">Nenhuma força conhecida</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nova seção de Evolução -->
+        <div *ngIf="pokemon.evolutionChain && pokemon.evolutionChain.length > 0" class="info-section">
+          <h2>Linha Evolutiva</h2>
+
+          <div class="evolution-chain">
+            <div *ngFor="let evolution of pokemon.evolutionChain; let i = index" class="evolution-stage">
+              <div class="evolution-pokemon">
+                <img [src]="evolution.image" [alt]="evolution.name" class="evolution-image">
+                <div class="evolution-info">
+                  <div class="evolution-name">{{ capitalizeFirstLetter(evolution.name) }}</div>
+                  <div class="evolution-id">#{{ formatPokemonId(evolution.id) }}</div>
+                </div>
+              </div>
+
+              <div *ngIf="i < pokemon.evolutionChain.length - 1" class="evolution-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@
       [(ngModel)]="searchQuery"
       placeholder="Pesquisar por nome ou ID..."
       class="search-input"
-      (keyup.enter)="onSearch()">
+      (input)="onInputChange()">
 
     <button
       *ngIf="searchQuery"

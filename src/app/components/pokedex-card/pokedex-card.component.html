@@ -1,15 +1,61 @@
-<div class="pokedex-card" (click)="navigateToDetail()">
-  <div class="pokemon-id">#{{ formatPokemonId(pokemon.id) }}</div>
-  <div class="pokemon-image">
-    <img [src]="pokemon.image || pokemon.sprites?.front_default" [alt]="pokemon.name">
-  </div>
-  <div class="pokemon-name">{{ capitalizeFirstLetter(pokemon.name) }}</div>
-  <div class="pokemon-types">
-    <span
-      *ngFor="let type of pokemon.types || pokemon.type"
-      class="type-badge"
-      [ngClass]="type.toLowerCase()">
-      {{ capitalizeFirstLetter(type) }}
-    </span>
+<div
+  class="pokemon-card"
+  [class.flipped]="isFlipped"
+  [style.--type-color]="getMainTypeColor()"
+  (mouseenter)="toggleFlip()"
+  (mouseleave)="toggleFlip()">
+
+  <div class="card-inner">
+    <!-- Frente do Card -->
+    <div class="card-front">
+      <div class="pokemon-id">#{{ formatPokemonId(pokemon.id) }}</div>
+
+      <div class="pokemon-image">
+        <img [src]="pokemon.image" [alt]="pokemon.name">
+      </div>
+
+      <div class="pokemon-info">
+        <h3 class="pokemon-name">{{ pokemon.name }}</h3>
+
+        <div class="pokemon-types">
+          <span
+            *ngFor="let type of pokemon.type"
+            class="type-badge"
+            [style.background-color]="getTypeColor(type)">
+            {{ translateType(type) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verso do Card -->
+    <div class="card-back">
+      <div class="pokemon-id">#{{ formatPokemonId(pokemon.id) }}</div>
+
+      <h3 class="pokemon-name">{{ pokemon.name }}</h3>
+
+      <div class="pokemon-stats">
+        <div class="stat-item">
+          <span class="stat-label">HP:</span>
+          <span class="stat-value">{{ pokemon.stats.hp || '?' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Ataque:</span>
+          <span class="stat-value">{{ pokemon.stats.attack || '?' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Defesa:</span>
+          <span class="stat-value">{{ pokemon.stats.defense || '?' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Velocidade:</span>
+          <span class="stat-value">{{ pokemon.stats.speed || '?' }}</span>
+        </div>
+      </div>
+
+      <a [routerLink]="['/pokedex', pokemon.id]" class="details-button">
+        Ver Detalhes
+      </a>
+    </div>
   </div>
 </div>

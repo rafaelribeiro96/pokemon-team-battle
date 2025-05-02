@@ -1,114 +1,107 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PokemonService } from '../../services/pokemon.service';
+import { Pokemon } from '../../models/pokemon.model';
 import { PokedexCardComponent } from '../../components/pokedex-card/pokedex-card.component';
-import { PaginationComponent } from '../../components/pagination/pagination.component';
-import { TypeFilterComponent } from '../../components/type-filter/type-filter.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
-import { RouterModule } from '@angular/router';
+import { TypeFilterComponent } from '../../components/type-filter/type-filter.component';
+import { PaginationComponent } from '../../components/pagination/pagination.component';
 
 @Component({
   selector: 'app-pokedex',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
     PokedexCardComponent,
-    PaginationComponent,
-    TypeFilterComponent,
     SearchBarComponent,
+    TypeFilterComponent,
+    PaginationComponent,
   ],
   templateUrl: './pokedex.component.html',
   styleUrls: ['./pokedex.component.scss'],
 })
 export class PokedexComponent implements OnInit {
-  pokemonList: any[] = [];
+  pokemonList: Pokemon[] = [];
+  searchResults: Pokemon[] | null = null;
   pokemonTypes: string[] = [];
-  loading: boolean = false;
-  currentPage: number = 1;
-  itemsPerPage: number = 20;
-  totalPokemons: number = 0;
   selectedType: string | null = null;
-  searchResults: any[] | null = null;
+  loading: boolean = true;
+  currentPage: number = 1;
+  totalPages: number = 0;
+  itemsPerPage: number = 20;
 
   constructor(private pokemonService: PokemonService) {}
 
   ngOnInit(): void {
-    this.loadPokemonList();
     this.loadPokemonTypes();
-
-    this.pokemonService.pokemonList$.subscribe((pokemons) => {
-      this.pokemonList = pokemons;
-    });
-
-    this.pokemonService.pokemonTypes$.subscribe((types) => {
-      this.pokemonTypes = types;
-    });
-
-    this.pokemonService.loading$.subscribe((loading) => {
-      this.loading = loading;
-    });
-
-    this.pokemonService.totalPokemons$.subscribe((total) => {
-      this.totalPokemons = total;
-    });
-  }
-
-  loadPokemonList(): void {
-    const offset = (this.currentPage - 1) * this.itemsPerPage;
-    this.pokemonService.fetchPokemonList(offset, this.itemsPerPage);
-  }
-
-  loadPokemonTypes(): void {
-    this.pokemonService.fetchPokemonTypes();
-  }
-
-  onPageChange(page: number): void {
-    this.currentPage = page;
-
-    if (this.selectedType) {
-      // Se um tipo estiver selecionado, não fazemos nada aqui
-      // pois a API de tipos não suporta paginação
-      return;
-    }
-
-    if (this.searchResults) {
-      // Se estiver mostrando resultados de busca, não fazemos nada
-      return;
-    }
-
     this.loadPokemonList();
   }
 
-  onTypeSelect(type: string | null): void {
-    this.selectedType = type;
-    this.currentPage = 1;
-    this.searchResults = null;
-
-    if (type) {
-      this.pokemonService.fetchPokemonsByType(type);
-    } else {
-      this.loadPokemonList();
+  async loadPokemonList(): Promise<void> {
+    try {
+      this.loading = true;
+      const offset = (this.currentPage - 1) * this.itemsPerPage;
+      this.pokemonList = await this.pokemonService.fetchPokemonList(
+        offset,
+        this.itemsPerPage
+      );
+      this.totalPages = Math.ceil(151 / this.itemsPerPage); // Limitando aos 151 Pokémon originais
+      this.loading = false;
+    } catch (error) {
+      console.error('Erro ao carregar lista de Pokémon:', error);
+      this.loading = false;
     }
   }
 
-  onSearch(query: string): void {
-    if (!query) {
-      this.searchResults = null;
-      if (this.selectedType) {
-        this.pokemonService.fetchPokemonsByType(this.selectedType);
+  async loadPokemonTypes(): Promise<void> {
+    try {
+      this.pokemonTypes = await this.pokemonService.fetchAllPokemonTypes();
+    } catch (error) {
+      console.error('Erro ao carregar tipos de Pokémon:', error);
+    }
+  }
+
+  async onSearch(query: string): Promise<void> {
+    try {
+      this.loading = true;
+
+      if (!query) {
+        this.searchResults = null;
+        await this.loadPokemonList();
       } else {
-        this.loadPokemonList();
+        this.searchResults = await this.pokemonService.searchPokemon(query);
       }
-      return;
-    }
 
-    this.pokemonService.searchPokemon(query).then((results) => {
-      this.searchResults = results;
-    });
+      this.loading = false;
+    } catch (error) {
+      console.error('Erro na pesquisa:', error);
+      this.loading = false;
+    }
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.totalPokemons / this.itemsPerPage);
+  async onTypeSelect(type: string | null): Promise<void> {
+    try {
+      this.loading = true;
+      this.selectedType = type;
+      this.searchResults = null;
+
+      if (type) {
+        this.pokemonList = await this.pokemonService.fetchPokemonByType(type);
+        this.totalPages = 1; // Não paginar resultados de tipo
+      } else {
+        await this.loadPokemonList();
+      }
+
+      this.loading = false;
+    } catch (error) {
+      console.error('Erro ao filtrar por tipo:', error);
+      this.loading = false;
+    }
+  }
+
+  async onPageChange(page: number): Promise<void> {
+    this.currentPage = page;
+    await this.loadPokemonList();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

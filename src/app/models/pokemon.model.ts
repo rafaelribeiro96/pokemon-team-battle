@@ -10,6 +10,8 @@ export interface Pokemon {
     speed: number;
     hp: number;
     maxHp: number;
+    specialAttack: number;
+    specialDefense: number;
   };
   isDefeated?: boolean;
   isAttacking?: boolean;
@@ -17,21 +19,10 @@ export interface Pokemon {
   selected?: boolean;
 }
 
-export interface PokemonDetail {
-  id: number;
-  name: string;
+export interface PokemonDetail extends Pokemon {
   height: number;
   weight: number;
-  types: string[];
   abilities: string[];
-  stats: {
-    hp: number;
-    attack: number;
-    defense: number;
-    specialAttack: number;
-    specialDefense: number;
-    speed: number;
-  };
   sprites: {
     front_default: string;
     front_shiny: string;
@@ -42,4 +33,21 @@ export interface PokemonDetail {
       };
     };
   };
+  evolutionChain?: EvolutionPokemon[];
+}
+
+export interface EvolutionPokemon {
+  id: number;
+  name: string;
+  image: string;
+}
+
+export interface PokemonListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: {
+    name: string;
+    url: string;
+  }[];
 }

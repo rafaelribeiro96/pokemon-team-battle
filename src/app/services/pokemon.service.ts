@@ -1,215 +1,327 @@
 import { Injectable, signal } from '@angular/core';
-import axios from 'axios';
-import { Pokemon } from '../models/pokemon.model';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {
+  Pokemon,
+  PokemonDetail,
+  PokemonListResponse,
+  EvolutionPokemon,
+} from '../models/pokemon.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PokemonService {
-  private apiUrl = 'https://pokeapi.co/api/v2/pokemon';
-  pokemons = signal<Pokemon[]>([]);
+  private apiUrl = 'https://pokeapi.co/api/v2';
+  private cachedPokemon: Map<number, PokemonDetail> = new Map();
+  private cachedList: Pokemon[] = [];
+  private cachedTypes: string[] = [];
+  private cachedEvolutions: Map<number, EvolutionPokemon[]> = new Map();
+  private _pokemons = signal<Pokemon[]>([]);
 
-  // Novos sinais e subjects para a Pokédex
-  private pokemonListSubject = new BehaviorSubject<any[]>([]);
-  private pokemonTypesSubject = new BehaviorSubject<string[]>([]);
-  private loadingSubject = new BehaviorSubject<boolean>(false);
-  private totalPokemonsSubject = new BehaviorSubject<number>(0);
+  constructor() {}
 
-  // Observables públicos
-  pokemonList$: Observable<any[]> = this.pokemonListSubject.asObservable();
-  pokemonTypes$: Observable<string[]> = this.pokemonTypesSubject.asObservable();
-  loading$: Observable<boolean> = this.loadingSubject.asObservable();
-  totalPokemons$: Observable<number> = this.totalPokemonsSubject.asObservable();
-
-  constructor() {
-    // Carregar tipos de Pokémon ao inicializar o serviço
-    this.fetchPokemonTypes();
-  }
-
-  async fetchPokemons(limit: number = 150): Promise<void> {
+  // Método para compatibilidade com TeamBuilderComponent
+  async fetchPokemons(limit: number = 151): Promise<Pokemon[]> {
     try {
-      const response = await axios.get(`${this.apiUrl}?limit=${limit}`);
-      const pokemonData = response.data.results;
-
-      const enrichedData = await Promise.all(
-        pokemonData.map(async (pokemon: any) => {
-          const details = await axios.get(pokemon.url);
-          return {
-            id: details.data.id,
-            name: pokemon.name,
-            image: details.data.sprites.front_default,
-            type: details.data.types.map((t: any) => t.type.name),
-            stats: {
-              hp: details.data.stats[0].base_stat,
-              maxHp: details.data.stats[0].base_stat,
-              attack: details.data.stats[1].base_stat,
-              defense: details.data.stats[2].base_stat,
-              speed: details.data.stats[5].base_stat,
-            },
-          };
-        })
-      );
-
-      this.pokemons.set(enrichedData);
+      const pokemonList = await this.fetchPokemonList(0, limit);
+      this._pokemons.set(pokemonList);
+      return pokemonList;
     } catch (error) {
-      console.error('Failed to fetch Pokémon data:', error);
-    }
-  }
-
-  // Novos métodos para a Pokédex
-  async fetchPokemonList(
-    offset: number = 0,
-    limit: number = 20
-  ): Promise<void> {
-    try {
-      this.loadingSubject.next(true);
-      const response = await axios.get(
-        `${this.apiUrl}?offset=${offset}&limit=${limit}`
-      );
-      const pokemonData = response.data.results;
-      this.totalPokemonsSubject.next(response.data.count);
-
-      const enrichedData = await Promise.all(
-        pokemonData.map(async (pokemon: any) => {
-          const details = await axios.get(pokemon.url);
-          return {
-            id: details.data.id,
-            name: pokemon.name,
-            image: details.data.sprites.front_default,
-            types: details.data.types.map((t: any) => t.type.name),
-            stats: {
-              hp: details.data.stats[0].base_stat,
-              attack: details.data.stats[1].base_stat,
-              defense: details.data.stats[2].base_stat,
-              specialAttack: details.data.stats[3].base_stat,
-              specialDefense: details.data.stats[4].base_stat,
-              speed: details.data.stats[5].base_stat,
-            },
-          };
-        })
-      );
-
-      this.pokemonListSubject.next(enrichedData);
-      this.loadingSubject.next(false);
-    } catch (error) {
-      console.error('Failed to fetch Pokémon list:', error);
-      this.loadingSubject.next(false);
-    }
-  }
-
-  async fetchPokemonById(id: number): Promise<any> {
-    try {
-      this.loadingSubject.next(true);
-      const response = await axios.get(`${this.apiUrl}/${id}`);
-
-      const pokemon = {
-        id: response.data.id,
-        name: response.data.name,
-        height: response.data.height / 10, // Convert to meters
-        weight: response.data.weight / 10, // Convert to kg
-        types: response.data.types.map((t: any) => t.type.name),
-        abilities: response.data.abilities.map((a: any) => a.ability.name),
-        stats: {
-          hp: response.data.stats[0].base_stat,
-          attack: response.data.stats[1].base_stat,
-          defense: response.data.stats[2].base_stat,
-          specialAttack: response.data.stats[3].base_stat,
-          specialDefense: response.data.stats[4].base_stat,
-          speed: response.data.stats[5].base_stat,
-        },
-        sprites: {
-          front_default: response.data.sprites.front_default,
-          front_shiny: response.data.sprites.front_shiny,
-          other: {
-            'official-artwork': {
-              front_default:
-                response.data.sprites.other['official-artwork'].front_default,
-              front_shiny:
-                response.data.sprites.other['official-artwork'].front_shiny,
-            },
-          },
-        },
-      };
-
-      this.loadingSubject.next(false);
-      return pokemon;
-    } catch (error) {
-      console.error(`Failed to fetch Pokémon with ID ${id}:`, error);
-      this.loadingSubject.next(false);
+      console.error('Erro ao buscar Pokémon:', error);
       throw error;
     }
   }
 
-  async searchPokemon(query: string): Promise<any[]> {
-    try {
-      this.loadingSubject.next(true);
+  // Método para compatibilidade com TeamBuilderComponent
+  pokemons() {
+    return this._pokemons();
+  }
 
-      // Se a consulta for um número, buscar por ID
-      if (!isNaN(Number(query))) {
-        const pokemon = await this.fetchPokemonById(Number(query));
-        this.loadingSubject.next(false);
-        return [pokemon];
+  async fetchPokemonList(
+    offset: number = 0,
+    limit: number = 20
+  ): Promise<Pokemon[]> {
+    try {
+      if (this.cachedList.length > offset + limit) {
+        return this.cachedList.slice(offset, offset + limit);
       }
 
-      // Caso contrário, buscar por nome
-      const response = await axios.get(`${this.apiUrl}/${query.toLowerCase()}`);
+      const response = await fetch(
+        `${this.apiUrl}/pokemon?offset=${offset}&limit=${limit}`
+      );
+      const data: PokemonListResponse = await response.json();
 
-      const pokemon = {
-        id: response.data.id,
-        name: response.data.name,
-        image: response.data.sprites.front_default,
-        types: response.data.types.map((t: any) => t.type.name),
+      const pokemonPromises = data.results.map(async (result) => {
+        const id = this.extractIdFromUrl(result.url);
+        return this.fetchBasicPokemonData(id);
+      });
+
+      const pokemonList = await Promise.all(pokemonPromises);
+
+      // Atualizar cache
+      if (offset === 0) {
+        this.cachedList = pokemonList;
+      } else {
+        this.cachedList = [...this.cachedList, ...pokemonList];
+      }
+
+      return pokemonList;
+    } catch (error) {
+      console.error('Erro ao buscar lista de Pokémon:', error);
+      throw error;
+    }
+  }
+
+  async fetchAllPokemonTypes(): Promise<string[]> {
+    if (this.cachedTypes.length > 0) {
+      return this.cachedTypes;
+    }
+
+    try {
+      const response = await fetch(`${this.apiUrl}/type`);
+      const data = await response.json();
+
+      const types = data.results
+        .map((type: { name: string }) => type.name)
+        .filter((type: string) => !['unknown', 'shadow'].includes(type));
+
+      this.cachedTypes = types;
+      return types;
+    } catch (error) {
+      console.error('Erro ao buscar tipos de Pokémon:', error);
+      throw error;
+    }
+  }
+
+  async fetchPokemonByType(type: string): Promise<Pokemon[]> {
+    try {
+      const response = await fetch(`${this.apiUrl}/type/${type}`);
+      const data = await response.json();
+
+      const pokemonPromises = data.pokemon
+        .slice(0, 20) // Limitar a 20 para performance
+        .map(async (entry: { pokemon: { name: string; url: string } }) => {
+          const id = this.extractIdFromUrl(entry.pokemon.url);
+          return this.fetchBasicPokemonData(id);
+        });
+
+      return await Promise.all(pokemonPromises);
+    } catch (error) {
+      console.error(`Erro ao buscar Pokémon do tipo ${type}:`, error);
+      throw error;
+    }
+  }
+
+  async searchPokemon(query: string): Promise<Pokemon[]> {
+    if (!query) {
+      return this.fetchPokemonList(0, 20);
+    }
+
+    query = query.toLowerCase();
+
+    try {
+      // Se for um número, buscar por ID
+      if (/^\d+$/.test(query)) {
+        const id = parseInt(query);
+        try {
+          const pokemon = await this.fetchBasicPokemonData(id);
+          return [pokemon];
+        } catch {
+          return [];
+        }
+      }
+
+      // Buscar todos os Pokémon para pesquisa por nome parcial
+      if (this.cachedList.length < 151) {
+        await this.fetchPokemonList(0, 151); // Carregar pelo menos os 151 primeiros
+      }
+
+      // Filtrar por nome parcial
+      return this.cachedList.filter((pokemon) =>
+        pokemon.name.toLowerCase().includes(query)
+      );
+    } catch (error) {
+      console.error('Erro ao pesquisar Pokémon:', error);
+      throw error;
+    }
+  }
+
+  async fetchPokemonById(id: number): Promise<PokemonDetail> {
+    // Verificar cache
+    if (this.cachedPokemon.has(id)) {
+      return this.cachedPokemon.get(id)!;
+    }
+
+    try {
+      const response = await fetch(`${this.apiUrl}/pokemon/${id}`);
+      const data = await response.json();
+
+      const hp = data.stats.find(
+        (stat: { stat: { name: string } }) => stat.stat.name === 'hp'
+      ).base_stat;
+
+      const pokemon: PokemonDetail = {
+        id: data.id,
+        name: data.name,
+        image:
+          data.sprites.other['official-artwork'].front_default ||
+          data.sprites.front_default,
+        type: data.types.map(
+          (type: { type: { name: string } }) => type.type.name
+        ),
+        height: data.height,
+        weight: data.weight,
+        abilities: data.abilities.map(
+          (ability: { ability: { name: string } }) => ability.ability.name
+        ),
+        sprites: {
+          front_default: data.sprites.front_default,
+          front_shiny: data.sprites.front_shiny,
+          other: {
+            'official-artwork': {
+              front_default:
+                data.sprites.other['official-artwork'].front_default,
+              front_shiny: data.sprites.other['official-artwork'].front_shiny,
+            },
+          },
+        },
+        stats: {
+          hp: hp,
+          attack: data.stats.find(
+            (stat: { stat: { name: string } }) => stat.stat.name === 'attack'
+          ).base_stat,
+          defense: data.stats.find(
+            (stat: { stat: { name: string } }) => stat.stat.name === 'defense'
+          ).base_stat,
+          specialAttack: data.stats.find(
+            (stat: { stat: { name: string } }) =>
+              stat.stat.name === 'special-attack'
+          ).base_stat,
+          specialDefense: data.stats.find(
+            (stat: { stat: { name: string } }) =>
+              stat.stat.name === 'special-defense'
+          ).base_stat,
+          speed: data.stats.find(
+            (stat: { stat: { name: string } }) => stat.stat.name === 'speed'
+          ).base_stat,
+          maxHp: hp,
+        },
       };
 
-      this.loadingSubject.next(false);
-      return [pokemon];
+      // Adicionar ao cache
+      this.cachedPokemon.set(id, pokemon);
+
+      return pokemon;
     } catch (error) {
-      console.error(`Failed to search Pokémon with query ${query}:`, error);
-      this.loadingSubject.next(false);
+      console.error(`Erro ao buscar Pokémon com ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async fetchEvolutionChain(pokemonId: number): Promise<EvolutionPokemon[]> {
+    // Verificar cache
+    if (this.cachedEvolutions.has(pokemonId)) {
+      return this.cachedEvolutions.get(pokemonId)!;
+    }
+
+    try {
+      // Primeiro, precisamos obter a espécie do Pokémon
+      const speciesResponse = await fetch(
+        `${this.apiUrl}/pokemon-species/${pokemonId}`
+      );
+      const speciesData = await speciesResponse.json();
+
+      // Obter URL da cadeia de evolução
+      const evolutionChainUrl = speciesData.evolution_chain.url;
+
+      // Buscar dados da cadeia de evolução
+      const evolutionResponse = await fetch(evolutionChainUrl);
+      const evolutionData = await evolutionResponse.json();
+
+      // Processar a cadeia de evolução
+      const evolutionChain: EvolutionPokemon[] = [];
+
+      // Função recursiva para processar a cadeia
+      const processEvolutionChain = async (chain: any) => {
+        const pokemonId = this.extractIdFromUrl(chain.species.url);
+        const pokemon = await this.fetchBasicPokemonData(pokemonId);
+
+        evolutionChain.push({
+          id: pokemon.id,
+          name: pokemon.name,
+          image: pokemon.image,
+        });
+
+        // Processar próximas evoluções
+        if (chain.evolves_to && chain.evolves_to.length > 0) {
+          for (const evolution of chain.evolves_to) {
+            await processEvolutionChain(evolution);
+          }
+        }
+      };
+
+      await processEvolutionChain(evolutionData.chain);
+
+      // Adicionar ao cache
+      this.cachedEvolutions.set(pokemonId, evolutionChain);
+
+      return evolutionChain;
+    } catch (error) {
+      console.error(
+        `Erro ao buscar cadeia de evolução para Pokémon ${pokemonId}:`,
+        error
+      );
       return [];
     }
   }
 
-  async fetchPokemonsByType(type: string): Promise<void> {
+  private async fetchBasicPokemonData(id: number): Promise<Pokemon> {
     try {
-      this.loadingSubject.next(true);
-      const response = await axios.get(
-        `https://pokeapi.co/api/v2/type/${type}`
-      );
-      const pokemonData = response.data.pokemon;
+      const response = await fetch(`${this.apiUrl}/pokemon/${id}`);
+      const data = await response.json();
 
-      const enrichedData = await Promise.all(
-        pokemonData.slice(0, 20).map(async (item: any) => {
-          const details = await axios.get(item.pokemon.url);
-          return {
-            id: details.data.id,
-            name: details.data.name,
-            image: details.data.sprites.front_default,
-            types: details.data.types.map((t: any) => t.type.name),
-          };
-        })
-      );
+      const hp = data.stats.find(
+        (stat: { stat: { name: string } }) => stat.stat.name === 'hp'
+      ).base_stat;
 
-      this.pokemonListSubject.next(enrichedData);
-      this.totalPokemonsSubject.next(pokemonData.length);
-      this.loadingSubject.next(false);
+      return {
+        id: data.id,
+        name: data.name,
+        image:
+          data.sprites.other['official-artwork'].front_default ||
+          data.sprites.front_default,
+        type: data.types.map(
+          (type: { type: { name: string } }) => type.type.name
+        ),
+        stats: {
+          hp: hp,
+          attack: data.stats.find(
+            (stat: { stat: { name: string } }) => stat.stat.name === 'attack'
+          ).base_stat,
+          defense: data.stats.find(
+            (stat: { stat: { name: string } }) => stat.stat.name === 'defense'
+          ).base_stat,
+          specialAttack: data.stats.find(
+            (stat: { stat: { name: string } }) =>
+              stat.stat.name === 'special-attack'
+          ).base_stat,
+          specialDefense: data.stats.find(
+            (stat: { stat: { name: string } }) =>
+              stat.stat.name === 'special-defense'
+          ).base_stat,
+          speed: data.stats.find(
+            (stat: { stat: { name: string } }) => stat.stat.name === 'speed'
+          ).base_stat,
+          maxHp: hp,
+        },
+      };
     } catch (error) {
-      console.error(`Failed to fetch Pokémon by type ${type}:`, error);
-      this.loadingSubject.next(false);
+      console.error(`Erro ao buscar dados básicos do Pokémon ${id}:`, error);
+      throw error;
     }
   }
 
-  async fetchPokemonTypes(): Promise<void> {
-    try {
-      const response = await axios.get('https://pokeapi.co/api/v2/type');
-      const types = response.data.results
-        .map((type: any) => type.name)
-        .filter((type: string) => type !== 'unknown' && type !== 'shadow');
-
-      this.pokemonTypesSubject.next(types);
-    } catch (error) {
-      console.error('Failed to fetch Pokémon types:', error);
-    }
+  private extractIdFromUrl(url: string): number {
+    const matches = url.match(/\/(\d+)\/?$/);
+    return matches ? parseInt(matches[1]) : 0;
   }
 }

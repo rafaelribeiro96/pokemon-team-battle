@@ -1,11 +1,18 @@
 <div class="pokedex-container">
   <div class="pokedex-header">
-    <div class="pokemon-logo">
-      <img src="/assets/images/logo-pokemon.png" alt="Pokémon Logo">
+    <div class="pokedex-title">
+      <span class="pokedex-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="3"></circle>
+          <line x1="12" y1="2" x2="12" y2="4"></line>
+          <line x1="12" y1="20" x2="12" y2="22"></line>
+          <line x1="4" y1="12" x2="2" y2="12"></line>
+          <line x1="22" y1="12" x2="20" y2="12"></line>
+        </svg>
+      </span>
+      <h1>Pokédex</h1>
     </div>
-
-    <h1>Pokédex</h1>
-    <p>Pesquise Pokémon por nome, ID ou filtre por tipo</p>
 
     <div class="search-section">
       <app-search-bar (search)="onSearch($event)"></app-search-bar>
