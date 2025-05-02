@@ -11,10 +11,30 @@
   <div class="battle-layout">
     <div class="team-column team-one" [class.winner]="winner() === 'Time 1'">
       <h3>
-        <app-pokemon-icon iconId="trainer" size="sm"></app-pokemon-icon>
+        <app-pokemon-icon iconId="trainer-red" size="sm"></app-pokemon-icon>
         Time 1
       </h3>
-      <app-team-builder #teamOneBuilder [battleInProgress]="battleInProgress()" (teamChange)="setTeamOne($event)"></app-team-builder>
+
+      <!-- Componente de construção de time - visível apenas quando não está em batalha -->
+      <div class="team-builder-container" [hidden]="battleInProgress() || battleEnded()">
+        <app-team-builder
+          #teamOneBuilder
+          [battleInProgress]="battleInProgress()"
+          (teamChange)="setTeamOne($event)">
+        </app-team-builder>
+      </div>
+
+      <!-- Cards dos Pokémon - visíveis durante a batalha -->
+      <div class="team-cards" *ngIf="battleInProgress() || battleEnded()">
+        <div class="pokemon-list">
+          <app-pokemon-card
+            *ngFor="let pokemon of teamOne()"
+            [pokemon]="pokemon"
+            [isStrongest]="isPokemonStrongest(pokemon)"
+            class="team-pokemon-card">
+          </app-pokemon-card>
+        </div>
+      </div>
 
       <!-- Indicador de Pokébolas do Time -->
       <div class="team-pokeballs" *ngIf="battleInProgress() || battleEnded()">
@@ -22,8 +42,14 @@
           <app-pokemon-icon
             [iconId]="pokemon.isFainted ? 'fainted-pokeball' : 'pokeball'"
             size="sm"
-            [title]="pokemon.name">
+            [title]="pokemon.name"
+            [class.strongest]="isPokemonStrongest(pokemon)"
+            [class.fainted]="pokemon.isFainted">
           </app-pokemon-icon>
+          <div class="pokemon-name" *ngIf="isPokemonStrongest(pokemon)">
+            <app-pokemon-icon iconId="crown" size="xs"></app-pokemon-icon>
+            {{ pokemon.name }}
+          </div>
         </div>
       </div>
     </div>
@@ -66,6 +92,7 @@
           color="accent"
           [disabled]="battleInProgress()"
           (click)="startBattle()"
+          *ngIf="!battleInProgress() && !battleEnded()"
         >
           <app-pokemon-icon iconId="battle" size="sm"></app-pokemon-icon>
           Lutar!
@@ -95,10 +122,30 @@
 
     <div class="team-column team-two" [class.winner]="winner() === 'Time 2'">
       <h3>
-        <app-pokemon-icon iconId="trainer" size="sm"></app-pokemon-icon>
+        <app-pokemon-icon iconId="trainer-blue" size="sm"></app-pokemon-icon>
         Time 2
       </h3>
-      <app-team-builder #teamTwoBuilder [battleInProgress]="battleInProgress()" (teamChange)="setTeamTwo($event)"></app-team-builder>
+
+      <!-- Componente de construção de time - visível apenas quando não está em batalha -->
+      <div class="team-builder-container" [hidden]="battleInProgress() || battleEnded()">
+        <app-team-builder
+          #teamTwoBuilder
+          [battleInProgress]="battleInProgress()"
+          (teamChange)="setTeamTwo($event)">
+        </app-team-builder>
+      </div>
+
+      <!-- Cards dos Pokémon - visíveis durante a batalha -->
+      <div class="team-cards" *ngIf="battleInProgress() || battleEnded()">
+        <div class="pokemon-list">
+          <app-pokemon-card
+            *ngFor="let pokemon of teamTwo()"
+            [pokemon]="pokemon"
+            [isStrongest]="isPokemonStrongest(pokemon)"
+            class="team-pokemon-card">
+          </app-pokemon-card>
+        </div>
+      </div>
 
       <!-- Indicador de Pokébolas do Time -->
       <div class="team-pokeballs" *ngIf="battleInProgress() || battleEnded()">
@@ -106,8 +153,14 @@
           <app-pokemon-icon
             [iconId]="pokemon.isFainted ? 'fainted-pokeball' : 'pokeball'"
             size="sm"
-            [title]="pokemon.name">
+            [title]="pokemon.name"
+            [class.strongest]="isPokemonStrongest(pokemon)"
+            [class.fainted]="pokemon.isFainted">
           </app-pokemon-icon>
+          <div class="pokemon-name" *ngIf="isPokemonStrongest(pokemon)">
+            <app-pokemon-icon iconId="crown" size="xs"></app-pokemon-icon>
+            {{ pokemon.name }}
+          </div>
         </div>
       </div>
     </div>

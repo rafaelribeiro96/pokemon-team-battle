@@ -1,234 +1,184 @@
 /* scoreboard.component.ts */
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
+import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
 import {
   trigger,
   transition,
   style,
   animate,
   state,
+  keyframes,
 } from '@angular/animations';
 
 @Component({
   selector: 'app-scoreboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, PokemonIconsModule, PokemonIconComponent],
   template: `
     <div class="scoreboard">
-      <div class="team team-one" [class.winning]="teamOneScore > teamTwoScore">
-        <div class="team-header">
-          <h3>Time 1</h3>
+      <div class="team team-one" [class.winner]="winner === 'Time 1'">
+        <div class="team-name">
+          <app-pokemon-icon iconId="trainer-red" size="sm"></app-pokemon-icon>
+          Time 1
         </div>
-        <div class="score" [@scoreChange]="teamOneScore">
+        <div class="team-score" [@scoreChange]="teamOneScore">
           {{ teamOneScore }}
         </div>
-        <div class="pokemon-count">
-          <span class="count-label">Pokémon:</span>
-          <span class="count-value">{{ teamOneCount }}</span>
+        <div class="team-pokeballs">
+          <app-pokemon-icon
+            *ngFor="let i of [].constructor(teamOneCount)"
+            iconId="pokeball"
+            size="xs"
+            [@pokeballAnimation]
+          >
+          </app-pokemon-icon>
+          <app-pokemon-icon
+            *ngFor="let i of [].constructor(6 - teamOneCount)"
+            iconId="fainted-pokeball"
+            size="xs"
+            [@faintedAnimation]
+          >
+          </app-pokemon-icon>
         </div>
       </div>
 
-      <div class="vs-container">
-        <div class="vs" *ngIf="!winner">VS</div>
-        <div class="winner-announcement" *ngIf="winner" [@winnerAnnounce]>
-          <div class="trophy-icon">🏆</div>
-          <div class="winner-text">{{ winner }} VENCEU!</div>
-        </div>
+      <div class="vs">
+        <app-pokemon-icon
+          *ngIf="!winner"
+          iconId="battle"
+          size="md"
+          [@pulseAnimation]="'active'"
+        >
+        </app-pokemon-icon>
+        <app-pokemon-icon
+          *ngIf="winner"
+          iconId="trophy"
+          size="md"
+          [@trophyAnimation]="'active'"
+        >
+        </app-pokemon-icon>
       </div>
 
-      <div class="team team-two" [class.winning]="teamTwoScore > teamOneScore">
-        <div class="team-header">
-          <h3>Time 2</h3>
+      <div class="team team-two" [class.winner]="winner === 'Time 2'">
+        <div class="team-name">
+          <app-pokemon-icon iconId="trainer-blue" size="sm"></app-pokemon-icon>
+          Time 2
         </div>
-        <div class="score" [@scoreChange]="teamTwoScore">
+        <div class="team-score" [@scoreChange]="teamTwoScore">
           {{ teamTwoScore }}
         </div>
-        <div class="pokemon-count">
-          <span class="count-label">Pokémon:</span>
-          <span class="count-value">{{ teamTwoCount }}</span>
+        <div class="team-pokeballs">
+          <app-pokemon-icon
+            *ngFor="let i of [].constructor(teamTwoCount)"
+            iconId="pokeball"
+            size="xs"
+            [@pokeballAnimation]
+          >
+          </app-pokemon-icon>
+          <app-pokemon-icon
+            *ngFor="let i of [].constructor(6 - teamTwoCount)"
+            iconId="fainted-pokeball"
+            size="xs"
+            [@faintedAnimation]
+          >
+          </app-pokemon-icon>
         </div>
       </div>
     </div>
+
+    <div *ngIf="winner" class="winner-announcement" [@winnerAnnounce]>
+      <div class="winner-text">
+        <app-pokemon-icon
+          [iconId]="winner === 'Time 1' ? 'trainer-red' : 'trainer-blue'"
+          size="md"
+        >
+        </app-pokemon-icon>
+        {{ winner }} VENCEU!
+      </div>
+    </div>
   `,
-  styles: [
-    `
-      .scoreboard {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: linear-gradient(135deg, #3b4cca, #1a237e);
-        border-radius: 15px;
-        padding: 15px;
-        margin-bottom: 20px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        color: white;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .team {
-        flex: 1;
-        text-align: center;
-        padding: 15px;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-        position: relative;
-        z-index: 1;
-
-        &.winning {
-          background-color: rgba(76, 175, 80, 0.3);
-          transform: scale(1.05);
-          box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
-
-          .score {
-            color: #4caf50;
-            text-shadow: 0 0 10px rgba(76, 175, 80, 0.7);
-          }
-        }
-
-        .team-header {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 10px;
-
-          h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-          }
-        }
-
-        .score {
-          font-size: 2.5rem;
-          font-weight: bold;
-          margin: 10px 0;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-          transition: all 0.3s ease;
-        }
-
-        .pokemon-count {
-          font-size: 0.9rem;
-          background-color: rgba(0, 0, 0, 0.2);
-          border-radius: 20px;
-          padding: 5px 10px;
-          display: inline-block;
-
-          .count-label {
-            opacity: 0.8;
-            margin-right: 5px;
-          }
-
-          .count-value {
-            font-weight: bold;
-          }
-        }
-      }
-
-      .vs-container {
-        padding: 0 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        z-index: 1;
-      }
-
-      .vs {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #ffcb05;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      }
-
-      .winner-announcement {
-        text-align: center;
-
-        .trophy-icon {
-          font-size: 2rem;
-          color: #ffcb05;
-          margin-bottom: 5px;
-          animation: float 2s infinite ease-in-out;
-        }
-
-        .winner-text {
-          color: #4caf50;
-          font-weight: bold;
-          font-size: 1.2rem;
-          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-          animation: pulse 1.5s infinite;
-        }
-      }
-
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.1);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      @keyframes float {
-        0% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-5px);
-        }
-        100% {
-          transform: translateY(0);
-        }
-      }
-
-      @media (max-width: 768px) {
-        .scoreboard {
-          flex-direction: column;
-          gap: 15px;
-        }
-
-        .team {
-          width: 100%;
-
-          &.winning {
-            transform: scale(1.02);
-          }
-        }
-
-        .vs-container {
-          padding: 10px 0;
-        }
-      }
-    `,
-  ],
+  styleUrls: ['./scoreboard.component.scss'],
   animations: [
     trigger('scoreChange', [
       transition(':increment', [
-        style({ transform: 'scale(1.5)', color: '#4caf50' }),
         animate(
-          '300ms ease-out',
-          style({ transform: 'scale(1)', color: 'white' })
+          '0.5s',
+          keyframes([
+            style({ transform: 'scale(1)', offset: 0 }),
+            style({ transform: 'scale(1.5)', color: '#4caf50', offset: 0.5 }),
+            style({ transform: 'scale(1)', offset: 1 }),
+          ])
         ),
       ]),
     ]),
     trigger('winnerAnnounce', [
       state('void', style({ opacity: 0, transform: 'translateY(-20px)' })),
       state('*', style({ opacity: 1, transform: 'translateY(0)' })),
-      transition('void => *', animate('500ms ease-out')),
+      transition('void => *', [
+        animate(
+          '0.5s ease-out',
+          keyframes([
+            style({ opacity: 0, transform: 'translateY(-20px)', offset: 0 }),
+            style({ opacity: 1, transform: 'translateY(5px)', offset: 0.7 }),
+            style({ opacity: 1, transform: 'translateY(0)', offset: 1 }),
+          ])
+        ),
+      ]),
+    ]),
+    trigger('pokeballAnimation', [
+      state('*', style({ transform: 'rotate(0)' })),
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0) rotate(-180deg)' }),
+        animate(
+          '0.5s ease-out',
+          style({ opacity: 1, transform: 'scale(1) rotate(0)' })
+        ),
+      ]),
+    ]),
+    trigger('faintedAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0) rotate(0)' }),
+        animate(
+          '0.5s ease-out',
+          style({ opacity: 0.7, transform: 'scale(1) rotate(180deg)' })
+        ),
+      ]),
+    ]),
+    trigger('pulseAnimation', [
+      state('active', style({ transform: 'scale(1)' })),
+      transition('* => active', [
+        animate(
+          '2s ease-in-out',
+          keyframes([
+            style({ transform: 'scale(1)', offset: 0 }),
+            style({ transform: 'scale(1.1)', offset: 0.5 }),
+            style({ transform: 'scale(1)', offset: 1 }),
+          ])
+        ),
+      ]),
+    ]),
+    trigger('trophyAnimation', [
+      state('active', style({ transform: 'translateY(0)' })),
+      transition('* => active', [
+        animate(
+          '1.5s ease-in-out',
+          keyframes([
+            style({ transform: 'translateY(0)', offset: 0 }),
+            style({ transform: 'translateY(-10px)', offset: 0.5 }),
+            style({ transform: 'translateY(0)', offset: 1 }),
+          ])
+        ),
+      ]),
     ]),
   ],
 })
 export class ScoreboardComponent implements OnChanges {
-  @Input() teamOneScore = 0;
-  @Input() teamTwoScore = 0;
-  @Input() teamOneCount = 0;
-  @Input() teamTwoCount = 0;
+  @Input() teamOneScore: number = 0;
+  @Input() teamTwoScore: number = 0;
+  @Input() teamOneCount: number = 0;
+  @Input() teamTwoCount: number = 0;
   @Input() winner: string | null = null;
 
   previousTeamOneScore = 0;

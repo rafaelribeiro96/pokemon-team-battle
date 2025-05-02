@@ -1,8 +1,14 @@
-<!-- pokemon-card.component.html -->
+<!-- src/app/components/pokemon-card/pokemon-card.component.html -->
 <div class="pokemon-card"
      [ngClass]="getCardClasses()"
      [@attackEffect]="attackEffectState"
-     [id]="'pokemon-' + pokemon.id">
+     [id]="'pokemon-' + (pokemon.id || '')">
+
+  <!-- Indicador de Pokémon derrotado -->
+  <div class="fainted-indicator" *ngIf="pokemon.isFainted">
+    <div class="fainted-x">X</div>
+  </div>
+
   <div class="status-icons">
     <app-pokemon-icon *ngIf="isStrongest" iconId="crown" size="sm"
                      [title]="'Pokémon mais forte da batalha'"
@@ -13,37 +19,65 @@
                      [@iconAnimation]></app-pokemon-icon>
   </div>
 
-  <img [src]="pokemon.image" [alt]="pokemon.name" />
-  <h4>{{ pokemon.name }}</h4>
-
-  <div class="damage-indicator" [@damageEffect]="damageState" *ngIf="damageAmount > 0">
-    -{{ damageAmount }}
+  <div class="card-header">
+    <div class="pokemon-name" [class.small-name]="pokemon.name.length > 10">
+      {{ pokemon.name }}
+    </div>
   </div>
 
-  <div class="super-effective" [@superEffectiveText]="superEffectiveState" *ngIf="isSuperEffective">
-    SUPER EFETIVO!
-  </div>
+  <div class="card-body">
+    <div class="pokemon-image">
+      <img [src]="pokemon.image" [alt]="pokemon.name" />
+    </div>
 
-  <div class="type-badges">
-    <span *ngFor="let type of pokemon.type" class="type-badge" [ngClass]="type.toLowerCase()">
-      <app-pokemon-icon *ngIf="getTypeIcon(type)"
-                       [iconId]="getTypeIcon(type) ?? null"
-                       size="xs"></app-pokemon-icon>
-      {{ type }}
-    </span>
-  </div>
+    <div class="damage-indicator" [@damageEffect]="damageState" *ngIf="damageAmount > 0">
+      -{{ damageAmount }}
+    </div>
 
-  <div class="hp-bar">
-    <div class="hp"
-         [@hpChange]
-         [ngClass]="{
-           'low': (displayHp / pokemon.stats.maxHp) <= 0.5 && (displayHp / pokemon.stats.maxHp) > 0.25,
-           'critical': (displayHp / pokemon.stats.maxHp) <= 0.25
-         }"
-         [style.width.%]="(displayHp / pokemon.stats.maxHp) * 100"></div>
-  </div>
-  <div class="hp-text">
-    {{ displayHp > 0 ? Math.floor(displayHp) : 0 }} / {{ pokemon.stats.maxHp }}
+    <div class="super-effective" [@superEffectiveText]="superEffectiveState" *ngIf="isSuperEffective">
+      SUPER EFETIVO!
+    </div>
+
+    <div class="pokemon-info" *ngIf="showDetails">
+      <div class="type-badges">
+        <span *ngFor="let type of getTypes()" class="type-badge" [ngClass]="type.toLowerCase()">
+          <app-pokemon-icon *ngIf="getTypeIcon(type)"
+                          [iconId]="getTypeIcon(type)"
+                          size="xs"></app-pokemon-icon>
+          {{ type }}
+        </span>
+      </div>
+
+      <div class="pokemon-stats">
+        <div class="hp-bar">
+          <div class="hp-label">
+            HP: {{ getCurrentHp() }}/{{ getMaxHp() }}
+          </div>
+          <div class="hp"
+               [@hpChange]
+               [ngClass]="{
+                 'low': (displayHp / getMaxHp()) <= 0.5 && (displayHp / getMaxHp()) > 0.25,
+                 'critical': (displayHp / getMaxHp()) <= 0.25
+               }"
+               [style.width.%]="(displayHp / getMaxHp()) * 100"></div>
+        </div>
+
+        <div class="stat-row" *ngIf="pokemon.stats?.attack">
+          <div class="stat">
+            <span class="stat-label">ATK</span>
+            <span class="stat-value">{{ pokemon.stats.attack }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">DEF</span>
+            <span class="stat-value">{{ pokemon.stats.defense }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">SPD</span>
+            <span class="stat-value">{{ pokemon.stats.speed }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="attack-effect" *ngIf="isDefending"></div>

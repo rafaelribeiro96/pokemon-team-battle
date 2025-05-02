@@ -277,6 +277,8 @@ export class PokemonCardComponent implements OnChanges, OnInit {
   @Input() isDefending = false;
   @Input() isSuperEffective = false;
   @Input() isStrongest = false;
+  @Input() showDetails: boolean = true;
+  @Input() compact: boolean = false;
 
   displayHp: number = 0;
   damageState = 'inactive';
@@ -287,42 +289,50 @@ export class PokemonCardComponent implements OnChanges, OnInit {
   Math = Math;
   typeClass: string = '';
   justAttacked: boolean = false;
+  hpPercentage: number = 100;
+  hpColor: string = 'primary';
 
   ngOnInit() {
     if (this.pokemon) {
-      this.displayHp = this.pokemon.stats.hp;
-      this.lastHp = this.pokemon.stats.hp;
+      this.displayHp = this.pokemon.stats?.hp || 0;
+      this.lastHp = this.displayHp;
       this.setTypeClass();
+      this.updateHpStatus();
     }
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['pokemon'] && this.pokemon) {
       if (this.lastHp === 0) {
-        this.lastHp = this.pokemon.stats.hp;
-        this.displayHp = this.pokemon.stats.hp;
+        this.lastHp = this.pokemon.stats?.hp || 0;
+        this.displayHp = this.lastHp;
         this.setTypeClass();
-      } else if (this.lastHp !== this.pokemon.stats.hp) {
-        // Calculate damage
-        this.damageAmount = Math.max(0, this.lastHp - this.pokemon.stats.hp);
+      } else {
+        const currentHp = this.pokemon.stats?.hp || 0;
+        if (this.lastHp !== currentHp) {
+          // Calculate damage
+          this.damageAmount = Math.max(0, this.lastHp - currentHp);
 
-        if (this.damageAmount > 0) {
-          // Show damage animation
-          this.damageState = 'active';
-          setTimeout(() => {
-            this.damageState = 'inactive';
-          }, 500);
+          if (this.damageAmount > 0) {
+            // Show damage animation
+            this.damageState = 'active';
+            setTimeout(() => {
+              this.damageState = 'inactive';
+            }, 500);
+          }
+
+          // Animate HP change
+          this.animateHpChange(currentHp);
+          this.lastHp = currentHp;
         }
-
-        // Animate HP change
-        this.animateHpChange(this.pokemon.stats.hp);
-        this.lastHp = this.pokemon.stats.hp;
       }
+
+      this.updateHpStatus();
     }
 
     if (changes['isDefending'] && this.isDefending) {
       // Show attack effect based on pokemon type
-      const type = this.pokemon.type[0].toLowerCase();
+      const type = this.getFirstType().toLowerCase();
       if (type === 'fire') {
         this.attackEffectState = 'fire';
       } else if (type === 'water') {
@@ -364,6 +374,13 @@ export class PokemonCardComponent implements OnChanges, OnInit {
     }
   }
 
+  getFirstType(): string {
+    if (this.pokemon && this.pokemon.type && this.pokemon.type.length > 0) {
+      return this.pokemon.type[0];
+    }
+    return 'normal';
+  }
+
   animateHpChange(targetHp: number) {
     const startHp = this.displayHp;
     const diff = startHp - targetHp;
@@ -393,6 +410,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
       defending: this.isDefending,
       'type-themed': true,
       strongest: this.isStrongest,
+      compact: this.compact,
     };
 
     if (this.typeClass) {
@@ -425,5 +443,41 @@ export class PokemonCardComponent implements OnChanges, OnInit {
     };
 
     return typeMap[type.toLowerCase()] || null;
+  }
+
+  private updateHpStatus(): void {
+    if (this.pokemon && this.pokemon.stats) {
+      const maxHp = this.pokemon.stats.maxHp || 100;
+      const currentHp = this.pokemon.stats.hp || 0;
+
+      this.hpPercentage = (currentHp / maxHp) * 100;
+
+      if (this.hpPercentage > 50) {
+        this.hpColor = 'primary';
+      } else if (this.hpPercentage > 20) {
+        this.hpColor = 'accent';
+      } else {
+        this.hpColor = 'warn';
+      }
+    }
+  }
+
+  getTypeClass(type: string): string {
+    return `type-${type.toLowerCase()}`;
+  }
+
+  getTypes(): string[] {
+    if (this.pokemon && this.pokemon.type) {
+      return this.pokemon.type;
+    }
+    return [];
+  }
+
+  getMaxHp(): number {
+    return this.pokemon?.stats?.maxHp || 100;
+  }
+
+  getCurrentHp(): number {
+    return this.pokemon?.stats?.hp || 0;
   }
 }

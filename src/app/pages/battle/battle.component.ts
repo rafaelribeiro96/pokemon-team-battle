@@ -154,10 +154,12 @@ export class BattleComponent {
 
   setTeamOne(team: Pokemon[]) {
     this.teamOne.set(team);
+    this.updateStrongestPokemon([...team, ...this.teamTwo()]);
   }
 
   setTeamTwo(team: Pokemon[]) {
     this.teamTwo.set(team);
+    this.updateStrongestPokemon([...this.teamOne(), ...team]);
   }
 
   async startBattle() {
@@ -181,7 +183,6 @@ export class BattleComponent {
     this.teamOneScore.set(0);
     this.teamTwoScore.set(0);
     this.battleLog.set([]);
-    this.strongestPokemon = null;
 
     let teamOnePokemons = [...this.teamOne()].map((p) => ({
       ...p,
@@ -195,6 +196,9 @@ export class BattleComponent {
       isFainted: false,
       isAttacking: false,
     }));
+
+    // Atualizar o Pokémon mais forte da batalha
+    this.updateStrongestPokemon([...teamOnePokemons, ...teamTwoPokemons]);
 
     // Loop principal da batalha com verificação de cancelamento
     while (
