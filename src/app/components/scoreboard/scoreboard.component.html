@@ -1,0 +1,11 @@
+<div class="battle-container">
+  <app-scoreboard
+    [teamOneScore]="teamOneScore()"
+    [teamTwoScore]="teamTwoScore()"
+    [teamOneCount]="teamOne().filter(p => !p.isFainted).length"
+    [teamTwoCount]="teamTwo().filter(p => !p.isFainted).length"
+    [winner]="winner()">
+  </app-scoreboard>
+
+  <!-- Rest of your battle component HTML -->
+</div>

@@ -7,15 +7,23 @@
 
   <h3>Time Atual</h3>
   <div class="team">
-    <div *ngFor="let pokemon of team()" class="pokemon-card" [class.defeated]="pokemon.isDefeated">
+    <div *ngFor="let pokemon of team()" class="pokemon-card" [class.fainted]="pokemon.isFainted">
       <img [src]="pokemon.image" [alt]="pokemon.name" />
       <span>{{ pokemon.name }}</span>
 
       <div class="hp-bar">
-        <div class="hp" [style.width.%]="(pokemon.stats.hp / pokemon.stats.maxHp) * 100"></div>
+        <div class="hp"
+             [ngClass]="{
+               'low': (pokemon.stats.hp / pokemon.stats.maxHp) <= 0.5 && (pokemon.stats.hp / pokemon.stats.maxHp) > 0.25,
+               'critical': (pokemon.stats.hp / pokemon.stats.maxHp) <= 0.25
+             }"
+             [style.width.%]="(pokemon.stats.hp / pokemon.stats.maxHp) * 100"></div>
+      </div>
+      <div class="hp-text">
+        {{ pokemon.stats.hp }} / {{ pokemon.stats.maxHp }}
       </div>
 
-      <button mat-button color="warn" (click)="removePokemonFromTeam(pokemon)">
+      <button mat-button color="warn" (click)="removePokemonFromTeam(pokemon)" [disabled]="battleInProgress">
         Remover
       </button>
     </div>

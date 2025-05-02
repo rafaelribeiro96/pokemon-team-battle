@@ -8,13 +8,32 @@
   border-radius: 10px;
   padding: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &.attacking {
+    animation: attack-animation 0.5s ease-in-out;
+  }
 
   &.fainted {
-    opacity: 0.5;
-    transform: scale(0.95);
+    opacity: 0.6;
+    transform: scale(0.95) rotate(5deg);
     filter: grayscale(100%);
     background-color: #ffe6e6;
+
+    &::after {
+      content: "FAINTED";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ff0000;
+      text-shadow: 1px 1px 2px #000;
+      z-index: 10;
+    }
   }
 
   .hp-bar {
@@ -29,6 +48,48 @@
       height: 100%;
       background-color: #4caf50;
       transition: width 0.5s ease;
+
+      &.low {
+        background-color: #ff9800;
+      }
+
+      &.critical {
+        background-color: #f44336;
+      }
     }
   }
+}
+
+@keyframes attack-animation {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(20px) rotate(5deg);
+  }
+  75% {
+    transform: translateX(-5px) rotate(-2deg);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.damage-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff0000;
+  color: white;
+  font-weight: bold;
+  padding: 3px 6px;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  z-index: 10;
+}
+
+.hp-text {
+  font-size: 0.8rem;
+  margin-top: 5px;
+  font-weight: bold;
 }

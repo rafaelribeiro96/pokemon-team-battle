@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { PokemonService } from '../../services/pokemon.service';
 import { Pokemon } from '../../models/pokemon.model';
 import { PokemonListComponent } from '../pokemon-list/pokemon-list.component';
@@ -15,6 +15,7 @@ export class TeamBuilderComponent {
   availablePokemons = signal<Pokemon[]>([]);
   team = signal<Pokemon[]>([]);
   @Output() teamChange = new EventEmitter<Pokemon[]>();
+  @Input() battleInProgress = false;
 
   constructor(private pokemonService: PokemonService) {
     this.pokemonService.fetchPokemons().then(() => {
@@ -79,5 +80,14 @@ export class TeamBuilderComponent {
 
   private emitTeamChange() {
     this.teamChange.emit(this.team());
+  }
+
+  updateTeamPokemon(updatedPokemon: Pokemon) {
+    const index = this.team().findIndex((p) => p.id === updatedPokemon.id);
+    if (index !== -1) {
+      const updatedTeam = [...this.team()];
+      updatedTeam[index] = { ...updatedPokemon };
+      this.team.set(updatedTeam);
+    }
   }
 }

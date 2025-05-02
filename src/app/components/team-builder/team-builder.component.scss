@@ -95,3 +95,54 @@
     }
   }
 }
+.pokemon-card {
+  &.fainted {
+    opacity: 0.6;
+    transform: scale(0.95) rotate(5deg);
+    filter: grayscale(100%);
+    background-color: #ffe6e6;
+    position: relative;
+
+    &::after {
+      content: "FAINTED";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ff0000;
+      text-shadow: 1px 1px 2px #000;
+      z-index: 10;
+    }
+  }
+
+  .hp-bar {
+    width: 80%;
+    height: 8px;
+    background-color: #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 5px 0;
+
+    .hp {
+      height: 100%;
+      background-color: #4caf50;
+      transition: width 0.5s ease;
+
+      &.low {
+        background-color: #ff9800;
+      }
+
+      &.critical {
+        background-color: #f44336;
+      }
+    }
+  }
+
+  .hp-text {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+}

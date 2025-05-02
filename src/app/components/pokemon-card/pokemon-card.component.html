@@ -1,7 +1,21 @@
 <div class="pokemon-card" [ngClass]="{ 'attacking': isAttacking, 'fainted': pokemon.isFainted }">
   <img [src]="pokemon.image" [alt]="pokemon.name" />
   <h4>{{ pokemon.name }}</h4>
+
+  <div class="damage-indicator" [@damageEffect]="damageState" *ngIf="damageAmount > 0">
+    -{{ damageAmount }}
+  </div>
+
   <div class="hp-bar">
-    <div class="hp" [style.width.%]="(pokemon.stats.hp / pokemon.stats.maxHp) * 100"></div>
+    <div class="hp"
+         [@hpChange]
+         [ngClass]="{
+           'low': (displayHp / pokemon.stats.maxHp) <= 0.5 && (displayHp / pokemon.stats.maxHp) > 0.25,
+           'critical': (displayHp / pokemon.stats.maxHp) <= 0.25
+         }"
+         [style.width.%]="(displayHp / pokemon.stats.maxHp) * 100"></div>
+  </div>
+  <div class="hp-text">
+    {{ displayHp > 0 ? Math.floor(displayHp) : 0 }} / {{ pokemon.stats.maxHp }}
   </div>
 </div>

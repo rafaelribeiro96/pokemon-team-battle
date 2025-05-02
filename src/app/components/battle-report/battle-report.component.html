@@ -2,7 +2,9 @@
   <h2>Relatório da Batalha</h2>
   <div class="report-content" #scrollBox>
     <ul>
-      <li *ngFor="let entry of log">{{ entry }}</li>
+      <li *ngFor="let entry of log" @newLogEntry>
+        <span [innerHTML]="formatLogEntry(entry)"></span>
+      </li>
     </ul>
   </div>
 </div>

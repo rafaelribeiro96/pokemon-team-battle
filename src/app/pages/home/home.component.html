@@ -1,5 +1,38 @@
 <div class="home-container">
-  <h1>Bem-vindo ao Pokemon Team Battle!</h1>
-  <p>Monte suas equipes e prepare-se para batalhas emocionantes.</p>
-  <button mat-raised-button color="primary" routerLink="/battle">Ir para a Batalha</button>
+  <div class="pokemon-logo">
+    <img src="assets/images/pokemon-logo.png" alt="Pokemon Logo">
+  </div>
+
+  <h1>Pokémon Team Battle</h1>
+
+  <div class="battle-intro">
+    <p>Monte suas equipes e prepare-se para batalhas emocionantes!</p>
+    <p>Escolha seus Pokémon favoritos e veja quem sairá vitorioso!</p>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">🏆</div>
+      <h3>Batalhas em Turnos</h3>
+      <p>Estratégia e sorte se combinam em batalhas emocionantes</p>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon">⚔️</div>
+      <h3>Monte seu Time</h3>
+      <p>Escolha entre dezenas de Pokémon para formar seu time perfeito</p>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <h3>Estatísticas</h3>
+      <p>Acompanhe o desempenho dos seus Pokémon em batalha</p>
+    </div>
+  </div>
+
+  <button mat-raised-button color="primary" routerLink="/battle" class="start-button">
+    Iniciar Batalha
+  </button>
+
+  <div class="pokeball-decoration"></div>
 </div>

@@ -1,35 +1,55 @@
 <div class="battle-container">
-  <app-battle-header></app-battle-header>
-  <div class="teams">
-    <app-team-builder (teamChange)="setTeamOne($event)"></app-team-builder>
-    <app-team-builder (teamChange)="setTeamTwo($event)"></app-team-builder>
-  </div>
+  <app-scoreboard
+    [teamOneScore]="teamOneScore()"
+    [teamTwoScore]="teamTwoScore()"
+    [teamOneCount]="getActiveTeamOneCount()"
+    [teamTwoCount]="getActiveTeamTwoCount()"
+    [winner]="winner()">
+  </app-scoreboard>
 
-  <div *ngIf="battleInProgress()">
-    <h2>Turno: {{ turnNumber() }}</h2>
-    <div *ngIf="currentBattle().p1 && currentBattle().p2">
-      <app-pokemon-card [pokemon]="currentBattle().p1!"></app-pokemon-card>
-      <div class="vs">VS</div>
-      <app-pokemon-card [pokemon]="currentBattle().p2!"></app-pokemon-card>
+  <div class="battle-layout">
+    <div class="team-column team-one" [class.winner]="winner() === 'Time 1'">
+      <h3>Time 1</h3>
+      <app-team-builder #teamOneBuilder [battleInProgress]="battleInProgress()" (teamChange)="setTeamOne($event)"></app-team-builder>
+    </div>
+
+    <div class="battle-arena">
+      <app-battle-header></app-battle-header>
+
+      <div *ngIf="battleInProgress()" class="current-battle">
+        <h2>Turno: {{ turnNumber() }}</h2>
+        <div class="battle-cards" *ngIf="currentBattle().p1 && currentBattle().p2">
+          <app-pokemon-card [pokemon]="currentBattle().p1!"></app-pokemon-card>
+          <div class="vs">VS</div>
+          <app-pokemon-card [pokemon]="currentBattle().p2!"></app-pokemon-card>
+        </div>
+      </div>
+
+      <div class="battle-controls">
+        <button
+          mat-raised-button
+          color="accent"
+          [disabled]="battleInProgress()"
+          (click)="startBattle()"
+        >
+          Lutar!
+        </button>
+        <button
+          mat-raised-button
+          color="warn"
+          *ngIf="battleEnded()"
+          (click)="resetBattle()"
+        >
+          Reiniciar
+        </button>
+      </div>
+
+      <app-battle-report *ngIf="battleLog().length > 0" [log]="battleLog()"></app-battle-report>
+    </div>
+
+    <div class="team-column team-two" [class.winner]="winner() === 'Time 2'">
+      <h3>Time 2</h3>
+      <app-team-builder #teamTwoBuilder [battleInProgress]="battleInProgress()" (teamChange)="setTeamTwo($event)"></app-team-builder>
     </div>
   </div>
-
-  <button
-    mat-raised-button
-    color="accent"
-    [disabled]="battleInProgress()"
-    (click)="startBattle()"
-  >
-    Lutar!
-  </button>
-  <button
-    mat-raised-button
-    color="warn"
-    *ngIf="battleEnded()"
-    (click)="resetBattle()"
-  >
-    Reiniciar
-  </button>
-
-  <app-battle-report *ngIf="battleLog().length > 0" [log]="battleLog()"></app-battle-report>
 </div>

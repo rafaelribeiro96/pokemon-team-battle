@@ -1,21 +1,48 @@
-
-@use '@angular/material' as mat;
-@include mat.core();
-
-$pokemon-team-battle-theme: mat.define-theme((
-  color: (
-    theme-type: light,
-    primary: mat.$azure-palette,
-    tertiary: mat.$blue-palette,
-  ),
-  density: (
-    scale: 0,
-  )
-));
-
+/* Add Pokemon-themed variables */
 :root {
-  @include mat.all-component-themes($pokemon-team-battle-theme);
+  --pokemon-red: #ff0000;
+  --pokemon-blue: #3b4cca;
+  --pokemon-yellow: #ffcb05;
+  --pokemon-black: #222224;
+  --pokemon-white: #f0f0f0;
+
+  --grass-type: #78c850;
+  --fire-type: #f08030;
+  --water-type: #6890f0;
+  --electric-type: #f8d030;
+  --psychic-type: #f85888;
+  --ice-type: #98d8d8;
+  --dragon-type: #7038f8;
+  --dark-type: #705848;
+  --fairy-type: #ee99ac;
+
+  --font-pokemon: 'Press Start 2P', cursive, sans-serif;
+  --font-main: 'Flexo', 'Roboto', sans-serif;
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* Import Pokemon fonts */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Global styles */
+body {
+  font-family: var(--font-main);
+  background-color: var(--pokemon-white);
+  color: var(--pokemon-black);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-pokemon);
+  color: var(--pokemon-blue);
+}
+
+button {
+  font-family: var(--font-pokemon);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
