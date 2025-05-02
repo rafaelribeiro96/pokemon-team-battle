@@ -16,6 +16,7 @@ export class PokemonService {
   private cachedTypes: string[] = [];
   private cachedEvolutions: Map<number, EvolutionPokemon[]> = new Map();
   private _pokemons = signal<Pokemon[]>([]);
+  private totalPokemonCount = 898; // Número total de Pokémon na API (até a 8ª geração)
 
   constructor() {}
 
@@ -41,13 +42,25 @@ export class PokemonService {
     limit: number = 20
   ): Promise<Pokemon[]> {
     try {
+      // Se já temos os Pokémon em cache, retornamos do cache
       if (this.cachedList.length > offset + limit) {
         return this.cachedList.slice(offset, offset + limit);
       }
 
+      console.log(
+        `Buscando Pokémon do offset ${offset} ao ${offset + limit - 1}`
+      );
+
       const response = await fetch(
         `${this.apiUrl}/pokemon?offset=${offset}&limit=${limit}`
       );
+
+      if (!response.ok) {
+        throw new Error(
+          `Erro na API: ${response.status} ${response.statusText}`
+        );
+      }
+
       const data: PokemonListResponse = await response.json();
 
       const pokemonPromises = data.results.map(async (result) => {
@@ -61,13 +74,38 @@ export class PokemonService {
       if (offset === 0) {
         this.cachedList = pokemonList;
       } else {
-        this.cachedList = [...this.cachedList, ...pokemonList];
+        // Garantir que não haja duplicatas
+        const newPokemon = pokemonList.filter(
+          (pokemon) => !this.cachedList.some((p) => p.id === pokemon.id)
+        );
+        this.cachedList = [...this.cachedList, ...newPokemon];
       }
 
+      console.log(
+        `Carregados ${pokemonList.length} Pokémon. Total em cache: ${this.cachedList.length}`
+      );
       return pokemonList;
     } catch (error) {
       console.error('Erro ao buscar lista de Pokémon:', error);
       throw error;
+    }
+  }
+
+  // Método para obter o número total de Pokémon
+  async getTotalPokemonCount(): Promise<number> {
+    try {
+      // Se já temos o valor em cache, retornamos
+      if (this.totalPokemonCount > 0) {
+        return this.totalPokemonCount;
+      }
+
+      const response = await fetch(`${this.apiUrl}/pokemon?limit=1`);
+      const data = await response.json();
+      this.totalPokemonCount = data.count;
+      return this.totalPokemonCount;
+    } catch (error) {
+      console.error('Erro ao buscar contagem total de Pokémon:', error);
+      return 898; // Valor padrão caso ocorra erro
     }
   }
 
@@ -98,7 +136,7 @@ export class PokemonService {
       const data = await response.json();
 
       const pokemonPromises = data.pokemon
-        .slice(0, 20) // Limitar a 20 para performance
+        .slice(0, 50) // Aumentado para 50 para mostrar mais Pokémon por tipo
         .map(async (entry: { pokemon: { name: string; url: string } }) => {
           const id = this.extractIdFromUrl(entry.pokemon.url);
           return this.fetchBasicPokemonData(id);
@@ -131,8 +169,9 @@ export class PokemonService {
       }
 
       // Buscar todos os Pokémon para pesquisa por nome parcial
-      if (this.cachedList.length < 151) {
-        await this.fetchPokemonList(0, 151); // Carregar pelo menos os 151 primeiros
+      // Aumentamos o limite para garantir que mais Pokémon sejam carregados
+      if (this.cachedList.length < 251) {
+        await this.fetchPokemonList(0, 251); // Carregar pelo menos os 251 primeiros
       }
 
       // Filtrar por nome parcial
@@ -153,6 +192,13 @@ export class PokemonService {
 
     try {
       const response = await fetch(`${this.apiUrl}/pokemon/${id}`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Erro na API: ${response.status} ${response.statusText}`
+        );
+      }
+
       const data = await response.json();
 
       const hp = data.stats.find(
@@ -228,6 +274,13 @@ export class PokemonService {
       const speciesResponse = await fetch(
         `${this.apiUrl}/pokemon-species/${pokemonId}`
       );
+
+      if (!speciesResponse.ok) {
+        throw new Error(
+          `Erro na API de espécies: ${speciesResponse.status} ${speciesResponse.statusText}`
+        );
+      }
+
       const speciesData = await speciesResponse.json();
 
       // Obter URL da cadeia de evolução
@@ -235,6 +288,13 @@ export class PokemonService {
 
       // Buscar dados da cadeia de evolução
       const evolutionResponse = await fetch(evolutionChainUrl);
+
+      if (!evolutionResponse.ok) {
+        throw new Error(
+          `Erro na API de evolução: ${evolutionResponse.status} ${evolutionResponse.statusText}`
+        );
+      }
+
       const evolutionData = await evolutionResponse.json();
 
       // Processar a cadeia de evolução
@@ -243,19 +303,26 @@ export class PokemonService {
       // Função recursiva para processar a cadeia
       const processEvolutionChain = async (chain: any) => {
         const pokemonId = this.extractIdFromUrl(chain.species.url);
-        const pokemon = await this.fetchBasicPokemonData(pokemonId);
+        try {
+          const pokemon = await this.fetchBasicPokemonData(pokemonId);
 
-        evolutionChain.push({
-          id: pokemon.id,
-          name: pokemon.name,
-          image: pokemon.image,
-        });
+          evolutionChain.push({
+            id: pokemon.id,
+            name: pokemon.name,
+            image: pokemon.image,
+          });
 
-        // Processar próximas evoluções
-        if (chain.evolves_to && chain.evolves_to.length > 0) {
-          for (const evolution of chain.evolves_to) {
-            await processEvolutionChain(evolution);
+          // Processar próximas evoluções
+          if (chain.evolves_to && chain.evolves_to.length > 0) {
+            for (const evolution of chain.evolves_to) {
+              await processEvolutionChain(evolution);
+            }
           }
+        } catch (error) {
+          console.error(
+            `Erro ao processar evolução do Pokémon ${pokemonId}:`,
+            error
+          );
         }
       };
 
@@ -277,6 +344,13 @@ export class PokemonService {
   private async fetchBasicPokemonData(id: number): Promise<Pokemon> {
     try {
       const response = await fetch(`${this.apiUrl}/pokemon/${id}`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Erro na API: ${response.status} ${response.statusText}`
+        );
+      }
+
       const data = await response.json();
 
       const hp = data.stats.find(

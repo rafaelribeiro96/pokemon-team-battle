@@ -29,23 +29,40 @@ export class PokedexComponent implements OnInit {
   currentPage: number = 1;
   totalPages: number = 0;
   itemsPerPage: number = 20;
+  totalPokemon: number = 0;
 
   constructor(private pokemonService: PokemonService) {}
 
   ngOnInit(): void {
     this.loadPokemonTypes();
+    this.loadTotalPokemonCount();
     this.loadPokemonList();
+  }
+
+  async loadTotalPokemonCount(): Promise<void> {
+    try {
+      this.totalPokemon = await this.pokemonService.getTotalPokemonCount();
+      // Limitando aos primeiros 898 Pokémon (até a 8ª geração) para melhor performance
+      // Você pode ajustar esse número conforme necessário
+      const maxPokemon = Math.min(898, this.totalPokemon);
+      this.totalPages = Math.ceil(maxPokemon / this.itemsPerPage);
+      console.log(`Total de páginas: ${this.totalPages}`);
+    } catch (error) {
+      console.error('Erro ao carregar contagem total de Pokémon:', error);
+      // Valor padrão caso ocorra erro
+      this.totalPages = Math.ceil(898 / this.itemsPerPage);
+    }
   }
 
   async loadPokemonList(): Promise<void> {
     try {
       this.loading = true;
       const offset = (this.currentPage - 1) * this.itemsPerPage;
+      console.log(`Carregando página ${this.currentPage}, offset ${offset}`);
       this.pokemonList = await this.pokemonService.fetchPokemonList(
         offset,
         this.itemsPerPage
       );
-      this.totalPages = Math.ceil(151 / this.itemsPerPage); // Limitando aos 151 Pokémon originais
       this.loading = false;
     } catch (error) {
       console.error('Erro ao carregar lista de Pokémon:', error);
@@ -100,6 +117,7 @@ export class PokedexComponent implements OnInit {
   }
 
   async onPageChange(page: number): Promise<void> {
+    console.log(`Mudando para página ${page}`);
     this.currentPage = page;
     await this.loadPokemonList();
     window.scrollTo({ top: 0, behavior: 'smooth' });
