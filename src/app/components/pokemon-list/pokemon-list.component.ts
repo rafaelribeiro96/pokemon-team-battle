@@ -1,13 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Pokemon } from '../../models/pokemon.model';
 import { CommonModule } from '@angular/common';
+import { MatGridListModule } from '@angular/material/grid-list';
 
 @Component({
   standalone: true,
   selector: 'app-pokemon-list',
   templateUrl: './pokemon-list.component.html',
   styleUrls: ['./pokemon-list.component.scss'],
-  imports: [CommonModule],
+  imports: [CommonModule, MatGridListModule],
 })
 export class PokemonListComponent {
   @Input() pokemons: Pokemon[] = [];

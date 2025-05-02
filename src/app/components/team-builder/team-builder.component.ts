@@ -53,9 +53,17 @@ export class TeamBuilderComponent {
       (pokemon) => !this.team().includes(pokemon)
     );
 
-    this.team.set([
-      ...this.team(),
-      ...availablePokemons.slice(0, remainingSlots),
-    ]);
+    const randomPokemons = [];
+
+    while (
+      randomPokemons.length < remainingSlots &&
+      availablePokemons.length > 0
+    ) {
+      const randomIndex = Math.floor(Math.random() * availablePokemons.length);
+      const randomPokemon = availablePokemons.splice(randomIndex, 1)[0];
+      randomPokemons.push(randomPokemon);
+    }
+
+    this.team.set([...this.team(), ...randomPokemons]);
   }
 }

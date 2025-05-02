@@ -1,9 +1,9 @@
 .pokemon-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 15px;
+  display: flex;
+  flex-wrap: wrap; /* Permite quebra de linha para os cards */
+  gap: 15px; /* Espaçamento entre os cards */
+  justify-content: center; /* Centraliza os cards horizontalmente */
   padding: 20px;
-  justify-items: center;
 }
 
 .pokemon-card {
@@ -19,7 +19,7 @@
   transition: transform 0.3s, box-shadow 0.3s;
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px); /* Elevação ao passar o mouse */
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   }
 }
