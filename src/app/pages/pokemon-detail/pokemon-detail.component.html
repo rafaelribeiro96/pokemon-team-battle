@@ -4,30 +4,30 @@
       class="nav-button"
       *ngIf="pokemon && pokemon.id > 1"
       (click)="navigateToPokemon(pokemon.id - 1)">
-      &lsaquo; Previous
+      &lsaquo; Anterior
     </button>
 
     <button class="nav-button back" (click)="backToPokedex()">
-      Back to Pokédex
+      Voltar para Pokédex
     </button>
 
     <button
       class="nav-button"
       *ngIf="pokemon"
       (click)="navigateToPokemon(pokemon.id + 1)">
-      Next &rsaquo;
+      Próximo &rsaquo;
     </button>
   </div>
 
   <div *ngIf="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <p>Loading Pokémon details...</p>
+    <img src="/assets/images/pikachu-loading.gif" alt="Carregando..." class="pikachu-loading">
+    <p>Carregando detalhes do Pokémon...</p>
   </div>
 
   <div *ngIf="error" class="error-message">
     <p>{{ error }}</p>
     <button class="nav-button" (click)="backToPokedex()">
-      Back to Pokédex
+      Voltar para Pokédex
     </button>
   </div>
 
@@ -43,7 +43,7 @@
           *ngFor="let type of pokemon.types"
           class="type-badge"
           [ngClass]="type.toLowerCase()">
-          {{ capitalizeFirstLetter(type) }}
+          {{ translateType(type) }}
         </span>
       </div>
     </div>
@@ -56,27 +56,27 @@
           class="pokemon-image">
 
         <button class="shiny-toggle" (click)="toggleShiny()">
-          {{ showShiny ? 'Show Normal' : 'Show Shiny' }}
+          {{ showShiny ? 'Mostrar Normal' : 'Mostrar Shiny' }}
         </button>
       </div>
 
       <div class="pokemon-info">
         <div class="info-section">
-          <h2>About</h2>
+          <h2>Sobre</h2>
           <div class="info-grid">
             <div class="info-item">
-              <span class="info-label">Height</span>
+              <span class="info-label">Altura</span>
               <span class="info-value">{{ pokemon.height }} m</span>
             </div>
             <div class="info-item">
-              <span class="info-label">Weight</span>
+              <span class="info-label">Peso</span>
               <span class="info-value">{{ pokemon.weight }} kg</span>
             </div>
           </div>
         </div>
 
         <div class="info-section">
-          <h2>Abilities</h2>
+          <h2>Habilidades</h2>
           <div class="abilities-list">
             <span
               *ngFor="let ability of pokemon.abilities"
@@ -87,7 +87,7 @@
         </div>
 
         <div class="info-section">
-          <h2>Base Stats</h2>
+          <h2>Estatísticas Base</h2>
           <div class="stats-grid">
             <div class="stat-item">
               <div class="stat-label">HP</div>
@@ -102,7 +102,7 @@
             </div>
 
             <div class="stat-item">
-              <div class="stat-label">Attack</div>
+              <div class="stat-label">Ataque</div>
               <div class="stat-value">{{ pokemon.stats.attack }}</div>
               <div class="stat-bar">
                 <div
@@ -114,7 +114,7 @@
             </div>
 
             <div class="stat-item">
-              <div class="stat-label">Defense</div>
+              <div class="stat-label">Defesa</div>
               <div class="stat-value">{{ pokemon.stats.defense }}</div>
               <div class="stat-bar">
                 <div
@@ -126,7 +126,7 @@
             </div>
 
             <div class="stat-item">
-              <div class="stat-label">Sp. Atk</div>
+              <div class="stat-label">Atq. Esp.</div>
               <div class="stat-value">{{ pokemon.stats.specialAttack }}</div>
               <div class="stat-bar">
                 <div
@@ -138,7 +138,7 @@
             </div>
 
             <div class="stat-item">
-              <div class="stat-label">Sp. Def</div>
+              <div class="stat-label">Def. Esp.</div>
               <div class="stat-value">{{ pokemon.stats.specialDefense }}</div>
               <div class="stat-bar">
                 <div
@@ -150,7 +150,7 @@
             </div>
 
             <div class="stat-item">
-              <div class="stat-label">Speed</div>
+              <div class="stat-label">Velocidade</div>
               <div class="stat-value">{{ pokemon.stats.speed }}</div>
               <div class="stat-bar">
                 <div

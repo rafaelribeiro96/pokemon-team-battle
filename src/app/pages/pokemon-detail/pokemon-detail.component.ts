@@ -17,6 +17,28 @@ export class PokemonDetailComponent implements OnInit {
   showShiny: boolean = false;
   error: string | null = null;
 
+  // Mapeamento de tipos em inglês para português
+  private typeTranslations: { [key: string]: string } = {
+    normal: 'Normal',
+    fire: 'Fogo',
+    water: 'Água',
+    electric: 'Elétrico',
+    grass: 'Planta',
+    ice: 'Gelo',
+    fighting: 'Lutador',
+    poison: 'Venenoso',
+    ground: 'Terra',
+    flying: 'Voador',
+    psychic: 'Psíquico',
+    bug: 'Inseto',
+    rock: 'Pedra',
+    ghost: 'Fantasma',
+    dragon: 'Dragão',
+    dark: 'Sombrio',
+    steel: 'Metálico',
+    fairy: 'Fada',
+  };
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -36,7 +58,7 @@ export class PokemonDetailComponent implements OnInit {
       this.pokemon = await this.pokemonService.fetchPokemonById(id);
       this.loading = false;
     } catch (error) {
-      this.error = 'Failed to load Pokémon details';
+      this.error = 'Falha ao carregar detalhes do Pokémon';
       this.loading = false;
       console.error(error);
     }
@@ -60,6 +82,10 @@ export class PokemonDetailComponent implements OnInit {
 
   capitalizeFirstLetter(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  translateType(type: string): string {
+    return this.typeTranslations[type] || this.capitalizeFirstLetter(type);
   }
 
   getStatPercentage(value: number): number {

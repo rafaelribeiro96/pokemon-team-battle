@@ -1,7 +1,11 @@
 <div class="pokedex-container">
   <div class="pokedex-header">
+    <div class="pokemon-logo">
+      <img src="/assets/images/logo-pokemon.png" alt="Pokémon Logo">
+    </div>
+
     <h1>Pokédex</h1>
-    <p>Search for Pokémon by name, ID or filter by type</p>
+    <p>Pesquise Pokémon por nome, ID ou filtre por tipo</p>
 
     <div class="search-section">
       <app-search-bar (search)="onSearch($event)"></app-search-bar>
@@ -15,12 +19,13 @@
   </div>
 
   <div *ngIf="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <p>Loading Pokémon...</p>
+    <img src="/assets/images/pikachu-loading.gif" alt="Carregando..." class="pikachu-loading">
+    <p>Carregando Pokémon...</p>
   </div>
 
   <div *ngIf="!loading && pokemonList.length === 0" class="no-results">
-    <p>No Pokémon found. Try a different search or filter.</p>
+    <img src="/assets/images/pikachu-notfound.gif" alt="Nenhum resultado" class="pikachu-notfound">
+    <p>Nenhum Pokémon encontrado. Tente uma pesquisa ou filtro diferente.</p>
   </div>
 
   <div class="pokemon-grid">
@@ -36,8 +41,4 @@
     [totalPages]="totalPages"
     (pageChange)="onPageChange($event)">
   </app-pagination>
-
-  <div class="back-to-home">
-    <a routerLink="/" class="back-button">Back to Home</a>
-  </div>
 </div>

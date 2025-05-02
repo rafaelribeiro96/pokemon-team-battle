@@ -1,0 +1,64 @@
+<header class="app-header">
+  <div class="header-container">
+    <div class="logo-container">
+      <a routerLink="/">
+        <img src="/assets/images/logo-pokemon.png" alt="Pokémon Logo" class="logo">
+      </a>
+    </div>
+
+    <nav class="main-nav">
+      <ul class="nav-links">
+        <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Início</a></li>
+        <li><a routerLink="/battle" routerLinkActive="active">Batalha</a></li>
+        <li><a routerLink="/pokedex" routerLinkActive="active">Pokédex</a></li>
+        <li><a routerLink="/games" routerLinkActive="active">Jogos</a></li>
+        <li><a routerLink="/trainer" routerLinkActive="active">Perfil</a></li>
+      </ul>
+    </nav>
+
+    <div class="right-section">
+      <div class="music-player">
+        <button class="play-button" (click)="togglePlay()">
+          <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+        </button>
+
+        <div class="volume-control">
+          <mat-icon>volume_up</mat-icon>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            [value]="volume"
+            (input)="setVolume($event)"
+            class="volume-slider">
+        </div>
+      </div>
+
+      <div class="user-section">
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+          <div class="avatar">
+            <img src="/assets/images/pikachu-loading.gif" alt="Avatar" class="avatar-img">
+          </div>
+          <span class="username">{{ userName }}</span>
+          <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+
+        <mat-menu #userMenu="matMenu" xPosition="before">
+          <button mat-menu-item routerLink="/trainer">
+            <mat-icon>person</mat-icon>
+            <span>Meu Perfil</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>settings</mat-icon>
+            <span>Configurações</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>exit_to_app</mat-icon>
+            <span>Sair</span>
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+  </div>
+</header>
