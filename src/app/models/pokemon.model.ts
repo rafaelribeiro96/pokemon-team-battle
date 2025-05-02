@@ -10,4 +10,6 @@ export interface Pokemon {
     hp: number;
   };
   isDefeated?: boolean;
+  isAttacking?: boolean;
+  isFainted?: boolean;
 }

@@ -1,0 +1,28 @@
+.pokemon-card {
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.pokemon-card.attacking {
+  transform: scale(1.1);
+}
+
+.pokemon-card.fainted {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.hp-bar {
+  width: 100%;
+  height: 10px;
+  background-color: #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.hp {
+  height: 100%;
+  background-color: #4caf50;
+  transition: width 0.5s;
+}

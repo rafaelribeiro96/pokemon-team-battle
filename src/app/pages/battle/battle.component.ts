@@ -4,6 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { Pokemon } from '../../models/pokemon.model';
 import { CommonModule } from '@angular/common';
 import { BattleReportComponent } from '../../components/battle-report/battle-report.component';
+import { BattleHeaderComponent } from '../../components/battle-header/battle-header.component';
+import { PokemonCardComponent } from '../../components/pokemon-card/pokemon-card.component';
 
 @Component({
   standalone: true,
@@ -15,6 +17,8 @@ import { BattleReportComponent } from '../../components/battle-report/battle-rep
     MatButtonModule,
     CommonModule,
     BattleReportComponent,
+    BattleHeaderComponent,
+    PokemonCardComponent,
   ],
 })
 export class BattleComponent {
@@ -27,48 +31,64 @@ export class BattleComponent {
   });
   battleInProgress = signal(false); // Para controlar a animação da batalha
 
+  setTeamOne(team: Pokemon[]) {
+    this.teamOne.set(team); // Atualiza o time 1
+  }
+
+  setTeamTwo(team: Pokemon[]) {
+    this.teamTwo.set(team); // Atualiza o time 2
+  }
+
   async startBattle() {
+    if (this.teamOne().length === 0 || this.teamTwo().length === 0) {
+      alert(
+        'Ambas as equipes precisam estar completas para iniciar a batalha!'
+      );
+      return;
+    }
+
     const log: string[] = [];
     let teamOnePokemons = [...this.teamOne()];
     let teamTwoPokemons = [...this.teamTwo()];
-    let teamOneWins = 0;
-    let teamTwoWins = 0;
-
-    this.battleInProgress.set(true);
 
     while (teamOnePokemons.length > 0 && teamTwoPokemons.length > 0) {
       const p1Index = Math.floor(Math.random() * teamOnePokemons.length);
       const p2Index = Math.floor(Math.random() * teamTwoPokemons.length);
 
-      const p1 = teamOnePokemons.splice(p1Index, 1)[0];
-      const p2 = teamTwoPokemons.splice(p2Index, 1)[0];
+      const p1 = teamOnePokemons[p1Index];
+      const p2 = teamTwoPokemons[p2Index];
 
-      if (p1 && p2) {
-        this.currentBattle.set({ p1, p2 });
-        await this.animateBattle(); // Espera a animação de batalha
+      log.push(`Starting battle: ${p1.name} vs ${p2.name}`);
+      this.currentBattle.set({ p1, p2 });
 
-        const winner = this.fight(p1, p2);
-        log.push(`${p1.name} vs ${p2.name} -> Winner: ${winner.name}`);
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for animation
 
-        if (winner === p1) {
-          teamOneWins++;
-        } else {
-          teamTwoWins++;
-        }
+      const winner = this.fight(p1, p2);
+      log.push(`Winner: ${winner.name}`);
+
+      if (winner === p1) {
+        teamTwoPokemons.splice(p2Index, 1);
+      } else {
+        teamOnePokemons.splice(p1Index, 1);
       }
     }
 
-    log.push(`Team One Wins: ${teamOneWins}`);
-    log.push(`Team Two Wins: ${teamTwoWins}`);
+    // Limpa a batalha atual após o fim
+    this.currentBattle.set({ p1: null, p2: null });
 
+    log.push(
+      teamOnePokemons.length > 0
+        ? 'Time 1 venceu a batalha!'
+        : 'Time 2 venceu a batalha!'
+    );
     this.battleLog.set(log);
-    this.battleInProgress.set(false);
-    this.currentBattle.set({ p1: null, p2: null }); // Limpa os Pokémon em batalha
   }
 
-  // Adiciona um delay para simular a animação
-  async animateBattle() {
-    return new Promise((resolve) => setTimeout(resolve, 2000)); // 2 segundos de animação
+  animateBattle(p1: Pokemon, p2: Pokemon) {
+    p1.isAttacking = true;
+    setTimeout(() => (p1.isAttacking = false), 1000);
+    p2.isAttacking = true;
+    setTimeout(() => (p2.isAttacking = false), 1000);
   }
 
   fight(p1: Pokemon, p2: Pokemon): Pokemon {

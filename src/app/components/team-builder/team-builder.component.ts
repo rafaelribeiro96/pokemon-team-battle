@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { PokemonService } from '../../services/pokemon.service';
 import { Pokemon } from '../../models/pokemon.model';
 import { PokemonListComponent } from '../pokemon-list/pokemon-list.component';
@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 export class TeamBuilderComponent {
   availablePokemons = signal<Pokemon[]>([]);
   team = signal<Pokemon[]>([]);
+  @Output() teamChange = new EventEmitter<Pokemon[]>();
 
   constructor(private pokemonService: PokemonService) {
     this.pokemonService.fetchPokemons().then(() => {
@@ -24,19 +25,18 @@ export class TeamBuilderComponent {
   addPokemonToTeam(pokemon: Pokemon) {
     if (this.team().length < 6 && !this.team().includes(pokemon)) {
       this.team.set([...this.team(), pokemon]);
+      this.emitTeamChange();
     }
   }
 
-  // Remover Pokémon do time
   removePokemonFromTeam(pokemon: Pokemon) {
     this.team.set(this.team().filter((p) => p.id !== pokemon.id));
+    this.emitTeamChange();
   }
 
   addRandomToTeam() {
     const remainingSlots = 6 - this.team().length;
-    const availablePokemons = this.availablePokemons().filter(
-      (pokemon) => !this.team().includes(pokemon)
-    );
+    const availablePokemons = this.getAvailablePokemonsForTeam();
 
     const randomPokemons = Array.from(
       { length: remainingSlots },
@@ -45,13 +45,12 @@ export class TeamBuilderComponent {
     );
 
     this.team.set([...this.team(), ...randomPokemons]);
+    this.emitTeamChange();
   }
 
   autoCompleteTeam() {
     const remainingSlots = 6 - this.team().length;
-    const availablePokemons = this.availablePokemons().filter(
-      (pokemon) => !this.team().includes(pokemon)
-    );
+    const availablePokemons = this.getAvailablePokemonsForTeam();
 
     const randomPokemons = [];
 
@@ -65,5 +64,16 @@ export class TeamBuilderComponent {
     }
 
     this.team.set([...this.team(), ...randomPokemons]);
+    this.emitTeamChange();
+  }
+
+  private getAvailablePokemonsForTeam(): Pokemon[] {
+    return this.availablePokemons().filter(
+      (pokemon) => !this.team().includes(pokemon)
+    );
+  }
+
+  private emitTeamChange() {
+    this.teamChange.emit(this.team());
   }
 }
