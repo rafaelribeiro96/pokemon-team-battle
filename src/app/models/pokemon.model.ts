@@ -8,6 +8,7 @@ export interface Pokemon {
     defense: number;
     speed: number;
     hp: number;
+    maxHp: number;
   };
   isDefeated?: boolean;
   isAttacking?: boolean;

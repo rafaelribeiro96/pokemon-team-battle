@@ -29,14 +29,16 @@ export class BattleComponent {
     p1: null,
     p2: null,
   });
-  battleInProgress = signal(false); // Para controlar a animação da batalha
+  battleInProgress = signal(false);
+  turnNumber = signal(0); // Tracks the current turn
+  battleEnded = signal(false); // Tracks if the battle has ended
 
   setTeamOne(team: Pokemon[]) {
-    this.teamOne.set(team); // Atualiza o time 1
+    this.teamOne.set(team);
   }
 
   setTeamTwo(team: Pokemon[]) {
-    this.teamTwo.set(team); // Atualiza o time 2
+    this.teamTwo.set(team);
   }
 
   async startBattle() {
@@ -47,6 +49,9 @@ export class BattleComponent {
       return;
     }
 
+    this.battleInProgress.set(true);
+    this.battleEnded.set(false);
+    this.turnNumber.set(1);
     const log: string[] = [];
     let teamOnePokemons = [...this.teamOne()];
     let teamTwoPokemons = [...this.teamTwo()];
@@ -58,47 +63,48 @@ export class BattleComponent {
       const p1 = teamOnePokemons[p1Index];
       const p2 = teamTwoPokemons[p2Index];
 
-      log.push(`Starting battle: ${p1.name} vs ${p2.name}`);
+      log.push(`Time 1 lançou ${p1.name}!`);
+      log.push(`Time 2 lançou ${p2.name}!`);
       this.currentBattle.set({ p1, p2 });
 
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for animation
+      const damage = this.attack(p1, p2);
+      log.push(`${p1.name} causou ${damage} de dano em ${p2.name}`);
 
-      const winner = this.fight(p1, p2);
-      log.push(`Winner: ${winner.name}`);
-
-      if (winner === p1) {
+      if (p2.stats.hp <= 0) {
+        p2.isFainted = true;
+        log.push(`${p2.name} foi derrotado!`);
         teamTwoPokemons.splice(p2Index, 1);
-      } else {
-        teamOnePokemons.splice(p1Index, 1);
       }
+
+      // Troca de times se necessário
+      if (teamTwoPokemons.length > 0) {
+        log.push(`Time 2 recuou e lançou um novo Pokémon!`);
+      }
+
+      this.battleLog.set(log);
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Espera a animação
     }
 
-    // Limpa a batalha atual após o fim
-    this.currentBattle.set({ p1: null, p2: null });
+    this.battleEnded.set(true);
+    this.battleInProgress.set(false);
+  }
 
-    log.push(
-      teamOnePokemons.length > 0
-        ? 'Time 1 venceu a batalha!'
-        : 'Time 2 venceu a batalha!'
+  attack(attacker: Pokemon, defender: Pokemon): number {
+    const damage = Math.max(
+      5,
+      attacker.stats.attack - defender.stats.defense / 2
     );
-    this.battleLog.set(log);
+    defender.stats.hp -= damage;
+    return damage;
   }
 
-  animateBattle(p1: Pokemon, p2: Pokemon) {
-    p1.isAttacking = true;
-    setTimeout(() => (p1.isAttacking = false), 1000);
-    p2.isAttacking = true;
-    setTimeout(() => (p2.isAttacking = false), 1000);
-  }
-
-  fight(p1: Pokemon, p2: Pokemon): Pokemon {
-    const p1Score = p1.stats.attack + p1.stats.speed - p2.stats.defense;
-    const p2Score = p2.stats.attack + p2.stats.speed - p1.stats.defense;
-
-    const winner = p1Score > p2Score ? p1 : p2;
-    const loser = winner === p1 ? p2 : p1;
-
-    loser.isDefeated = true; // Marca o derrotado
-    return winner;
+  resetBattle() {
+    this.teamOne.set([]);
+    this.teamTwo.set([]);
+    this.battleLog.set([]);
+    this.currentBattle.set({ p1: null, p2: null });
+    this.turnNumber.set(0);
+    this.battleEnded.set(false);
+    this.battleInProgress.set(false);
   }
 }

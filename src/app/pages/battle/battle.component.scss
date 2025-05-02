@@ -64,3 +64,14 @@
     }
   }
 }
+
+.current-battle .vs {
+  font-size: 2rem;
+  font-weight: bold;
+  color: red;
+}
+
+button[disabled] {
+  background-color: gray;
+  pointer-events: none;
+}

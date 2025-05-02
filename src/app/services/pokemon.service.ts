@@ -15,7 +15,7 @@ export class PokemonService {
       const pokemonData = response.data.results;
 
       const enrichedData = await Promise.all(
-        pokemonData.map(async (pokemon: any, index: number) => {
+        pokemonData.map(async (pokemon: any) => {
           const details = await axios.get(pokemon.url);
           return {
             id: details.data.id,
@@ -24,6 +24,7 @@ export class PokemonService {
             type: details.data.types.map((t: any) => t.type.name),
             stats: {
               hp: details.data.stats[0].base_stat,
+              maxHp: details.data.stats[0].base_stat,
               attack: details.data.stats[1].base_stat,
               defense: details.data.stats[2].base_stat,
               speed: details.data.stats[5].base_stat,

@@ -1,24 +1,35 @@
 <div class="battle-container">
   <app-battle-header></app-battle-header>
   <div class="teams">
-    <!-- Conecte os eventos teamChange -->
     <app-team-builder (teamChange)="setTeamOne($event)"></app-team-builder>
     <app-team-builder (teamChange)="setTeamTwo($event)"></app-team-builder>
   </div>
 
-  <!-- Exibição da batalha atual -->
-  <div class="current-battle" *ngIf="currentBattle().p1 && currentBattle().p2">
-    <app-pokemon-card
-      [pokemon]="currentBattle().p1!"
-      [isAttacking]="true"
-    ></app-pokemon-card>
-    <div class="vs">VS</div>
-    <app-pokemon-card
-      [pokemon]="currentBattle().p2!"
-      [isAttacking]="true"
-    ></app-pokemon-card>
+  <div *ngIf="battleInProgress()">
+    <h2>Turno: {{ turnNumber() }}</h2>
+    <div *ngIf="currentBattle().p1 && currentBattle().p2">
+      <app-pokemon-card [pokemon]="currentBattle().p1!"></app-pokemon-card>
+      <div class="vs">VS</div>
+      <app-pokemon-card [pokemon]="currentBattle().p2!"></app-pokemon-card>
+    </div>
   </div>
 
-  <button mat-raised-button color="accent" (click)="startBattle()">Lutar!</button>
+  <button
+    mat-raised-button
+    color="accent"
+    [disabled]="battleInProgress()"
+    (click)="startBattle()"
+  >
+    Lutar!
+  </button>
+  <button
+    mat-raised-button
+    color="warn"
+    *ngIf="battleEnded()"
+    (click)="resetBattle()"
+  >
+    Reiniciar
+  </button>
+
   <app-battle-report *ngIf="battleLog().length > 0" [log]="battleLog()"></app-battle-report>
 </div>

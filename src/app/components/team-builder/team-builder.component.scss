@@ -8,7 +8,8 @@
   border-radius: 15px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 
-  h2, h3 {
+  h2,
+  h3 {
     font-size: 1.8rem;
     font-weight: bold;
     color: #3b4cca;
@@ -28,11 +29,11 @@
 
   .team {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsivo */
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 15px;
     width: 100%;
 
-    div {
+    .pokemon-card {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -43,6 +44,7 @@
       padding: 10px;
       text-align: center;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
       transition: transform 0.2s, box-shadow 0.2s;
 
       &:hover {
@@ -64,33 +66,32 @@
         margin-bottom: 5px;
       }
 
+      .hp-bar {
+        width: 80%;
+        height: 8px;
+        background-color: #ccc;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 5px;
+
+        .hp {
+          height: 100%;
+          background-color: #4caf50;
+          transition: width 0.5s ease;
+        }
+      }
+
       button {
         font-size: 0.8rem;
         padding: 5px 10px;
       }
+
+      &.defeated {
+        opacity: 0.5;
+        transform: scale(0.9);
+        filter: grayscale(100%);
+        background: #ffe6e6;
+      }
     }
-  }
-}
-
-.pokemon-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #f9f9f9;
-  transition: transform 0.3s, opacity 0.3s;
-
-  img {
-    width: 50px;
-    height: 50px;
-  }
-
-  &.defeated {
-    opacity: 0.5;
-    transform: scale(0.9);
-    filter: grayscale(100%);
-    background: #ffe6e6; /* Fundo vermelho claro para indicar derrota */
   }
 }

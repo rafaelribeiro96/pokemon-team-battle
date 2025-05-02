@@ -18,7 +18,11 @@ export class TeamBuilderComponent {
 
   constructor(private pokemonService: PokemonService) {
     this.pokemonService.fetchPokemons().then(() => {
-      this.availablePokemons.set(this.pokemonService.pokemons());
+      const pokemons = this.pokemonService.pokemons().map((pokemon) => ({
+        ...pokemon,
+        stats: { ...pokemon.stats, maxHp: pokemon.stats.hp }, // Define maxHp inicial
+      }));
+      this.availablePokemons.set(pokemons);
     });
   }
 
