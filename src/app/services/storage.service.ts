@@ -26,22 +26,19 @@ export class StorageService {
 
     this.initPromise = new Promise((resolve, reject) => {
       if (!window.indexedDB) {
-        console.warn('IndexedDB não é suportado neste navegador.');
         resolve(false);
         return;
       }
 
       const request = window.indexedDB.open(this.dbName, this.dbVersion);
 
-      request.onerror = (event) => {
-        console.error('Erro ao abrir o banco de dados:', event);
+      request.onerror = () => {
         resolve(false);
       };
 
       request.onsuccess = (event) => {
         this.db = (event.target as IDBOpenDBRequest).result;
         this.isInitialized = true;
-        console.log('Banco de dados inicializado com sucesso!');
         resolve(true);
       };
 
@@ -75,7 +72,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return;
     }
 
@@ -102,16 +98,13 @@ export class StorageService {
         });
 
         transaction.oncomplete = () => {
-          console.log(`${pokemonList.length} Pokémon salvos no IndexedDB.`);
           resolve();
         };
 
-        transaction.onerror = (event) => {
-          console.error('Erro ao salvar Pokémon:', event);
+        transaction.onerror = () => {
           reject(new Error('Erro ao salvar Pokémon no IndexedDB.'));
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });
@@ -122,7 +115,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return [];
     }
 
@@ -134,16 +126,13 @@ export class StorageService {
 
         request.onsuccess = () => {
           const pokemonList = request.result as Pokemon[];
-          console.log(`${pokemonList.length} Pokémon carregados do IndexedDB.`);
           resolve(pokemonList);
         };
 
-        request.onerror = (event) => {
-          console.error('Erro ao carregar Pokémon:', event);
+        request.onerror = () => {
           reject(new Error('Erro ao carregar Pokémon do IndexedDB.'));
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });
@@ -154,7 +143,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return;
     }
 
@@ -169,12 +157,10 @@ export class StorageService {
           resolve();
         };
 
-        request.onerror = (event) => {
-          console.error('Erro ao salvar detalhes do Pokémon:', event);
+        request.onerror = () => {
           reject(new Error('Erro ao salvar detalhes do Pokémon no IndexedDB.'));
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });
@@ -185,7 +171,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return null;
     }
 
@@ -199,14 +184,12 @@ export class StorageService {
           resolve(request.result || null);
         };
 
-        request.onerror = (event) => {
-          console.error('Erro ao carregar detalhes do Pokémon:', event);
+        request.onerror = () => {
           reject(
             new Error('Erro ao carregar detalhes do Pokémon do IndexedDB.')
           );
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });
@@ -220,7 +203,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return;
     }
 
@@ -239,12 +221,10 @@ export class StorageService {
           resolve();
         };
 
-        request.onerror = (event) => {
-          console.error('Erro ao salvar cadeia de evolução:', event);
+        request.onerror = () => {
           reject(new Error('Erro ao salvar cadeia de evolução no IndexedDB.'));
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });
@@ -257,7 +237,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return null;
     }
 
@@ -275,14 +254,12 @@ export class StorageService {
           }
         };
 
-        request.onerror = (event) => {
-          console.error('Erro ao carregar cadeia de evolução:', event);
+        request.onerror = () => {
           reject(
             new Error('Erro ao carregar cadeia de evolução do IndexedDB.')
           );
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });
@@ -296,7 +273,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return null;
     }
 
@@ -317,14 +293,12 @@ export class StorageService {
           }
         };
 
-        request.onerror = (event) => {
-          console.error('Erro ao carregar timestamp de atualização:', event);
+        request.onerror = () => {
           reject(
             new Error('Erro ao carregar timestamp de atualização do IndexedDB.')
           );
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });
@@ -335,7 +309,6 @@ export class StorageService {
     await this.initDatabase();
 
     if (!this.db || !this.isInitialized) {
-      console.warn('Banco de dados não inicializado.');
       return;
     }
 
@@ -352,16 +325,13 @@ export class StorageService {
         transaction.objectStore('metadata').clear();
 
         transaction.oncomplete = () => {
-          console.log('Todos os dados foram limpos do IndexedDB.');
           resolve();
         };
 
-        transaction.onerror = (event) => {
-          console.error('Erro ao limpar dados:', event);
+        transaction.onerror = () => {
           reject(new Error('Erro ao limpar dados do IndexedDB.'));
         };
       } catch (error) {
-        console.error('Erro ao iniciar transação:', error);
         reject(error);
       }
     });

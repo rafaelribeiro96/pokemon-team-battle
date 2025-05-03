@@ -70,7 +70,6 @@ export class PokedexComponent implements OnInit, OnDestroy {
       .subscribe((isComplete) => {
         this.isLoadingComplete = isComplete;
         if (isComplete) {
-          console.log('Carregamento de todos os Pokémon concluído!');
           // Atualizar o total de páginas quando o carregamento estiver completo
           this.updateTotalPages();
         }
@@ -84,7 +83,6 @@ export class PokedexComponent implements OnInit, OnDestroy {
       this.totalPokemon = await this.pokemonService.getTotalPokemonCount();
       this.updateTotalPages();
     } catch (error) {
-      console.error('Erro ao carregar contagem total de Pokémon:', error);
       // Valor padrão caso ocorra erro
       this.totalPages = Math.ceil(1025 / this.itemsPerPage);
     }
@@ -98,9 +96,6 @@ export class PokedexComponent implements OnInit, OnDestroy {
       // Caso contrário, usar a estimativa baseada no total da API
       this.totalPages = Math.ceil(this.totalPokemon / this.itemsPerPage);
     }
-    console.log(
-      `Total de páginas: ${this.totalPages} (${this.itemsPerPage} por página)`
-    );
   }
 
   async loadPokemonList(): Promise<void> {
@@ -117,7 +112,6 @@ export class PokedexComponent implements OnInit, OnDestroy {
       } else {
         // Caso contrário, buscar da API
         const offset = (this.currentPage - 1) * this.itemsPerPage;
-        console.log(`Carregando página ${this.currentPage}, offset ${offset}`);
         this.pokemonList = await this.pokemonService.fetchPokemonList(
           offset,
           this.itemsPerPage
@@ -125,7 +119,6 @@ export class PokedexComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     } catch (error) {
-      console.error('Erro ao carregar lista de Pokémon:', error);
       this.loading = false;
     }
   }
@@ -134,7 +127,7 @@ export class PokedexComponent implements OnInit, OnDestroy {
     try {
       this.pokemonTypes = await this.pokemonService.fetchAllPokemonTypes();
     } catch (error) {
-      console.error('Erro ao carregar tipos de Pokémon:', error);
+      // Erro silencioso
     }
   }
 
@@ -151,7 +144,6 @@ export class PokedexComponent implements OnInit, OnDestroy {
 
       this.loading = false;
     } catch (error) {
-      console.error('Erro na pesquisa:', error);
       this.loading = false;
     }
   }
@@ -171,20 +163,17 @@ export class PokedexComponent implements OnInit, OnDestroy {
 
       this.loading = false;
     } catch (error) {
-      console.error('Erro ao filtrar por tipo:', error);
       this.loading = false;
     }
   }
 
   async onPageChange(page: number): Promise<void> {
-    console.log(`Mudando para página ${page}`);
     this.currentPage = page;
     await this.loadPokemonList();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async onItemsPerPageChange(value: number): Promise<void> {
-    console.log(`Alterando itens por página para ${value}`);
     this.itemsPerPage = value;
     this.currentPage = 1; // Voltar para a primeira página
     this.updateTotalPages();

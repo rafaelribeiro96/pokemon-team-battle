@@ -43,17 +43,12 @@ export class PokemonService {
         currentTime - lastUpdate.timestamp < this.cacheValidityPeriod &&
         lastUpdate.count > 1000
       ) {
-        console.log('Usando dados em cache do IndexedDB...');
-
         // Carregar dados do IndexedDB
         const storedPokemon = await this.storageService.loadPokemonList();
 
         if (storedPokemon.length > 0) {
           this.cachedList = storedPokemon;
           this.cachedList.sort((a, b) => a.id - b.id);
-          console.log(
-            `${this.cachedList.length} Pokémon carregados do armazenamento local.`
-          );
 
           // Atualizar o sinal de carregamento completo
           this.isLoadingComplete.next(true);
@@ -65,12 +60,8 @@ export class PokemonService {
       }
 
       // Se não temos dados armazenados ou estão desatualizados, iniciar pré-carregamento
-      console.log(
-        'Dados em cache não encontrados ou desatualizados. Iniciando pré-carregamento...'
-      );
       this.preloadAllPokemon();
     } catch (error) {
-      console.error('Erro ao inicializar do armazenamento:', error);
       // Em caso de erro, iniciar pré-carregamento normal
       this.preloadAllPokemon();
     }
@@ -87,9 +78,6 @@ export class PokemonService {
     try {
       // Primeiro, obter o número total de Pokémon
       const totalCount = await this.getTotalPokemonCount();
-      console.log(
-        `Iniciando pré-carregamento de ${totalCount} Pokémon regulares...`
-      );
 
       // Definir o tamanho do lote para não sobrecarregar a API
       const batchSize = 50;
@@ -109,29 +97,19 @@ export class PokemonService {
         );
         this.loadingProgress.next(progress);
 
-        console.log(
-          `Progresso: ${progress}% (${this.cachedList.length} Pokémon regulares)`
-        );
-
         // Pequena pausa para não sobrecarregar a API
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
       // Agora carregar Pokémon especiais (IDs 10001+)
-      console.log(
-        'Carregando Pokémon especiais (formas alternativas, mega evoluções, etc.)...'
-      );
       await this.loadSpecialPokemon();
 
       // Salvar todos os Pokémon no armazenamento local
       await this.storageService.savePokemonList(this.cachedList);
 
-      console.log(
-        `Pré-carregamento concluído! ${this.cachedList.length} Pokémon carregados no total.`
-      );
       this.isLoadingComplete.next(true);
     } catch (error) {
-      console.error('Erro durante o pré-carregamento:', error);
+      // Erro silencioso
     } finally {
       this.isPreloadingActive = false;
     }
@@ -153,14 +131,7 @@ export class PokemonService {
 
         for (let j = 0; j < batchSize && i + j < totalSpecial; j++) {
           const id = startId + i + j;
-          batchPromises.push(
-            this.fetchBasicPokemonData(id).catch((err) => {
-              console.log(
-                `Pokémon especial ${id} não encontrado ou indisponível`
-              );
-              return null;
-            })
-          );
+          batchPromises.push(this.fetchBasicPokemonData(id).catch(() => null));
         }
 
         const batchResults = await Promise.all(batchPromises);
@@ -180,12 +151,6 @@ export class PokemonService {
         );
         this.loadingProgress.next(90 + specialProgress);
 
-        console.log(
-          `Progresso especiais: ${90 + specialProgress}% (${
-            this.cachedList.length
-          } Pokémon no total)`
-        );
-
         // Pausa para não sobrecarregar a API
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
@@ -193,7 +158,7 @@ export class PokemonService {
       // Ordenar a lista completa por ID
       this.cachedList.sort((a, b) => a.id - b.id);
     } catch (error) {
-      console.error('Erro ao carregar Pokémon especiais:', error);
+      // Erro silencioso
     }
   }
 
@@ -221,7 +186,6 @@ export class PokemonService {
       this._pokemons.set(pokemonList);
       return pokemonList;
     } catch (error) {
-      console.error('Erro ao buscar Pokémon:', error);
       throw error;
     }
   }
@@ -240,10 +204,6 @@ export class PokemonService {
       if (this.cachedList.length > offset + limit) {
         return this.cachedList.slice(offset, offset + limit);
       }
-
-      console.log(
-        `Buscando Pokémon do offset ${offset} ao ${offset + limit - 1}`
-      );
 
       const response = await fetch(
         `${this.apiUrl}/pokemon?offset=${offset}&limit=${limit}`
@@ -280,12 +240,8 @@ export class PokemonService {
         this.cachedList.sort((a, b) => a.id - b.id);
       }
 
-      console.log(
-        `Carregados ${pokemonList.length} Pokémon. Total em cache: ${this.cachedList.length}`
-      );
       return pokemonList;
     } catch (error) {
-      console.error('Erro ao buscar lista de Pokémon:', error);
       throw error;
     }
   }
@@ -297,7 +253,6 @@ export class PokemonService {
       const data = await response.json();
       return data.count;
     } catch (error) {
-      console.error('Erro ao buscar contagem total de Pokémon:', error);
       return 1025; // Valor padrão caso ocorra erro (atualizado para incluir todas as gerações)
     }
   }
@@ -329,7 +284,6 @@ export class PokemonService {
       this.cachedTypes = types;
       return types;
     } catch (error) {
-      console.error('Erro ao buscar tipos de Pokémon:', error);
       throw error;
     }
   }
@@ -354,7 +308,6 @@ export class PokemonService {
 
       return await Promise.all(pokemonPromises);
     } catch (error) {
-      console.error(`Erro ao buscar Pokémon do tipo ${type}:`, error);
       throw error;
     }
   }
@@ -393,7 +346,6 @@ export class PokemonService {
         pokemon.name.toLowerCase().includes(query)
       );
     } catch (error) {
-      console.error('Erro ao pesquisar Pokémon:', error);
       throw error;
     }
   }
@@ -484,7 +436,6 @@ export class PokemonService {
 
       return pokemon;
     } catch (error) {
-      console.error(`Erro ao buscar Pokémon com ID ${id}:`, error);
       throw error;
     }
   }
@@ -555,10 +506,7 @@ export class PokemonService {
             }
           }
         } catch (error) {
-          console.error(
-            `Erro ao processar evolução do Pokémon ${pokemonId}:`,
-            error
-          );
+          // Erro silencioso
         }
       };
 
@@ -572,10 +520,6 @@ export class PokemonService {
 
       return evolutionChain;
     } catch (error) {
-      console.error(
-        `Erro ao buscar cadeia de evolução para Pokémon ${pokemonId}:`,
-        error
-      );
       return [];
     }
   }
@@ -628,7 +572,6 @@ export class PokemonService {
         },
       };
     } catch (error) {
-      console.error(`Erro ao buscar dados básicos do Pokémon ${id}:`, error);
       throw error;
     }
   }
