@@ -9,14 +9,10 @@
   </div>
 
   <!-- Barra de progresso do carregamento global -->
-  <div *ngIf="!isLoadingComplete" class="global-loading-progress">
-    <div class="progress-text">
-      Carregando todos os Pokémon: {{ loadingProgress }}%
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" [style.width.%]="loadingProgress"></div>
-    </div>
-  </div>
+  <app-pokemon-progress-bar
+    *ngIf="!isLoadingComplete"
+    [progress]="loadingProgress">
+  </app-pokemon-progress-bar>
 
   <div class="filters-container">
     <app-type-filter

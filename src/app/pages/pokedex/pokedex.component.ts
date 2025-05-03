@@ -8,6 +8,7 @@ import { TypeFilterComponent } from '../../components/type-filter/type-filter.co
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { ItemsPerPageComponent } from '../../components/items-per-page/items-per-page.component';
 import { Subscription } from 'rxjs';
+import { PokemonProgressBarComponent } from '../../components/pokemon-progress-bar/pokemon-progress-bar.component';
 
 @Component({
   selector: 'app-pokedex',
@@ -19,6 +20,7 @@ import { Subscription } from 'rxjs';
     TypeFilterComponent,
     PaginationComponent,
     ItemsPerPageComponent,
+    PokemonProgressBarComponent,
   ],
   templateUrl: './pokedex.component.html',
   styleUrls: ['./pokedex.component.scss'],

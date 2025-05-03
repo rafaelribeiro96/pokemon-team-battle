@@ -3,11 +3,18 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PokemonService } from '../../services/pokemon.service';
 import { PokemonDetail } from '../../models/pokemon.model';
+import { Pokemon3DViewerComponent } from '../../components/pokemon-3d-viewer/pokemon-3d-viewer.component';
+import { PokemonProgressBarComponent } from '../../components/pokemon-progress-bar/pokemon-progress-bar.component';
 
 @Component({
   selector: 'app-pokemon-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    Pokemon3DViewerComponent,
+    PokemonProgressBarComponent,
+  ],
   templateUrl: './pokemon-detail.component.html',
   styleUrls: ['./pokemon-detail.component.scss'],
 })
@@ -205,6 +212,11 @@ export class PokemonDetailComponent implements OnInit {
     this.router.navigate(['/pokedex', id]);
   }
 
+  navigateToEvolution(id: number): void {
+    if (!this.pokemon || id === this.pokemon.id) return; // Não navegar se já estiver no Pokémon atual
+    this.router.navigate(['/pokedex', id]);
+  }
+
   toggleShiny(): void {
     this.showShiny = !this.showShiny;
   }
@@ -243,7 +255,7 @@ export class PokemonDetailComponent implements OnInit {
 
   getStatPercentage(value: number): number {
     // Base stat max is typically 255
-    return (value / 255) * 100;
+    return Math.min(100, (value / 255) * 100);
   }
 
   getStatColor(value: number): string {
@@ -251,6 +263,25 @@ export class PokemonDetailComponent implements OnInit {
     if (value < 80) return '#fdcb6e';
     if (value < 120) return '#74b9ff';
     return '#00b894';
+  }
+
+  getTotalStats(): number {
+    if (!this.pokemon) return 0;
+
+    return (
+      this.pokemon.stats.hp +
+      this.pokemon.stats.attack +
+      this.pokemon.stats.defense +
+      this.pokemon.stats.specialAttack +
+      this.pokemon.stats.specialDefense +
+      this.pokemon.stats.speed
+    );
+  }
+
+  getTotalStatPercentage(): number {
+    // Considerando 720 como valor máximo para o total (120 por estatística)
+    const total = this.getTotalStats();
+    return Math.min(100, (total / 720) * 100);
   }
 
   getWeaknesses(): string[] {

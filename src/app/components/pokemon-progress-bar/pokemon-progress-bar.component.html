@@ -1,0 +1,15 @@
+<div class="pokemon-progress-container" [class.hidden]="progress >= 100">
+  <div class="progress-info">
+    <div class="progress-text">
+      <span class="progress-label">Carregando Pokédex</span>
+      <span class="progress-percentage">{{ progress }}%</span>
+    </div>
+    <div class="pokeball-animation">
+      <div class="pokeball"></div>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" [style.width.%]="progress"></div>
+  </div>
+</div>

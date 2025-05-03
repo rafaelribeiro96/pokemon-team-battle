@@ -6,6 +6,7 @@ import {
   PokemonListResponse,
   EvolutionPokemon,
 } from '../models/pokemon.model';
+import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,9 +24,56 @@ export class PokemonService {
   private isLoadingComplete = new BehaviorSubject<boolean>(false);
   private isPreloadingActive = false;
 
-  constructor() {
-    // Iniciar pré-carregamento quando o serviço for injetado
-    this.preloadAllPokemon();
+  // Tempo de validade do cache em milissegundos (7 dias)
+  private cacheValidityPeriod = 7 * 24 * 60 * 60 * 1000;
+
+  constructor(private storageService: StorageService) {
+    // Iniciar carregamento dos dados do IndexedDB e depois verificar se precisa atualizar
+    this.initializeFromStorage();
+  }
+
+  private async initializeFromStorage(): Promise<void> {
+    try {
+      // Verificar se temos dados armazenados e se estão atualizados
+      const lastUpdate = await this.storageService.getLastUpdateTimestamp();
+      const currentTime = Date.now();
+
+      if (
+        lastUpdate &&
+        currentTime - lastUpdate.timestamp < this.cacheValidityPeriod &&
+        lastUpdate.count > 1000
+      ) {
+        console.log('Usando dados em cache do IndexedDB...');
+
+        // Carregar dados do IndexedDB
+        const storedPokemon = await this.storageService.loadPokemonList();
+
+        if (storedPokemon.length > 0) {
+          this.cachedList = storedPokemon;
+          this.cachedList.sort((a, b) => a.id - b.id);
+          console.log(
+            `${this.cachedList.length} Pokémon carregados do armazenamento local.`
+          );
+
+          // Atualizar o sinal de carregamento completo
+          this.isLoadingComplete.next(true);
+          this.loadingProgress.next(100);
+
+          // Não precisamos pré-carregar novamente
+          return;
+        }
+      }
+
+      // Se não temos dados armazenados ou estão desatualizados, iniciar pré-carregamento
+      console.log(
+        'Dados em cache não encontrados ou desatualizados. Iniciando pré-carregamento...'
+      );
+      this.preloadAllPokemon();
+    } catch (error) {
+      console.error('Erro ao inicializar do armazenamento:', error);
+      // Em caso de erro, iniciar pré-carregamento normal
+      this.preloadAllPokemon();
+    }
   }
 
   // Método para pré-carregar todos os Pokémon em segundo plano
@@ -74,6 +122,9 @@ export class PokemonService {
         'Carregando Pokémon especiais (formas alternativas, mega evoluções, etc.)...'
       );
       await this.loadSpecialPokemon();
+
+      // Salvar todos os Pokémon no armazenamento local
+      await this.storageService.savePokemonList(this.cachedList);
 
       console.log(
         `Pré-carregamento concluído! ${this.cachedList.length} Pokémon carregados no total.`
@@ -285,6 +336,12 @@ export class PokemonService {
 
   async fetchPokemonByType(type: string): Promise<Pokemon[]> {
     try {
+      // Se temos todos os Pokémon em cache, filtramos localmente
+      if (this.isLoadingComplete.value) {
+        return this.cachedList.filter((pokemon) => pokemon.type.includes(type));
+      }
+
+      // Caso contrário, buscamos da API
       const response = await fetch(`${this.apiUrl}/type/${type}`);
       const data = await response.json();
 
@@ -342,12 +399,21 @@ export class PokemonService {
   }
 
   async fetchPokemonById(id: number): Promise<PokemonDetail> {
-    // Verificar cache
+    // Verificar cache em memória
     if (this.cachedPokemon.has(id)) {
       return this.cachedPokemon.get(id)!;
     }
 
     try {
+      // Verificar cache no IndexedDB
+      const storedPokemon = await this.storageService.loadPokemonDetail(id);
+      if (storedPokemon) {
+        // Adicionar ao cache em memória
+        this.cachedPokemon.set(id, storedPokemon);
+        return storedPokemon;
+      }
+
+      // Se não estiver em cache, buscar da API
       const response = await fetch(`${this.apiUrl}/pokemon/${id}`);
 
       if (!response.ok) {
@@ -410,8 +476,11 @@ export class PokemonService {
         },
       };
 
-      // Adicionar ao cache
+      // Adicionar ao cache em memória
       this.cachedPokemon.set(id, pokemon);
+
+      // Salvar no IndexedDB
+      await this.storageService.savePokemonDetail(pokemon);
 
       return pokemon;
     } catch (error) {
@@ -421,12 +490,22 @@ export class PokemonService {
   }
 
   async fetchEvolutionChain(pokemonId: number): Promise<EvolutionPokemon[]> {
-    // Verificar cache
+    // Verificar cache em memória
     if (this.cachedEvolutions.has(pokemonId)) {
       return this.cachedEvolutions.get(pokemonId)!;
     }
 
     try {
+      // Verificar cache no IndexedDB
+      const storedEvolutions = await this.storageService.loadEvolutionChain(
+        pokemonId
+      );
+      if (storedEvolutions) {
+        // Adicionar ao cache em memória
+        this.cachedEvolutions.set(pokemonId, storedEvolutions);
+        return storedEvolutions;
+      }
+
       // Primeiro, precisamos obter a espécie do Pokémon
       const speciesResponse = await fetch(
         `${this.apiUrl}/pokemon-species/${pokemonId}`
@@ -485,8 +564,11 @@ export class PokemonService {
 
       await processEvolutionChain(evolutionData.chain);
 
-      // Adicionar ao cache
+      // Adicionar ao cache em memória
       this.cachedEvolutions.set(pokemonId, evolutionChain);
+
+      // Salvar no IndexedDB
+      await this.storageService.saveEvolutionChain(pokemonId, evolutionChain);
 
       return evolutionChain;
     } catch (error) {

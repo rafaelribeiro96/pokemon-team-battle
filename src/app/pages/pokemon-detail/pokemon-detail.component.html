@@ -1,243 +1,272 @@
-<div class="pokemon-detail-container" [style.--type-color]="getMainTypeColor()">
-  <div class="navigation-buttons">
-    <button
-      class="nav-button prev"
-      *ngIf="previousPokemon"
-      (click)="navigateToPokemon(previousPokemon.id)">
-      <div class="nav-content">
-        <span class="nav-arrow">&lsaquo;</span>
-        <div class="nav-text">
-          <span class="nav-label">Anterior</span>
-          <span class="nav-name">{{ capitalizeFirstLetter(previousPokemon.name) }}</span>
-        </div>
-        <div class="nav-image">
-          <img [src]="previousPokemon.image" [alt]="previousPokemon.name">
-        </div>
+<div class="pokemon-detail-container" *ngIf="pokemon && !loading">
+  <!-- Navegação entre Pokémon -->
+  <div class="pokemon-navigation">
+    <div class="nav-button prev" *ngIf="previousPokemon" (click)="navigateToPokemon(previousPokemon.id)">
+      <div class="nav-preview">
+        <img [src]="previousPokemon.image" [alt]="previousPokemon.name">
+        <span>#{{ formatPokemonId(previousPokemon.id) }} {{ capitalizeFirstLetter(previousPokemon.name) }}</span>
       </div>
-    </button>
-
-    <button class="nav-button back" (click)="backToPokedex()">
-      Voltar para Pokédex
-    </button>
-
-    <button
-      class="nav-button next"
-      *ngIf="nextPokemon"
-      (click)="navigateToPokemon(nextPokemon.id)">
-      <div class="nav-content">
-        <div class="nav-image">
-          <img [src]="nextPokemon.image" [alt]="nextPokemon.name">
-        </div>
-        <div class="nav-text">
-          <span class="nav-label">Próximo</span>
-          <span class="nav-name">{{ capitalizeFirstLetter(nextPokemon.name) }}</span>
-        </div>
-        <span class="nav-arrow">&rsaquo;</span>
-      </div>
-    </button>
-  </div>
-
-  <div *ngIf="loading" class="loading-spinner">
-    <img src="/assets/images/pikachu-loading.gif" alt="Carregando..." class="pikachu-loading">
-    <p>Carregando detalhes do Pokémon...</p>
-  </div>
-
-  <div *ngIf="error" class="error-message">
-    <p>{{ error }}</p>
-    <button class="nav-button" (click)="backToPokedex()">
-      Voltar para Pokédex
-    </button>
-  </div>
-
-  <div *ngIf="!loading && !error && pokemon" class="pokemon-detail">
-    <div class="pokemon-header">
-      <div class="pokemon-id-name">
-        <h1>{{ capitalizeFirstLetter(pokemon.name) }}</h1>
-        <span class="pokemon-id">#{{ formatPokemonId(pokemon.id) }}</span>
-      </div>
-
-      <div class="pokemon-types">
-        <span
-          *ngFor="let type of pokemon.type"
-          class="type-badge"
-          [style.background-color]="getTypeColor(type)">
-          {{ translateType(type) }}
-        </span>
+      <div class="nav-arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
       </div>
     </div>
 
-    <div class="pokemon-content">
-      <div class="pokemon-image-container">
-        <img
-          [src]="showShiny ? pokemon.sprites.other['official-artwork'].front_shiny : pokemon.sprites.other['official-artwork'].front_default"
-          [alt]="pokemon.name"
-          class="pokemon-image">
+    <div class="nav-button next" *ngIf="nextPokemon" (click)="navigateToPokemon(nextPokemon.id)">
+      <div class="nav-arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+      <div class="nav-preview">
+        <img [src]="nextPokemon.image" [alt]="nextPokemon.name">
+        <span>#{{ formatPokemonId(nextPokemon.id) }} {{ capitalizeFirstLetter(nextPokemon.name) }}</span>
+      </div>
+    </div>
+  </div>
 
-        <button class="shiny-toggle" (click)="toggleShiny()">
-          {{ showShiny ? 'Mostrar Normal' : 'Mostrar Shiny' }}
-        </button>
+  <!-- Cabeçalho do Pokémon -->
+  <div class="pokemon-header" [style.background-color]="getMainTypeColor() + '33'">
+    <div class="pokemon-id-name">
+      <span class="pokemon-id">#{{ formatPokemonId(pokemon.id) }}</span>
+      <h1 class="pokemon-name">{{ capitalizeFirstLetter(pokemon.name) }}</h1>
+    </div>
+
+    <div class="pokemon-types">
+      <span
+        *ngFor="let type of pokemon.type"
+        class="type-badge"
+        [style.background-color]="getTypeColor(type)"
+      >
+        {{ translateType(type) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div class="pokemon-content">
+    <!-- Imagem e visualizador 3D -->
+    <div class="pokemon-image-section">
+      <div class="pokemon-image-container" [style.background-color]="getMainTypeColor() + '15'">
+        <img
+          [src]="showShiny ? pokemon.sprites.front_shiny : pokemon.sprites.front_default"
+          [alt]="pokemon.name"
+          class="pokemon-image"
+        >
+
+        <div class="image-controls">
+          <button class="shiny-toggle" (click)="toggleShiny()">
+            {{ showShiny ? 'Normal' : 'Shiny' }}
+            <span class="sparkle" *ngIf="showShiny">✨</span>
+          </button>
+        </div>
       </div>
 
-      <div class="pokemon-info">
-        <div class="info-section">
-          <h2>Sobre</h2>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">Altura</span>
-              <span class="info-value">{{ pokemon.height / 10 }} m</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Peso</span>
-              <span class="info-value">{{ pokemon.weight / 10 }} kg</span>
-            </div>
-          </div>
-        </div>
+      <!-- Visualizador 3D -->
+      <div class="pokemon-3d-section">
+        <h2>Visualização 3D</h2>
+        <app-pokemon-3d-viewer
+          [pokemonId]="pokemon.id"
+          [pokemonName]="pokemon.name"
+          [spriteUrl]="showShiny ? pokemon.sprites.front_shiny : pokemon.sprites.front_default">
+        </app-pokemon-3d-viewer>
+      </div>
+    </div>
 
-        <div class="info-section">
-          <h2>Habilidades</h2>
-          <div class="abilities-list">
-            <span
-              *ngFor="let ability of pokemon.abilities"
-              class="ability-badge">
-              {{ capitalizeFirstLetter(ability.replace('-', ' ')) }}
+    <!-- Informações do Pokémon -->
+    <div class="pokemon-info">
+      <!-- Informações básicas -->
+      <div class="info-section">
+        <h2>Informações Básicas</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Altura</span>
+            <span class="info-value">{{ pokemon.height / 10 }} m</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Peso</span>
+            <span class="info-value">{{ pokemon.weight / 10 }} kg</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Habilidades</span>
+            <span class="info-value abilities">
+              <span *ngFor="let ability of pokemon.abilities">{{ capitalizeFirstLetter(ability) }}</span>
             </span>
           </div>
         </div>
+      </div>
 
-        <div class="info-section">
-          <h2>Estatísticas Base</h2>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-label">HP</div>
-              <div class="stat-value">{{ pokemon.stats.hp }}</div>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  [style.width.%]="getStatPercentage(pokemon.stats.hp)"
-                  [style.background-color]="getStatColor(pokemon.stats.hp)">
-                </div>
-              </div>
+      <!-- Estatísticas -->
+      <div class="stats-section">
+        <h2>Estatísticas</h2>
+        <div class="stat-bars">
+          <div class="stat-item">
+            <div class="stat-label">HP</div>
+            <div class="stat-bar-container">
+              <div
+                class="stat-bar"
+                [style.width.%]="getStatPercentage(pokemon.stats.hp)"
+                [style.background-color]="getStatColor(pokemon.stats.hp)"
+              ></div>
+              <span class="stat-value">{{ pokemon.stats.hp }}</span>
             </div>
+          </div>
 
-            <div class="stat-item">
-              <div class="stat-label">Ataque</div>
-              <div class="stat-value">{{ pokemon.stats.attack }}</div>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  [style.width.%]="getStatPercentage(pokemon.stats.attack)"
-                  [style.background-color]="getStatColor(pokemon.stats.attack)">
-                </div>
-              </div>
+          <div class="stat-item">
+            <div class="stat-label">Ataque</div>
+            <div class="stat-bar-container">
+              <div
+                class="stat-bar"
+                [style.width.%]="getStatPercentage(pokemon.stats.attack)"
+                [style.background-color]="getStatColor(pokemon.stats.attack)"
+              ></div>
+              <span class="stat-value">{{ pokemon.stats.attack }}</span>
             </div>
+          </div>
 
-            <div class="stat-item">
-              <div class="stat-label">Defesa</div>
-              <div class="stat-value">{{ pokemon.stats.defense }}</div>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  [style.width.%]="getStatPercentage(pokemon.stats.defense)"
-                  [style.background-color]="getStatColor(pokemon.stats.defense)">
-                </div>
-              </div>
+          <div class="stat-item">
+            <div class="stat-label">Defesa</div>
+            <div class="stat-bar-container">
+              <div
+                class="stat-bar"
+                [style.width.%]="getStatPercentage(pokemon.stats.defense)"
+                [style.background-color]="getStatColor(pokemon.stats.defense)"
+              ></div>
+              <span class="stat-value">{{ pokemon.stats.defense }}</span>
             </div>
+          </div>
 
-            <div class="stat-item">
-              <div class="stat-label">Atq. Esp.</div>
-              <div class="stat-value">{{ pokemon.stats.specialAttack }}</div>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  [style.width.%]="getStatPercentage(pokemon.stats.specialAttack)"
-                  [style.background-color]="getStatColor(pokemon.stats.specialAttack)">
-                </div>
-              </div>
+          <div class="stat-item">
+            <div class="stat-label">Atq. Esp.</div>
+            <div class="stat-bar-container">
+              <div
+                class="stat-bar"
+                [style.width.%]="getStatPercentage(pokemon.stats.specialAttack)"
+                [style.background-color]="getStatColor(pokemon.stats.specialAttack)"
+              ></div>
+              <span class="stat-value">{{ pokemon.stats.specialAttack }}</span>
             </div>
+          </div>
 
-            <div class="stat-item">
-              <div class="stat-label">Def. Esp.</div>
-              <div class="stat-value">{{ pokemon.stats.specialDefense }}</div>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  [style.width.%]="getStatPercentage(pokemon.stats.specialDefense)"
-                  [style.background-color]="getStatColor(pokemon.stats.specialDefense)">
-                </div>
-              </div>
+          <div class="stat-item">
+            <div class="stat-label">Def. Esp.</div>
+            <div class="stat-bar-container">
+              <div
+                class="stat-bar"
+                [style.width.%]="getStatPercentage(pokemon.stats.specialDefense)"
+                [style.background-color]="getStatColor(pokemon.stats.specialDefense)"
+              ></div>
+              <span class="stat-value">{{ pokemon.stats.specialDefense }}</span>
             </div>
+          </div>
 
-            <div class="stat-item">
-              <div class="stat-label">Velocidade</div>
-              <div class="stat-value">{{ pokemon.stats.speed }}</div>
-              <div class="stat-bar">
-                <div
-                  class="stat-fill"
-                  [style.width.%]="getStatPercentage(pokemon.stats.speed)"
-                  [style.background-color]="getStatColor(pokemon.stats.speed)">
-                </div>
-              </div>
+          <div class="stat-item">
+            <div class="stat-label">Velocidade</div>
+            <div class="stat-bar-container">
+              <div
+                class="stat-bar"
+                [style.width.%]="getStatPercentage(pokemon.stats.speed)"
+                [style.background-color]="getStatColor(pokemon.stats.speed)"
+              ></div>
+              <span class="stat-value">{{ pokemon.stats.speed }}</span>
+            </div>
+          </div>
+
+          <div class="stat-item total">
+            <div class="stat-label">Total</div>
+            <div class="stat-bar-container">
+              <div
+                class="stat-bar"
+                [style.width.%]="getTotalStatPercentage()"
+                [style.background-color]="'#e3350d'"
+              ></div>
+              <span class="stat-value">{{ getTotalStats() }}</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Nova seção de Fraquezas e Forças -->
-        <div class="info-section">
-          <h2>Fraquezas e Forças</h2>
+      <!-- Fraquezas e Forças -->
+      <div class="type-effectiveness-section">
+        <h2>Efetividade de Tipos</h2>
 
-          <div class="type-effectiveness">
-            <div class="effectiveness-group">
-              <h3>Fraco contra:</h3>
-              <div class="type-list">
-                <span
-                  *ngFor="let type of getWeaknesses()"
-                  class="type-badge"
-                  [style.background-color]="getTypeColor(type)">
-                  {{ translateType(type) }}
-                </span>
-                <span *ngIf="getWeaknesses().length === 0" class="no-types">Nenhuma fraqueza conhecida</span>
-              </div>
+        <div class="effectiveness-container">
+          <div class="weaknesses">
+            <h3>Fraco Contra</h3>
+            <div class="type-badges">
+              <span
+                *ngFor="let type of getWeaknesses()"
+                class="type-badge small"
+                [style.background-color]="getTypeColor(type)"
+              >
+                {{ translateType(type) }}
+              </span>
+              <span *ngIf="getWeaknesses().length === 0" class="no-types">Nenhuma fraqueza</span>
             </div>
+          </div>
 
-            <div class="effectiveness-group">
-              <h3>Forte contra:</h3>
-              <div class="type-list">
-                <span
-                  *ngFor="let type of getStrengths()"
-                  class="type-badge"
-                  [style.background-color]="getTypeColor(type)">
-                  {{ translateType(type) }}
-                </span>
-                <span *ngIf="getStrengths().length === 0" class="no-types">Nenhuma força conhecida</span>
-              </div>
+          <div class="strengths">
+            <h3>Forte Contra</h3>
+            <div class="type-badges">
+              <span
+                *ngFor="let type of getStrengths()"
+                class="type-badge small"
+                [style.background-color]="getTypeColor(type)"
+              >
+                {{ translateType(type) }}
+              </span>
+              <span *ngIf="getStrengths().length === 0" class="no-types">Nenhuma vantagem</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Nova seção de Evolução -->
-        <div *ngIf="pokemon.evolutionChain && pokemon.evolutionChain.length > 0" class="info-section">
-          <h2>Linha Evolutiva</h2>
-
-          <div class="evolution-chain">
-            <div *ngFor="let evolution of pokemon.evolutionChain; let i = index" class="evolution-stage">
-              <div class="evolution-pokemon">
-                <img [src]="evolution.image" [alt]="evolution.name" class="evolution-image">
-                <div class="evolution-info">
-                  <div class="evolution-name">{{ capitalizeFirstLetter(evolution.name) }}</div>
-                  <div class="evolution-id">#{{ formatPokemonId(evolution.id) }}</div>
-                </div>
-              </div>
-
-              <div *ngIf="i < pokemon.evolutionChain.length - 1" class="evolution-arrow">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-              </div>
+      <!-- Cadeia de Evolução -->
+      <div class="evolution-chain" *ngIf="pokemon.evolutionChain && pokemon.evolutionChain.length > 0">
+        <h2>Cadeia de Evolução</h2>
+        <div class="evolution-items">
+          <div
+            class="evolution-item"
+            *ngFor="let evolution of pokemon.evolutionChain; let i = index; let isLast = last"
+            [class.current]="evolution.id === pokemon.id"
+            (click)="navigateToEvolution(evolution.id)"
+          >
+            <img [src]="evolution.image" [alt]="evolution.name" class="evolution-image">
+            <p class="evolution-name">{{ capitalizeFirstLetter(evolution.name) }}</p>
+            <div class="evolution-arrow" *ngIf="!isLast">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Botões de ação -->
+  <div class="action-buttons">
+    <button class="back-button" (click)="backToPokedex()">Voltar para Pokédex</button>
+    <button class="add-to-team-button" [style.background-color]="getMainTypeColor()">Adicionar ao Time</button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-container" *ngIf="loading">
+  <app-pokemon-progress-bar></app-pokemon-progress-bar>
+  <p>Carregando detalhes do Pokémon...</p>
+</div>
+
+<!-- Erro -->
+<div class="error-container" *ngIf="error">
+  <div class="error-message">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <p>{{ error }}</p>
+  </div>
+  <button class="back-button" (click)="backToPokedex()">Voltar para Pokédex</button>
 </div>
