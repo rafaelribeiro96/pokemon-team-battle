@@ -16,6 +16,7 @@ import {
   PokemonGamesService,
   PokemonGame,
 } from '../../services/pokemon-games.service';
+import { ImgFallbackDirective } from '../../directives/fallback-image.directive';
 
 @Component({
   selector: 'app-games',
@@ -32,6 +33,7 @@ import {
     MatFormFieldModule,
     FormsModule,
     SafePipe,
+    ImgFallbackDirective,
   ],
   templateUrl: './games.component.html',
   styleUrls: ['./games.component.scss'],

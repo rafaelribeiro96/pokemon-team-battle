@@ -2,7 +2,7 @@
   <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo-container">
-      <img src="/assets/images/pokeball-icon.png" alt="Pokéball">
+      <img src="/assets/images/pokeball-icon.png" alt="Pokéball" fallback="assets/images/imagemDefault.png">
       <h2>Pokémon Team Battle</h2>
     </div>
 
@@ -74,7 +74,7 @@
       <div class="news-grid">
         <div *ngFor="let news of newsItems" class="news-card" [@slideIn]>
           <div class="news-image">
-            <img [src]="news.image" [alt]="news.title">
+            <img [src]="news.image" [alt]="news.title" fallback="assets/images/imagemDefault.png">
             <span class="news-category">{{ news.category }}</span>
           </div>
           <div class="news-content">
@@ -99,7 +99,7 @@
         <div *ngIf="activeTab === 0" class="games-grid">
           <div *ngFor="let game of featuredGames" class="game-card">
             <div class="game-image">
-              <img [src]="game.image" [alt]="game.title">
+              <img [src]="game.image" [alt]="game.title" fallback="assets/images/imagemDefault.png">
               <span class="game-year">{{ game.releaseYear }}</span>
             </div>
             <div class="game-content">
@@ -116,7 +116,7 @@
         <div *ngIf="activeTab === 1" class="pokemon-grid">
           <div *ngFor="let pokemon of featuredPokemon" class="pokemon-card">
             <div class="pokemon-image">
-              <img [src]="pokemon.image" [alt]="pokemon.name">
+              <img [src]="pokemon.image" [alt]="pokemon.name" fallback="assets/images/imagemDefault.png">
             </div>
             <div class="pokemon-content">
               <div class="pokemon-header">

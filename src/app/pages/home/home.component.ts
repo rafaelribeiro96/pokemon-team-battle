@@ -12,6 +12,7 @@ import {
   animate,
   state,
 } from '@angular/animations';
+import { ImgFallbackDirective } from '../../directives/fallback-image.directive';
 
 interface NewsItem {
   id: number;
@@ -49,6 +50,7 @@ interface FeaturedPokemon {
     MatTabsModule,
     MatCardModule,
     CommonModule,
+    ImgFallbackDirective,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',

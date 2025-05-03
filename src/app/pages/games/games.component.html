@@ -76,7 +76,7 @@
     <div class="games-grid">
       <div class="game-card" *ngFor="let game of filteredGames">
         <div class="game-image">
-          <img [src]="game.coverImage" [alt]="game.title" (error)="handleImageError($event)">
+          <img [src]="game.coverImage" [alt]="game.title" fallback="assets/images/imagemDefault.png">
           <div class="game-badges">
             <span class="game-year">{{ game.releaseYear }}</span>
             <span class="game-generation"
@@ -131,7 +131,7 @@
           <div *ngIf="game.screenshots && game.screenshots.length > 0" class="details-section">
             <h4>Screenshots</h4>
             <div class="screenshots-gallery">
-              <img *ngFor="let screenshot of game.screenshots" [src]="screenshot" [alt]="game.title" (error)="handleImageError($event)" class="screenshot">
+              <img *ngFor="let screenshot of game.screenshots" [src]="screenshot" [alt]="game.title" fallback="assets/images/imagemDefault.png" class="screenshot">
             </div>
           </div>
 
