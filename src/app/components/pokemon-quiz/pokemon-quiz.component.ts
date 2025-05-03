@@ -1,99 +1,94 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { PokemonService } from '../../services/pokemon.service';
-import { Pokemon } from '../../models/pokemon.model';
+import { PokemonProgressBarComponent } from '../pokemon-progress-bar/pokemon-progress-bar.component';
 
 interface QuizQuestion {
-  type: 'silhouette' | 'type' | 'ability' | 'evolution';
-  pokemon: Pokemon;
+  type: 'image' | 'stats' | 'type' | 'ability';
+  question: string;
   options: string[];
   correctAnswer: string;
-  userAnswer?: string;
+  image?: string;
+  pokemonName?: string;
+  pokemonId?: number;
+  stats?: any;
 }
 
 @Component({
   selector: 'app-pokemon-quiz',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterModule,
+    PokemonProgressBarComponent,
+  ],
   template: `
     <div class="quiz-container">
       <div class="quiz-header">
-        <h2>Quiz Pokémon</h2>
-        <div class="quiz-stats">
+        <h1>Quiz Pokémon</h1>
+        <div class="quiz-stats" *ngIf="!loading && !quizCompleted">
           <span class="score">Pontuação: {{ score }}/{{ totalQuestions }}</span>
-          <span class="question-counter"
+          <span class="progress"
             >Questão {{ currentQuestionIndex + 1 }} de
-            {{ totalQuestions }}</span
+            {{ questions.length }}</span
           >
         </div>
       </div>
 
-      <div class="quiz-content" *ngIf="!quizCompleted && currentQuestion">
-        <div class="question-container" [ngClass]="currentQuestion.type">
-          <div class="question-prompt">
-            <ng-container [ngSwitch]="currentQuestion.type">
-              <ng-container *ngSwitchCase="'silhouette'">
-                <h3>Quem é esse Pokémon?</h3>
-                <div class="silhouette-container">
-                  <img
-                    [src]="currentQuestion.pokemon.image"
-                    class="pokemon-silhouette"
-                    alt="Silhueta de Pokémon"
-                  />
-                </div>
-              </ng-container>
+      <div
+        class="quiz-content"
+        *ngIf="!loading && !quizCompleted && questions.length > 0"
+      >
+        <div class="question-container">
+          <h2 class="question">{{ currentQuestion.question }}</h2>
 
-              <ng-container *ngSwitchCase="'type'">
-                <h3>
-                  Qual é o tipo principal do {{ currentQuestion.pokemon.name }}?
-                </h3>
-                <img
-                  [src]="currentQuestion.pokemon.image"
-                  class="pokemon-image"
-                  [alt]="currentQuestion.pokemon.name"
-                />
-              </ng-container>
-
-              <ng-container *ngSwitchCase="'ability'">
-                <h3>
-                  Qual dessas é uma habilidade do
-                  {{ currentQuestion.pokemon.name }}?
-                </h3>
-                <img
-                  [src]="currentQuestion.pokemon.image"
-                  class="pokemon-image"
-                  [alt]="currentQuestion.pokemon.name"
-                />
-              </ng-container>
-
-              <ng-container *ngSwitchCase="'evolution'">
-                <h3>
-                  {{ currentQuestion.pokemon.name }} evolui para qual Pokémon?
-                </h3>
-                <img
-                  [src]="currentQuestion.pokemon.image"
-                  class="pokemon-image"
-                  [alt]="currentQuestion.pokemon.name"
-                />
-              </ng-container>
-            </ng-container>
+          <!-- Questão com imagem -->
+          <div class="image-container" *ngIf="currentQuestion.type === 'image'">
+            <img
+              [src]="currentQuestion.image"
+              [alt]="currentQuestion.pokemonName"
+              class="pokemon-image"
+            />
           </div>
 
+          <!-- Questão com estatísticas -->
+          <div class="stats-container" *ngIf="currentQuestion.type === 'stats'">
+            <div class="stat-bars">
+              <div
+                class="stat-item"
+                *ngFor="let stat of getStatsArray(currentQuestion.stats)"
+              >
+                <div class="stat-label">{{ translateStat(stat.name) }}</div>
+                <div class="stat-bar-container">
+                  <div
+                    class="stat-bar"
+                    [style.width.%]="getStatPercentage(stat.value)"
+                    [ngClass]="stat.name"
+                  ></div>
+                  <span class="stat-value">{{ stat.value }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opções de resposta -->
           <div class="options-container">
             <button
               *ngFor="let option of currentQuestion.options"
               class="option-button"
-              [class.selected]="currentQuestion.userAnswer === option"
+              [class.selected]="selectedAnswer === option"
               [class.correct]="
-                showAnswers && option === currentQuestion.correctAnswer
+                showAnswer && option === currentQuestion.correctAnswer
               "
               [class.incorrect]="
-                showAnswers &&
-                currentQuestion.userAnswer === option &&
+                showAnswer &&
+                selectedAnswer === option &&
                 option !== currentQuestion.correctAnswer
               "
-              [disabled]="showAnswers"
+              [disabled]="showAnswer"
               (click)="selectAnswer(option)"
             >
               {{ option }}
@@ -101,237 +96,242 @@ interface QuizQuestion {
           </div>
         </div>
 
-        <div class="quiz-actions">
-          <button
-            *ngIf="!showAnswers"
-            class="submit-button"
-            [disabled]="!currentQuestion.userAnswer"
-            (click)="submitAnswer()"
+        <div class="feedback-container" *ngIf="showAnswer">
+          <div
+            class="feedback"
+            [class.correct]="isCorrect"
+            [class.incorrect]="!isCorrect"
           >
-            Confirmar Resposta
-          </button>
-
-          <div *ngIf="showAnswers" class="answer-feedback">
-            <div
-              class="feedback-message"
-              [class.correct]="
-                currentQuestion.userAnswer === currentQuestion.correctAnswer
-              "
-              [class.incorrect]="
-                currentQuestion.userAnswer !== currentQuestion.correctAnswer
-              "
-            >
-              <span
-                *ngIf="
-                  currentQuestion.userAnswer === currentQuestion.correctAnswer
-                "
-              >
-                Correto! 🎉
-              </span>
-              <span
-                *ngIf="
-                  currentQuestion.userAnswer !== currentQuestion.correctAnswer
-                "
-              >
-                Incorreto! A resposta correta é:
-                {{ currentQuestion.correctAnswer }}
-              </span>
-            </div>
-
-            <button class="next-button" (click)="nextQuestion()">
-              Próxima Questão
-            </button>
+            <h3>{{ isCorrect ? 'Correto!' : 'Incorreto!' }}</h3>
+            <p>{{ feedbackMessage }}</p>
           </div>
+          <button class="next-button" (click)="nextQuestion()">
+            {{
+              currentQuestionIndex < questions.length - 1
+                ? 'Próxima Questão'
+                : 'Ver Resultados'
+            }}
+          </button>
         </div>
       </div>
 
-      <div class="quiz-results" *ngIf="quizCompleted">
-        <h3>Quiz Completo!</h3>
+      <!-- Tela de carregamento -->
+      <div class="loading-container" *ngIf="loading">
+        <img
+          src="/assets/images/pikachu-loading.gif"
+          alt="Carregando..."
+          class="loading-gif"
+        />
+        <p>Preparando o quiz...</p>
+      </div>
 
-        <div class="results-summary">
-          <div class="final-score">
-            <span class="score-value">{{ score }}</span>
+      <!-- Mensagem de erro -->
+      <div class="error-container" *ngIf="errorMessage">
+        <div class="error-message">
+          <h3>Ops! Ocorreu um erro</h3>
+          <p>{{ errorMessage }}</p>
+          <button class="retry-button" (click)="retryQuiz()">
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+
+      <!-- Resultados finais -->
+      <div class="results-container" *ngIf="quizCompleted">
+        <h2>Quiz Completo!</h2>
+        <div class="final-score">
+          <div class="score-circle">
+            <span class="score-number">{{ score }}</span>
             <span class="score-total">/ {{ totalQuestions }}</span>
           </div>
-
-          <div class="score-percentage">
-            {{ (score / totalQuestions) * 100 }}% de acertos
-          </div>
-
-          <div class="score-message">
-            <ng-container *ngIf="score / totalQuestions >= 0.8">
-              Parabéns! Você é um verdadeiro Mestre Pokémon! 🏆
-            </ng-container>
-            <ng-container
-              *ngIf="
-                score / totalQuestions >= 0.6 && score / totalQuestions < 0.8
-              "
-            >
-              Muito bom! Você conhece bastante sobre Pokémon! 🌟
-            </ng-container>
-            <ng-container
-              *ngIf="
-                score / totalQuestions >= 0.4 && score / totalQuestions < 0.6
-              "
-            >
-              Bom trabalho! Continue treinando seus conhecimentos! 📚
-            </ng-container>
-            <ng-container *ngIf="score / totalQuestions < 0.4">
-              Continue tentando! Todo treinador começa em algum lugar! 🌱
-            </ng-container>
-          </div>
+          <p class="score-text">{{ getScoreMessage() }}</p>
         </div>
 
-        <button class="restart-button" (click)="restartQuiz()">
-          Jogar Novamente
-        </button>
-      </div>
-
-      <div class="loading-message" *ngIf="loading">
-        <p>Carregando quiz...</p>
+        <div class="action-buttons">
+          <button class="restart-button" (click)="restartQuiz()">
+            Jogar Novamente
+          </button>
+          <button class="home-button" routerLink="/pokedex">
+            Voltar para Pokédex
+          </button>
+        </div>
       </div>
     </div>
   `,
   styles: [
     `
       .quiz-container {
-        background-color: white;
-        border-radius: 12px;
+        max-width: 800px;
+        margin: 0 auto;
         padding: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        margin: 20px 0;
       }
 
       .quiz-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-        gap: 10px;
+        text-align: center;
+        margin-bottom: 30px;
 
-        h2 {
+        h1 {
           color: #e3350d;
-          margin: 0;
+          font-size: 2.5rem;
+          margin-bottom: 10px;
         }
       }
 
       .quiz-stats {
         display: flex;
-        gap: 15px;
+        justify-content: space-between;
+        background-color: var(--card-background);
+        padding: 10px 20px;
+        border-radius: 30px;
+        box-shadow: 0 4px 12px var(--shadow-color);
 
         .score {
-          font-weight: bold;
-          color: #3d7dca;
+          font-weight: 600;
+          color: #e3350d;
         }
 
-        .question-counter {
+        .progress {
           color: #666;
         }
       }
 
+      .quiz-content {
+        background-color: var(--card-background);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px var(--shadow-color);
+        overflow: hidden;
+        margin-bottom: 30px;
+      }
+
       .question-container {
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
-
-        &.silhouette {
-          background-color: #3d7dca;
-
-          h3 {
-            color: white;
-          }
-        }
-
-        &.type {
-          background-color: #78c850;
-
-          h3 {
-            color: white;
-          }
-        }
-
-        &.ability {
-          background-color: #f08030;
-
-          h3 {
-            color: white;
-          }
-        }
-
-        &.evolution {
-          background-color: #a040a0;
-
-          h3 {
-            color: white;
-          }
-        }
+        padding: 30px;
       }
 
-      .question-prompt {
+      .question {
+        font-size: 1.5rem;
+        margin-top: 0;
+        margin-bottom: 20px;
         text-align: center;
-        margin-bottom: 20px;
-
-        h3 {
-          margin-bottom: 15px;
-        }
       }
 
-      .silhouette-container {
-        width: 200px;
-        height: 200px;
-        margin: 0 auto;
-        position: relative;
+      .image-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
 
-        .pokemon-silhouette {
-          width: 100%;
-          height: 100%;
+        .pokemon-image {
+          width: 200px;
+          height: 200px;
           object-fit: contain;
           filter: brightness(0);
+          transition: filter 0.5s ease;
+
+          &.revealed {
+            filter: brightness(1);
+          }
         }
       }
 
-      .pokemon-image {
-        width: 150px;
-        height: 150px;
-        object-fit: contain;
+      .stats-container {
+        margin: 20px 0;
+      }
+
+      .stat-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .stat-item {
+        display: flex;
+        align-items: center;
+      }
+
+      .stat-label {
+        width: 100px;
+        font-size: 14px;
+      }
+
+      .stat-bar-container {
+        flex: 1;
+        height: 20px;
+        background-color: #f0f0f0;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-bar {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+
+        &.hp {
+          background-color: #ff5959;
+        }
+        &.attack {
+          background-color: #f5ac78;
+        }
+        &.defense {
+          background-color: #fae078;
+        }
+        &.specialAttack {
+          background-color: #9db7f5;
+        }
+        &.specialDefense {
+          background-color: #a7db8d;
+        }
+        &.speed {
+          background-color: #fa92b2;
+        }
+      }
+
+      .stat-value {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        font-size: 12px;
+        font-weight: 500;
+        color: #333;
       }
 
       .options-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
       }
 
       .option-button {
-        padding: 12px;
-        border-radius: 8px;
-        border: 2px solid #ddd;
-        background-color: white;
+        padding: 15px;
+        border-radius: 10px;
+        background-color: #f5f5f5;
+        border: 2px solid transparent;
         font-size: 16px;
+        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
-        text-transform: capitalize;
+        text-align: center;
 
         &:hover:not(:disabled) {
-          border-color: #3d7dca;
+          background-color: #e0e0e0;
           transform: translateY(-2px);
         }
 
         &.selected {
           border-color: #3d7dca;
-          background-color: #e8f0f8;
+          background-color: rgba(61, 125, 202, 0.1);
         }
 
         &.correct {
           border-color: #78c850;
-          background-color: #e8f8e8;
+          background-color: rgba(120, 200, 80, 0.2);
         }
 
         &.incorrect {
           border-color: #e3350d;
-          background-color: #f8e8e8;
+          background-color: rgba(227, 53, 13, 0.2);
         }
 
         &:disabled {
@@ -339,104 +339,220 @@ interface QuizQuestion {
         }
       }
 
-      .quiz-actions {
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
+      .feedback-container {
+        padding: 20px 30px 30px;
+        background-color: #f9f9f9;
+        border-top: 1px solid #eee;
       }
 
-      .submit-button,
-      .next-button,
-      .restart-button {
-        padding: 12px 24px;
+      .feedback {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+
+        h3 {
+          margin-top: 0;
+          margin-bottom: 10px;
+          font-size: 1.2rem;
+        }
+
+        p {
+          margin: 0;
+        }
+
+        &.correct {
+          background-color: rgba(120, 200, 80, 0.2);
+          border: 1px solid #78c850;
+
+          h3 {
+            color: #2e8b57;
+          }
+        }
+
+        &.incorrect {
+          background-color: rgba(227, 53, 13, 0.2);
+          border: 1px solid #e3350d;
+
+          h3 {
+            color: #e3350d;
+          }
+        }
+      }
+
+      .next-button {
+        width: 100%;
+        padding: 12px;
         border-radius: 8px;
-        border: none;
-        background-color: #e3350d;
+        background-color: #3d7dca;
         color: white;
+        border: none;
         font-size: 16px;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
 
-        &:hover:not(:disabled) {
-          background-color: darken(#e3350d, 10%);
+        &:hover {
+          background-color: #2a5a9c;
           transform: translateY(-2px);
-        }
-
-        &:disabled {
-          background-color: #ccc;
-          cursor: default;
         }
       }
 
-      .answer-feedback {
+      .loading-container {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 15px;
-      }
+        justify-content: center;
+        min-height: 400px;
 
-      .feedback-message {
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 500;
-
-        &.correct {
-          background-color: #e8f8e8;
-          color: #2e7d32;
+        .loading-gif {
+          width: 100px;
+          height: 100px;
         }
 
-        &.incorrect {
-          background-color: #f8e8e8;
-          color: #c62828;
-        }
-      }
-
-      .quiz-results {
-        text-align: center;
-        padding: 20px;
-
-        h3 {
-          color: #e3350d;
-          font-size: 1.8rem;
-          margin-bottom: 20px;
-        }
-      }
-
-      .results-summary {
-        margin-bottom: 30px;
-      }
-
-      .final-score {
-        font-size: 3rem;
-        margin-bottom: 10px;
-
-        .score-value {
-          color: #3d7dca;
-          font-weight: bold;
-        }
-
-        .score-total {
+        p {
+          margin-top: 20px;
+          font-size: 18px;
           color: #666;
         }
       }
 
-      .score-percentage {
-        font-size: 1.5rem;
-        color: #333;
-        margin-bottom: 15px;
+      .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
       }
 
-      .score-message {
-        font-size: 1.2rem;
-        color: #e3350d;
-        font-weight: 500;
-      }
-
-      .loading-message {
-        text-align: center;
+      .error-message {
+        background-color: var(--card-background);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px var(--shadow-color);
         padding: 30px;
-        color: #666;
+        text-align: center;
+        max-width: 500px;
+
+        h3 {
+          color: #e3350d;
+          margin-top: 0;
+          margin-bottom: 15px;
+        }
+
+        p {
+          margin-bottom: 20px;
+        }
+      }
+
+      .retry-button {
+        padding: 12px 24px;
+        border-radius: 8px;
+        background-color: #3d7dca;
+        color: white;
+        border: none;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: #2a5a9c;
+          transform: translateY(-2px);
+        }
+      }
+
+      .results-container {
+        background-color: var(--card-background);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px var(--shadow-color);
+        padding: 30px;
+        text-align: center;
+
+        h2 {
+          color: #e3350d;
+          font-size: 2rem;
+          margin-top: 0;
+          margin-bottom: 30px;
+        }
+      }
+
+      .final-score {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 40px;
+      }
+
+      .score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px var(--shadow-color);
+
+        .score-number {
+          font-size: 3rem;
+          font-weight: 700;
+          color: #e3350d;
+        }
+
+        .score-total {
+          font-size: 1.5rem;
+          color: #666;
+        }
+      }
+
+      .score-text {
+        font-size: 1.2rem;
+        color: #333;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+
+        @media (max-width: 576px) {
+          flex-direction: column;
+        }
+
+        button {
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: none;
+
+          &:hover {
+            transform: translateY(-2px);
+          }
+        }
+
+        .restart-button {
+          background-color: #e3350d;
+          color: white;
+
+          &:hover {
+            background-color: darken(#e3350d, 10%);
+          }
+        }
+
+        .home-button {
+          background-color: #f0f0f0;
+          color: #333;
+
+          &:hover {
+            background-color: #e0e0e0;
+          }
+        }
       }
     `,
   ],
@@ -444,270 +560,354 @@ interface QuizQuestion {
 export class PokemonQuizComponent implements OnInit {
   questions: QuizQuestion[] = [];
   currentQuestionIndex: number = 0;
-  currentQuestion: QuizQuestion | null = null;
+  selectedAnswer: string = '';
+  showAnswer: boolean = false;
+  isCorrect: boolean = false;
+  feedbackMessage: string = '';
   score: number = 0;
   totalQuestions: number = 10;
-  showAnswers: boolean = false;
-  quizCompleted: boolean = false;
   loading: boolean = true;
+  quizCompleted: boolean = false;
+  errorMessage: string = '';
 
   constructor(private pokemonService: PokemonService) {}
 
   ngOnInit(): void {
-    this.initializeQuiz();
+    this.generateQuiz();
   }
 
-  async initializeQuiz(): Promise<void> {
+  get currentQuestion(): QuizQuestion {
+    return this.questions[this.currentQuestionIndex];
+  }
+
+  async generateQuiz(): Promise<void> {
     this.loading = true;
+    this.errorMessage = '';
 
     try {
-      // Carregar Pokémon para o quiz
-      const pokemonList = await this.pokemonService.fetchPokemonList(0, 151);
+      console.log('Iniciando geração do quiz...');
 
-      // Criar perguntas do quiz
-      await this.generateQuestions(pokemonList);
+      // Obter Pokémon para o quiz - usando fetchPokemons
+      console.log('Buscando Pokémon...');
+      const pokemons = await this.pokemonService.fetchPokemons(50);
 
-      // Iniciar com a primeira pergunta
-      this.currentQuestion = this.questions[0];
-      this.loading = false;
-    } catch (error) {
-      console.error('Erro ao inicializar quiz:', error);
-      this.loading = false;
-    }
-  }
+      console.log(`Recebidos ${pokemons.length} Pokémon`);
 
-  async generateQuestions(pokemonList: Pokemon[]): Promise<void> {
-    this.questions = [];
-
-    // Embaralhar a lista de Pokémon
-    const shuffledPokemon = [...pokemonList].sort(() => Math.random() - 0.5);
-
-    // Criar perguntas de diferentes tipos
-    for (let i = 0; i < this.totalQuestions; i++) {
-      const questionType = this.getRandomQuestionType();
-      const pokemon = shuffledPokemon[i];
-
-      let question: QuizQuestion;
-
-      switch (questionType) {
-        case 'silhouette':
-          question = await this.createSilhouetteQuestion(
-            pokemon,
-            shuffledPokemon
-          );
-          break;
-        case 'type':
-          question = this.createTypeQuestion(pokemon);
-          break;
-        case 'ability':
-          question = await this.createAbilityQuestion(pokemon, shuffledPokemon);
-          break;
-        case 'evolution':
-          question = await this.createEvolutionQuestion(
-            pokemon,
-            shuffledPokemon
-          );
-          break;
-        default:
-          question = await this.createSilhouetteQuestion(
-            pokemon,
-            shuffledPokemon
-          );
+      if (!pokemons || pokemons.length < 10) {
+        throw new Error(
+          'Não foi possível obter Pokémon suficientes para o quiz'
+        );
       }
 
-      this.questions.push(question);
-    }
-  }
+      // Criar perguntas manualmente para garantir que funcionem
+      console.log('Criando perguntas do quiz...');
 
-  getRandomQuestionType(): 'silhouette' | 'type' | 'ability' | 'evolution' {
-    const types: ('silhouette' | 'type' | 'ability' | 'evolution')[] = [
-      'silhouette',
-      'type',
-      'ability',
-      'evolution',
-    ];
+      // Perguntas de "Quem é este Pokémon?"
+      const imageQuestions = pokemons.slice(0, 3).map((pokemon) => {
+        const options = [pokemon.name];
 
-    return types[Math.floor(Math.random() * types.length)];
-  }
-
-  async createSilhouetteQuestion(
-    pokemon: Pokemon,
-    allPokemon: Pokemon[]
-  ): Promise<QuizQuestion> {
-    // Criar opções (nomes de Pokémon)
-    const correctAnswer = pokemon.name;
-    const options = this.getRandomOptions(
-      correctAnswer,
-      allPokemon.map((p) => p.name)
-    );
-
-    return {
-      type: 'silhouette',
-      pokemon,
-      options,
-      correctAnswer,
-    };
-  }
-
-  createTypeQuestion(pokemon: Pokemon): QuizQuestion {
-    const allTypes = [
-      'normal',
-      'fire',
-      'water',
-      'electric',
-      'grass',
-      'ice',
-      'fighting',
-      'poison',
-      'ground',
-      'flying',
-      'psychic',
-      'bug',
-      'rock',
-      'ghost',
-      'dragon',
-      'dark',
-      'steel',
-      'fairy',
-    ];
-
-    const correctAnswer = pokemon.type[0]; // Tipo principal
-    const options = this.getRandomOptions(correctAnswer, allTypes);
-
-    return {
-      type: 'type',
-      pokemon,
-      options,
-      correctAnswer,
-    };
-  }
-
-  async createAbilityQuestion(
-    pokemon: Pokemon,
-    allPokemon: Pokemon[]
-  ): Promise<QuizQuestion> {
-    // Buscar detalhes do Pokémon para obter habilidades
-    const pokemonDetail = await this.pokemonService.fetchPokemonById(
-      pokemon.id
-    );
-
-    // Se não tiver habilidades, criar uma pergunta de silhueta
-    if (!pokemonDetail.abilities || pokemonDetail.abilities.length === 0) {
-      return this.createSilhouetteQuestion(pokemon, allPokemon);
-    }
-
-    const correctAnswer = pokemonDetail.abilities[0];
-
-    // Criar lista de todas as habilidades possíveis
-    const allAbilities: string[] = [];
-    for (const p of allPokemon.slice(0, 20)) {
-      try {
-        const detail = await this.pokemonService.fetchPokemonById(p.id);
-        if (detail.abilities) {
-          allAbilities.push(...detail.abilities);
+        // Adicionar 3 nomes aleatórios de outros Pokémon
+        while (options.length < 4) {
+          const randomPokemon =
+            pokemons[Math.floor(Math.random() * pokemons.length)].name;
+          if (!options.includes(randomPokemon)) {
+            options.push(randomPokemon);
+          }
         }
-      } catch (error) {
-        console.error(`Erro ao buscar habilidades do Pokémon ${p.id}:`, error);
-      }
-    }
 
-    // Remover duplicatas
-    const uniqueAbilities = [...new Set(allAbilities)];
+        // Embaralhar opções
+        const shuffledOptions = this.shuffleArray([...options]);
 
-    const options = this.getRandomOptions(correctAnswer, uniqueAbilities);
+        return {
+          type: 'image' as const,
+          question: 'Quem é este Pokémon?',
+          options: shuffledOptions,
+          correctAnswer: pokemon.name,
+          image: pokemon.image,
+          pokemonName: pokemon.name,
+          pokemonId: pokemon.id,
+        };
+      });
 
-    return {
-      type: 'ability',
-      pokemon,
-      options,
-      correctAnswer,
-    };
-  }
+      // Perguntas de tipo
+      const typeQuestions = pokemons.slice(3, 6).map((pokemon) => {
+        const correctType = this.translateType(pokemon.type[0]);
 
-  async createEvolutionQuestion(
-    pokemon: Pokemon,
-    allPokemon: Pokemon[]
-  ): Promise<QuizQuestion> {
-    try {
-      // Buscar cadeia de evolução
-      const evolutionChain = await this.pokemonService.fetchEvolutionChain(
-        pokemon.id
+        // Lista de tipos possíveis
+        const allTypes = [
+          'Normal',
+          'Fogo',
+          'Água',
+          'Elétrico',
+          'Planta',
+          'Gelo',
+          'Lutador',
+          'Venenoso',
+          'Terra',
+          'Voador',
+          'Psíquico',
+          'Inseto',
+          'Pedra',
+          'Fantasma',
+          'Dragão',
+          'Sombrio',
+          'Metálico',
+          'Fada',
+        ];
+
+        // Remover o tipo correto da lista
+        const otherTypes = allTypes.filter((type) => type !== correctType);
+
+        // Selecionar 3 tipos aleatórios
+        const randomTypes = this.shuffleArray(otherTypes).slice(0, 3);
+
+        // Adicionar o tipo correto e embaralhar
+        const options = this.shuffleArray([...randomTypes, correctType]);
+
+        return {
+          type: 'type' as const,
+          question: `Qual é o tipo principal de ${this.capitalizeFirstLetter(
+            pokemon.name
+          )}?`,
+          options,
+          correctAnswer: correctType,
+          image: pokemon.image,
+          pokemonName: pokemon.name,
+          pokemonId: pokemon.id,
+        };
+      });
+
+      // Perguntas de estatísticas
+      const statsQuestions = pokemons.slice(6, 9).map((pokemon) => {
+        const options = [pokemon.name];
+
+        // Adicionar 3 nomes aleatórios de outros Pokémon
+        while (options.length < 4) {
+          const randomPokemon =
+            pokemons[Math.floor(Math.random() * pokemons.length)].name;
+          if (!options.includes(randomPokemon)) {
+            options.push(randomPokemon);
+          }
+        }
+
+        // Embaralhar opções
+        const shuffledOptions = this.shuffleArray([...options]);
+
+        return {
+          type: 'stats' as const,
+          question: 'A qual Pokémon pertencem estas estatísticas?',
+          options: shuffledOptions,
+          correctAnswer: pokemon.name,
+          stats: pokemon.stats,
+          pokemonName: pokemon.name,
+          pokemonId: pokemon.id,
+        };
+      });
+
+      // Perguntas de habilidade (simplificadas)
+      const abilityQuestions = pokemons.slice(9, 12).map((pokemon) => {
+        const options = [pokemon.name];
+
+        // Adicionar 3 nomes aleatórios de outros Pokémon
+        while (options.length < 4) {
+          const randomPokemon =
+            pokemons[Math.floor(Math.random() * pokemons.length)].name;
+          if (!options.includes(randomPokemon)) {
+            options.push(randomPokemon);
+          }
+        }
+
+        // Embaralhar opções
+        const shuffledOptions = this.shuffleArray([...options]);
+
+        return {
+          type: 'ability' as const,
+          question: `Qual Pokémon é conhecido por ter habilidades especiais relacionadas a "${this.capitalizeFirstLetter(
+            pokemon.name
+          )}"?`,
+          options: shuffledOptions,
+          correctAnswer: pokemon.name,
+          pokemonName: pokemon.name,
+          pokemonId: pokemon.id,
+        };
+      });
+
+      // Combinar e embaralhar as perguntas
+      console.log('Combinando e embaralhando perguntas...');
+      const allQuestions = [
+        ...imageQuestions,
+        ...typeQuestions,
+        ...statsQuestions,
+        ...abilityQuestions,
+      ];
+
+      this.questions = this.shuffleArray(allQuestions).slice(
+        0,
+        this.totalQuestions
       );
 
-      // Se não tiver evolução ou for o último da cadeia, criar uma pergunta de silhueta
-      const pokemonIndex = evolutionChain.findIndex((p) => p.id === pokemon.id);
-      if (pokemonIndex === -1 || pokemonIndex === evolutionChain.length - 1) {
-        return this.createSilhouetteQuestion(pokemon, allPokemon);
+      console.log(`Quiz gerado com ${this.questions.length} perguntas`);
+
+      if (this.questions.length === 0) {
+        throw new Error('Não foi possível gerar perguntas para o quiz');
       }
 
-      const correctAnswer = evolutionChain[pokemonIndex + 1].name;
-      const options = this.getRandomOptions(
-        correctAnswer,
-        allPokemon.map((p) => p.name)
-      );
-
-      return {
-        type: 'evolution',
-        pokemon,
-        options,
-        correctAnswer,
-      };
+      this.loading = false;
     } catch (error) {
-      console.error(`Erro ao buscar evolução do Pokémon ${pokemon.id}:`, error);
-      return this.createSilhouetteQuestion(pokemon, allPokemon);
+      console.error('Erro ao gerar quiz:', error);
+      this.loading = false;
+      this.errorMessage =
+        'Não foi possível carregar o quiz. Por favor, tente novamente.';
     }
   }
 
-  getRandomOptions(correctAnswer: string, allOptions: string[]): string[] {
-    // Filtrar opções para remover a resposta correta
-    const filteredOptions = allOptions.filter(
-      (option) => option !== correctAnswer
-    );
+  selectAnswer(answer: string): void {
+    this.selectedAnswer = answer;
+    this.showAnswer = true;
+    this.isCorrect = answer === this.currentQuestion.correctAnswer;
 
-    // Embaralhar e pegar 3 opções aleatórias
-    const randomOptions = filteredOptions
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
-
-    // Adicionar a resposta correta e embaralhar novamente
-    return [...randomOptions, correctAnswer].sort(() => Math.random() - 0.5);
-  }
-
-  selectAnswer(option: string): void {
-    if (this.currentQuestion && !this.showAnswers) {
-      this.currentQuestion.userAnswer = option;
-    }
-  }
-
-  submitAnswer(): void {
-    if (!this.currentQuestion || !this.currentQuestion.userAnswer) return;
-
-    this.showAnswers = true;
-
-    // Verificar se a resposta está correta
-    if (
-      this.currentQuestion.userAnswer === this.currentQuestion.correctAnswer
-    ) {
+    if (this.isCorrect) {
       this.score++;
+      this.feedbackMessage = 'Parabéns! Você acertou.';
+
+      // Revelar imagem se for uma questão de "Quem é este Pokémon?"
+      if (this.currentQuestion.type === 'image') {
+        const imageElement = document.querySelector(
+          '.pokemon-image'
+        ) as HTMLElement;
+        if (imageElement) {
+          imageElement.classList.add('revealed');
+        }
+      }
+    } else {
+      this.feedbackMessage = `A resposta correta é: ${this.currentQuestion.correctAnswer}`;
     }
   }
 
   nextQuestion(): void {
-    this.showAnswers = false;
-    this.currentQuestionIndex++;
-
-    if (this.currentQuestionIndex < this.questions.length) {
-      this.currentQuestion = this.questions[this.currentQuestionIndex];
+    if (this.currentQuestionIndex < this.questions.length - 1) {
+      this.currentQuestionIndex++;
+      this.resetQuestion();
     } else {
       this.quizCompleted = true;
     }
   }
 
+  resetQuestion(): void {
+    this.selectedAnswer = '';
+    this.showAnswer = false;
+    this.isCorrect = false;
+    this.feedbackMessage = '';
+
+    // Resetar imagem para silhueta se for uma questão de imagem
+    setTimeout(() => {
+      if (this.currentQuestion.type === 'image') {
+        const imageElement = document.querySelector(
+          '.pokemon-image'
+        ) as HTMLElement;
+        if (imageElement) {
+          imageElement.classList.remove('revealed');
+        }
+      }
+    }, 0);
+  }
+
   restartQuiz(): void {
     this.score = 0;
     this.currentQuestionIndex = 0;
-    this.showAnswers = false;
     this.quizCompleted = false;
-    this.initializeQuiz();
+    this.generateQuiz();
+  }
+
+  retryQuiz(): void {
+    this.errorMessage = '';
+    this.generateQuiz();
+  }
+
+  getScoreMessage(): string {
+    const percentage = (this.score / this.totalQuestions) * 100;
+
+    if (percentage >= 90) {
+      return 'Incrível! Você é um verdadeiro Mestre Pokémon!';
+    } else if (percentage >= 70) {
+      return 'Muito bom! Você conhece bastante sobre Pokémon!';
+    } else if (percentage >= 50) {
+      return 'Bom trabalho! Continue treinando seus conhecimentos!';
+    } else if (percentage >= 30) {
+      return 'Continue tentando! Você está no caminho certo.';
+    } else {
+      return 'Não desista! Tente novamente para melhorar seu conhecimento Pokémon.';
+    }
+  }
+
+  getStatsArray(stats: any): { name: string; value: number }[] {
+    if (!stats) return [];
+
+    return [
+      { name: 'hp', value: stats.hp || 0 },
+      { name: 'attack', value: stats.attack || 0 },
+      { name: 'defense', value: stats.defense || 0 },
+      { name: 'specialAttack', value: stats.specialAttack || 0 },
+      { name: 'specialDefense', value: stats.specialDefense || 0 },
+      { name: 'speed', value: stats.speed || 0 },
+    ];
+  }
+
+  translateStat(stat: string): string {
+    const translations: { [key: string]: string } = {
+      hp: 'HP',
+      attack: 'Ataque',
+      defense: 'Defesa',
+      specialAttack: 'Atq. Esp.',
+      specialDefense: 'Def. Esp.',
+      speed: 'Velocidade',
+    };
+
+    return translations[stat] || stat;
+  }
+
+  translateType(type: string): string {
+    const translations: { [key: string]: string } = {
+      normal: 'Normal',
+      fire: 'Fogo',
+      water: 'Água',
+      electric: 'Elétrico',
+      grass: 'Planta',
+      ice: 'Gelo',
+      fighting: 'Lutador',
+      poison: 'Venenoso',
+      ground: 'Terra',
+      flying: 'Voador',
+      psychic: 'Psíquico',
+      bug: 'Inseto',
+      rock: 'Pedra',
+      ghost: 'Fantasma',
+      dragon: 'Dragão',
+      dark: 'Sombrio',
+      steel: 'Metálico',
+      fairy: 'Fada',
+    };
+
+    return translations[type.toLowerCase()] || this.capitalizeFirstLetter(type);
+  }
+
+  getStatPercentage(value: number): number {
+    // Base stat max is typically 255
+    return Math.min(100, (value / 255) * 100);
+  }
+
+  capitalizeFirstLetter(text: string): string {
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  // Função para embaralhar array
+  shuffleArray<T>(array: T[]): T[] {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
   }
 }
