@@ -1,44 +1,248 @@
 <div class="home-container">
-  <div class="pokemon-logo">
-    <img src="/assets/images/pokemon-logo.png" alt="Pokemon Logo">
-  </div>
-
-  <h1>Pokémon Team Battle</h1>
-
-  <div class="battle-intro">
-    <p>Monte suas equipes e prepare-se para batalhas emocionantes!</p>
-    <p>Escolha seus Pokémon favoritos e veja quem sairá vitorioso!</p>
-  </div>
-
-  <div class="features">
-    <div class="feature">
-      <div class="feature-icon">🏆</div>
-      <h3>Batalhas em Turnos</h3>
-      <p>Estratégia e sorte se combinam em batalhas emocionantes</p>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="logo-container">
+      <img src="/assets/images/pokeball-icon.png" alt="Pokéball">
+      <h2>Pokémon Team Battle</h2>
     </div>
 
-    <div class="feature">
-      <div class="feature-icon">⚔️</div>
-      <h3>Monte seu Time</h3>
-      <p>Escolha entre dezenas de Pokémon para formar seu time perfeito</p>
+    <div class="nav-links">
+      <a routerLink="/" class="active">Home</a>
+      <a routerLink="/battle">Batalha</a>
+      <a routerLink="/pokedex">Pokédex</a>
+      <a routerLink="/quiz">Quiz</a>
+      <a routerLink="/games">Jogos</a>
+      <a routerLink="/about">Sobre</a>
     </div>
 
-    <div class="feature">
-      <div class="feature-icon">📊</div>
-      <h3>Estatísticas</h3>
-      <p>Acompanhe o desempenho dos seus Pokémon em batalha</p>
-    </div>
-  </div>
+    <button class="mobile-menu-button">
+      <mat-icon>menu</mat-icon>
+    </button>
+  </nav>
 
-  <div class="action-buttons">
-    <button mat-raised-button color="primary" routerLink="/battle" class="start-button">
-      Iniciar Batalha
+  <!-- Hero Section com Carrossel -->
+  <section class="hero-section">
+    <div *ngFor="let slide of heroSlides; let i = index"
+         class="hero-slide"
+         [class.active]="i === currentSlide"
+         [style.background-image]="'url(' + slide.image + ')'"
+         [@heroAnimation]="i === currentSlide ? 'active' : 'inactive'">
+      <div class="hero-content">
+        <h1>{{ slide.title }}</h1>
+        <p>{{ slide.subtitle }}</p>
+        <button [routerLink]="slide.buttonLink" class="hero-button">
+          {{ slide.buttonText }}
+        </button>
+      </div>
+    </div>
+
+    <button class="hero-arrow prev" (click)="prevSlide()">
+      <mat-icon>chevron_left</mat-icon>
     </button>
 
-    <button mat-raised-button color="accent" routerLink="/pokedex" class="pokedex-button">
-      Acessar Pokédex
+    <button class="hero-arrow next" (click)="nextSlide()">
+      <mat-icon>chevron_right</mat-icon>
     </button>
+
+    <div class="hero-controls">
+      <div *ngFor="let slide of heroSlides; let i = index"
+           class="dot"
+           [class.active]="i === currentSlide"
+           (click)="setSlide(i)"></div>
+    </div>
+  </section>
+
+  <!-- Quick Links -->
+  <section class="quick-links">
+    <div class="links-container">
+      <a *ngFor="let link of quickLinks" [routerLink]="link.route" class="quick-link">
+        <mat-icon>{{ link.icon }}</mat-icon>
+        <span>{{ link.text }}</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Notícias -->
+    <section class="news-section" [@fadeIn]>
+      <div class="section-header">
+        <h2>Últimas Notícias</h2>
+        <a href="#" class="view-all">Ver todas <mat-icon>arrow_forward</mat-icon></a>
+      </div>
+
+      <div class="news-grid">
+        <div *ngFor="let news of newsItems" class="news-card" [@slideIn]>
+          <div class="news-image">
+            <img [src]="news.image" [alt]="news.title">
+            <span class="news-category">{{ news.category }}</span>
+          </div>
+          <div class="news-content">
+            <div class="news-date">{{ news.date }}</div>
+            <h3>{{ news.title }}</h3>
+            <p>{{ news.summary }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conteúdo em Abas -->
+    <section class="tabbed-section" [@fadeIn]>
+      <mat-tab-group mat-align-tabs="center" class="tab-header" [(selectedIndex)]="activeTab">
+        <mat-tab label="Jogos em Destaque"></mat-tab>
+        <mat-tab label="Pokémon Populares"></mat-tab>
+        <mat-tab label="Próximos Eventos"></mat-tab>
+      </mat-tab-group>
+
+      <div class="tab-content">
+        <!-- Jogos em Destaque -->
+        <div *ngIf="activeTab === 0" class="games-grid">
+          <div *ngFor="let game of featuredGames" class="game-card">
+            <div class="game-image">
+              <img [src]="game.image" [alt]="game.title">
+              <span class="game-year">{{ game.releaseYear }}</span>
+            </div>
+            <div class="game-content">
+              <h3>{{ game.title }}</h3>
+              <div class="game-platforms">
+                <span *ngFor="let platform of game.platforms">{{ platform }}</span>
+              </div>
+              <p>{{ game.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pokémon Populares -->
+        <div *ngIf="activeTab === 1" class="pokemon-grid">
+          <div *ngFor="let pokemon of featuredPokemon" class="pokemon-card">
+            <div class="pokemon-image">
+              <img [src]="pokemon.image" [alt]="pokemon.name">
+            </div>
+            <div class="pokemon-content">
+              <div class="pokemon-header">
+                <h3>{{ pokemon.name }}</h3>
+                <span class="pokemon-number">#{{ pokemon.id.toString().padStart(3, '0') }}</span>
+              </div>
+              <div class="pokemon-types">
+                <span *ngFor="let type of pokemon.types"
+                      class="type-badge"
+                      [ngClass]="getTypeClass(type)">
+                  {{ type }}
+                </span>
+              </div>
+              <p>{{ pokemon.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Próximos Eventos -->
+        <div *ngIf="activeTab === 2" class="events-list">
+          <div *ngFor="let event of upcomingEvents" class="event-item">
+            <div class="event-header">
+              <h3>{{ event.title }}</h3>
+              <span class="event-date">{{ event.date }}</span>
+            </div>
+            <p>{{ event.description }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Estatísticas -->
+    <section class="stats-section" [@fadeIn]>
+      <h2>Estatísticas do Portal</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">10,543</div>
+          <div class="stat-label">Treinadores</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">893</div>
+          <div class="stat-label">Pokémon</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">156,782</div>
+          <div class="stat-label">Batalhas</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">42,195</div>
+          <div class="stat-label">Quiz Completados</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-section" [@fadeIn]>
+      <div class="cta-content">
+        <h2>Torne-se um Mestre Pokémon</h2>
+        <p>Junte-se à nossa comunidade e comece sua jornada para se tornar um verdadeiro Mestre Pokémon. Batalhe, colete e evolua!</p>
+        <div class="cta-buttons">
+          <button routerLink="/register" class="primary">Registrar-se</button>
+          <button routerLink="/about" class="secondary">Saiba Mais</button>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <div class="pokeball-decoration"></div>
+  <!-- Footer -->
+  <!-- <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-column">
+        <h3>Navegação</h3>
+        <ul>
+          <li><a routerLink="/"><mat-icon>home</mat-icon> Home</a></li>
+          <li><a routerLink="/battle"><mat-icon>sports_esports</mat-icon> Batalha</a></li>
+          <li><a routerLink="/pokedex"><mat-icon>menu_book</mat-icon> Pokédex</a></li>
+          <li><a routerLink="/quiz"><mat-icon>quiz</mat-icon> Quiz</a></li>
+          <li><a routerLink="/games"><mat-icon>videogame_asset</mat-icon> Jogos</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h3>Recursos</h3>
+        <ul>
+          <li><a href="#"><mat-icon>article</mat-icon> Guias</a></li>
+          <li><a href="#"><mat-icon>leaderboard</mat-icon> Ranking</a></li>
+          <li><a href="#"><mat-icon>event</mat-icon> Eventos</a></li>
+          <li><a href="#"><mat-icon>forum</mat-icon> Fórum</a></li>
+          <li><a href="#"><mat-icon>help</mat-icon> Ajuda</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h3>Sobre Nós</h3>
+        <ul>
+          <li><a routerLink="/about"><mat-icon>info</mat-icon> Quem Somos</a></li>
+          <li><a routerLink="/contact"><mat-icon>email</mat-icon> Contato</a></li>
+          <li><a routerLink="/terms"><mat-icon>gavel</mat-icon> Termos de Uso</a></li>
+          <li><a routerLink="/privacy"><mat-icon>privacy_tip</mat-icon> Privacidade</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h3>Conecte-se</h3>
+        <div class="social-links">
+          <a href="#" aria-label="Facebook"><mat-icon>facebook</mat-icon></a>
+          <a href="#" aria-label="Twitter"><mat-icon>twitter</mat-icon></a>
+          <a href="#" aria-label="Instagram"><mat-icon>instagram</mat-icon></a>
+          <a href="#" aria-label="YouTube"><mat-icon>youtube_searched_for</mat-icon></a>
+          <a href="#" aria-label="Discord"><mat-icon>discord</mat-icon></a>
+        </div>
+        <p style="margin-top: 15px; color: #ccc; font-size: 0.9rem;">
+          Inscreva-se em nossa newsletter para receber as últimas notícias e atualizações.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="copyright">
+        &copy; 2023 Pokémon Team Battle. Todos os direitos reservados.
+      </div>
+      <div class="footer-links">
+        <a href="#">Termos</a>
+        <a href="#">Privacidade</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </footer> -->
 </div>
