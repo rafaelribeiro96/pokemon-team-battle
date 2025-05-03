@@ -1,1 +1,368 @@
-<p>games works!</p>
+<div class="games-page">
+  <!-- Header com gradiente -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Jogos Pokémon</h1>
+      <p>Explore a história dos jogos Pokémon desde os clássicos do Game Boy até os títulos mais recentes para Nintendo Switch e dispositivos móveis.</p>
+    </div>
+  </header>
+
+  <!-- Controles de visualização e filtros -->
+  <div class="filter-section">
+    <div class="view-tabs">
+      <button class="view-tab" [class.active]="activeView === 'grid'" (click)="setActiveView('grid')">
+        <mat-icon>grid_view</mat-icon> Grade
+      </button>
+      <button class="view-tab" [class.active]="activeView === 'timeline'" (click)="setActiveView('timeline')">
+        <mat-icon>timeline</mat-icon> Linha do Tempo
+      </button>
+      <button class="view-tab" [class.active]="activeView === 'generations'" (click)="setActiveView('generations')">
+        <mat-icon>auto_awesome</mat-icon> Gerações
+      </button>
+      <button class="view-tab" [class.active]="activeView === 'categories'" (click)="setActiveView('categories')">
+        <mat-icon>category</mat-icon> Categorias
+      </button>
+      <button class="view-tab" [class.active]="activeView === 'platforms'" (click)="setActiveView('platforms')">
+        <mat-icon>videogame_asset</mat-icon> Plataformas
+      </button>
+    </div>
+
+    <div class="filter-controls">
+      <div class="filter-row">
+        <div class="filter-select">
+          <label>Geração</label>
+          <select [(ngModel)]="selectedGeneration" (change)="filterGames()">
+            <option [ngValue]="null">Todas</option>
+            <option *ngFor="let gen of generations" [ngValue]="gen">Geração {{ gen }}</option>
+          </select>
+        </div>
+
+        <div class="filter-select">
+          <label>Plataforma</label>
+          <select [(ngModel)]="selectedPlatform" (change)="filterGames()">
+            <option [ngValue]="null">Todas</option>
+            <option *ngFor="let platform of platforms" [ngValue]="platform">{{ platform }}</option>
+          </select>
+        </div>
+
+        <div class="filter-select">
+          <label>Categoria</label>
+          <select [(ngModel)]="selectedCategory" (change)="filterGames()">
+            <option [ngValue]="null">Todas</option>
+            <option *ngFor="let category of categories" [ngValue]="category">{{ getCategoryName(category) }}</option>
+          </select>
+        </div>
+
+        <div class="filter-select">
+          <label>Ordenar por</label>
+          <select [(ngModel)]="sortOption" (change)="sortGames()">
+            <option value="year-desc">Ano (mais recente)</option>
+            <option value="year-asc">Ano (mais antigo)</option>
+            <option value="title-asc">Título (A-Z)</option>
+            <option value="title-desc">Título (Z-A)</option>
+            <option value="rating-desc">Avaliação (melhor)</option>
+          </select>
+        </div>
+
+        <button class="clear-filters-btn" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon> Limpar Filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visualização em Grade (padrão) -->
+  <div class="games-container" *ngIf="activeView === 'grid'">
+    <div class="games-grid">
+      <div class="game-card" *ngFor="let game of filteredGames">
+        <div class="game-image">
+          <img [src]="game.coverImage" [alt]="game.title" (error)="handleImageError($event)">
+          <div class="game-badges">
+            <span class="game-year">{{ game.releaseYear }}</span>
+            <span class="game-generation"
+                  [style.background-color]="getGenerationColor(game.generation)"
+                  [style.color]="getGenerationTextColor(game.generation)">
+              Gen {{ game.generation }}
+            </span>
+          </div>
+        </div>
+
+        <div class="game-info">
+          <h3 class="game-title">{{ game.title }}</h3>
+
+          <div class="game-platforms">
+            <span *ngFor="let platform of game.platforms" class="platform-badge">
+              <mat-icon>{{ getPlatformIcon(platform) }}</mat-icon>
+              {{ platform }}
+            </span>
+          </div>
+
+          <div class="game-rating">
+            <span class="rating-value">{{ game.reception.score | number:'1.1-1' }}</span>
+            <div class="rating-stars">
+              <mat-icon *ngFor="let i of [1,2,3,4,5]"
+                       [class.full-star]="game.reception.score >= i*2"
+                       [class.half-star]="game.reception.score >= i*2-1 && game.reception.score < i*2">
+                {{ game.reception.score >= i*2 ? 'star' : (game.reception.score >= i*2-1 ? 'star_half' : 'star_border') }}
+              </mat-icon>
+            </div>
+          </div>
+
+          <p class="game-description">{{ game.description }}</p>
+
+          <div class="game-actions">
+            <button class="details-btn" (click)="toggleGameDetails(game.id)">
+              {{ expandedGameId === game.id ? 'Menos Detalhes' : 'Mais Detalhes' }}
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="expandedGameId === game.id" class="game-details" [@cardExpand]>
+          <div class="details-section">
+            <h4>Descrição Completa</h4>
+            <p>{{ game.description }}</p>
+          </div>
+
+          <div class="details-section">
+            <h4>Recepção</h4>
+            <p>{{ game.reception.review }}</p>
+          </div>
+
+          <div *ngIf="game.screenshots && game.screenshots.length > 0" class="details-section">
+            <h4>Screenshots</h4>
+            <div class="screenshots-gallery">
+              <img *ngFor="let screenshot of game.screenshots" [src]="screenshot" [alt]="game.title" (error)="handleImageError($event)" class="screenshot">
+            </div>
+          </div>
+
+          <div *ngIf="game.trailer" class="details-section">
+            <h4>Trailer</h4>
+            <div class="video-container">
+              <iframe width="100%" height="315" [src]="game.trailer | safe" frameborder="0" allowfullscreen></iframe>
+            </div>
+          </div>
+
+          <div class="details-section">
+            <h4>Características</h4>
+            <div class="features-list">
+              <span *ngFor="let feature of game.features" class="feature-item">{{ feature }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visualização por Linha do Tempo -->
+  <div class="timeline-container" *ngIf="activeView === 'timeline'">
+    <div class="decade-section" *ngFor="let decade of decades">
+      <h2 class="decade-header">{{ decade }}s</h2>
+
+      <div *ngFor="let year of years">
+        <!-- Corrigido o erro aqui: usando isYearInDecade em vez de Math.floor -->
+        <div class="year-section" *ngIf="getGamesByYear(year).length > 0 && isYearInDecade(year, decade)">
+          <h3 class="year-header">{{ year }}</h3>
+
+          <div class="year-games">
+            <div class="game-card" *ngFor="let game of getGamesByYear(year)">
+              <div class="game-image">
+                <img [src]="game.coverImage" [alt]="game.title" (error)="handleImageError($event)">
+                <div class="game-badges">
+                  <span class="game-generation"
+                        [style.background-color]="getGenerationColor(game.generation)"
+                        [style.color]="getGenerationTextColor(game.generation)">
+                    Gen {{ game.generation }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="game-info">
+                <h3 class="game-title">{{ game.title }}</h3>
+
+                <div class="game-platforms">
+                  <span *ngFor="let platform of game.platforms" class="platform-badge">
+                    <mat-icon>{{ getPlatformIcon(platform) }}</mat-icon>
+                    {{ platform }}
+                  </span>
+                </div>
+
+                <p class="game-description">{{ game.description }}</p>
+
+                <div class="game-actions">
+                  <button class="details-btn" (click)="toggleGameDetails(game.id)">
+                    {{ expandedGameId === game.id ? 'Menos Detalhes' : 'Mais Detalhes' }}
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="expandedGameId === game.id" class="game-details" [@cardExpand]>
+                <div class="details-section">
+                  <h4>Recepção</h4>
+                  <p>{{ game.reception.review }}</p>
+                </div>
+
+                <div class="details-section">
+                  <h4>Características</h4>
+                  <div class="features-list">
+                    <span *ngFor="let feature of game.features" class="feature-item">{{ feature }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visualização por Gerações -->
+  <div class="generations-container" *ngIf="activeView === 'generations'">
+    <div class="generation-section" *ngFor="let generation of generations">
+      <div class="generation-header"
+           [style.background-color]="getGenerationColor(generation)"
+           [style.color]="getGenerationTextColor(generation)">
+        <span>Geração {{ generation }}</span>
+        <span class="generation-count">{{ getGamesByGeneration(generation).length }} jogos</span>
+      </div>
+
+      <div class="generation-games">
+        <div class="game-card" *ngFor="let game of getGamesByGeneration(generation)">
+          <div class="game-image">
+            <img [src]="game.coverImage" [alt]="game.title" (error)="handleImageError($event)">
+            <span class="game-year">{{ game.releaseYear }}</span>
+          </div>
+
+          <div class="game-info">
+            <h3 class="game-title">{{ game.title }}</h3>
+
+            <div class="game-platforms">
+              <span *ngFor="let platform of game.platforms" class="platform-badge">
+                <mat-icon>{{ getPlatformIcon(platform) }}</mat-icon>
+                {{ platform }}
+              </span>
+            </div>
+
+            <p class="game-description">{{ game.description }}</p>
+
+            <div class="game-actions">
+              <button class="details-btn" (click)="toggleGameDetails(game.id)">
+                {{ expandedGameId === game.id ? 'Menos Detalhes' : 'Mais Detalhes' }}
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="expandedGameId === game.id" class="game-details" [@cardExpand]>
+            <div class="details-section">
+              <h4>Recepção</h4>
+              <p>{{ game.reception.review }}</p>
+            </div>
+
+            <div class="details-section">
+              <h4>Características</h4>
+              <div class="features-list">
+                <span *ngFor="let feature of game.features" class="feature-item">{{ feature }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visualização por Categorias -->
+  <div class="categories-container" *ngIf="activeView === 'categories'">
+    <div class="category-section" *ngFor="let category of categories">
+      <div class="category-header">
+        <h2>{{ getCategoryName(category) }}</h2>
+        <span class="category-count">{{ getGamesByCategory(category).length }} jogos</span>
+      </div>
+
+      <div class="category-games">
+        <div class="game-card" *ngFor="let game of getGamesByCategory(category)">
+          <div class="game-image">
+            <img [src]="game.coverImage" [alt]="game.title" (error)="handleImageError($event)">
+            <div class="game-badges">
+              <span class="game-year">{{ game.releaseYear }}</span>
+              <span class="game-generation"
+                    [style.background-color]="getGenerationColor(game.generation)"
+                    [style.color]="getGenerationTextColor(game.generation)">
+                Gen {{ game.generation }}
+              </span>
+            </div>
+          </div>
+
+          <div class="game-info">
+            <h3 class="game-title">{{ game.title }}</h3>
+
+            <div class="game-platforms">
+              <span *ngFor="let platform of game.platforms" class="platform-badge">
+                <mat-icon>{{ getPlatformIcon(platform) }}</mat-icon>
+                {{ platform }}
+              </span>
+            </div>
+
+            <p class="game-description">{{ game.description }}</p>
+
+            <div class="game-actions">
+              <button class="details-btn" (click)="toggleGameDetails(game.id)">
+                {{ expandedGameId === game.id ? 'Menos Detalhes' : 'Mais Detalhes' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visualização por Plataformas -->
+  <div class="platforms-container" *ngIf="activeView === 'platforms'">
+    <div class="platform-section" *ngFor="let platform of platforms">
+      <div class="platform-header">
+        <h2>
+          <mat-icon>{{ getPlatformIcon(platform) }}</mat-icon>
+          {{ platform }}
+        </h2>
+        <span class="platform-count">{{ getGamesByPlatform(platform).length }} jogos</span>
+      </div>
+
+      <div class="platform-games">
+        <div class="game-card" *ngFor="let game of getGamesByPlatform(platform)">
+          <div class="game-image">
+            <img [src]="game.coverImage" [alt]="game.title" (error)="handleImageError($event)">
+            <div class="game-badges">
+              <span class="game-year">{{ game.releaseYear }}</span>
+              <span class="game-generation"
+                    [style.background-color]="getGenerationColor(game.generation)"
+                    [style.color]="getGenerationTextColor(game.generation)">
+                Gen {{ game.generation }}
+              </span>
+            </div>
+          </div>
+
+          <div class="game-info">
+            <h3 class="game-title">{{ game.title }}</h3>
+
+            <div class="game-rating">
+              <span class="rating-value">{{ game.reception.score | number:'1.1-1' }}</span>
+              <div class="rating-stars">
+                <mat-icon *ngFor="let i of [1,2,3,4,5]"
+                         [class.full-star]="game.reception.score >= i*2"
+                         [class.half-star]="game.reception.score >= i*2-1 && game.reception.score < i*2">
+                  {{ game.reception.score >= i*2 ? 'star' : (game.reception.score >= i*2-1 ? 'star_half' : 'star_border') }}
+                </mat-icon>
+              </div>
+            </div>
+
+            <p class="game-description">{{ game.description }}</p>
+
+            <div class="game-actions">
+              <button class="details-btn" (click)="toggleGameDetails(game.id)">
+                {{ expandedGameId === game.id ? 'Menos Detalhes' : 'Mais Detalhes' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
