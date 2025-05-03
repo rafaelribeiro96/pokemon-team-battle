@@ -6,14 +6,26 @@ import { PokemonService } from '../../services/pokemon.service';
 import { PokemonProgressBarComponent } from '../pokemon-progress-bar/pokemon-progress-bar.component';
 
 interface QuizQuestion {
-  type: 'image' | 'stats' | 'type' | 'ability';
+  type: 'image' | 'type' | 'evolution';
   question: string;
   options: string[];
   correctAnswer: string;
   image?: string;
   pokemonName?: string;
   pokemonId?: number;
-  stats?: any;
+}
+
+interface QuizSettings {
+  questionCount: number;
+  difficulty: 'very-easy' | 'easy' | 'medium' | 'hard' | 'very-hard';
+}
+
+interface DifficultyOption {
+  value: 'very-easy' | 'easy' | 'medium' | 'hard' | 'very-hard';
+  label: string;
+  description: string;
+  stars: number[];
+  maxPokemonId: number;
 }
 
 @Component({
@@ -25,537 +37,8 @@ interface QuizQuestion {
     RouterModule,
     PokemonProgressBarComponent,
   ],
-  template: `
-    <div class="quiz-container">
-      <div class="quiz-header">
-        <h1>Quiz Pokémon</h1>
-        <div class="quiz-stats" *ngIf="!loading && !quizCompleted">
-          <span class="score">Pontuação: {{ score }}/{{ totalQuestions }}</span>
-          <span class="progress"
-            >Questão {{ currentQuestionIndex + 1 }} de
-            {{ questions.length }}</span
-          >
-        </div>
-      </div>
-
-      <div
-        class="quiz-content"
-        *ngIf="!loading && !quizCompleted && questions.length > 0"
-      >
-        <div class="question-container">
-          <h2 class="question">{{ currentQuestion.question }}</h2>
-
-          <!-- Questão com imagem -->
-          <div class="image-container" *ngIf="currentQuestion.type === 'image'">
-            <img
-              [src]="currentQuestion.image"
-              [alt]="currentQuestion.pokemonName"
-              class="pokemon-image"
-            />
-          </div>
-
-          <!-- Questão com estatísticas -->
-          <div class="stats-container" *ngIf="currentQuestion.type === 'stats'">
-            <div class="stat-bars">
-              <div
-                class="stat-item"
-                *ngFor="let stat of getStatsArray(currentQuestion.stats)"
-              >
-                <div class="stat-label">{{ translateStat(stat.name) }}</div>
-                <div class="stat-bar-container">
-                  <div
-                    class="stat-bar"
-                    [style.width.%]="getStatPercentage(stat.value)"
-                    [ngClass]="stat.name"
-                  ></div>
-                  <span class="stat-value">{{ stat.value }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Opções de resposta -->
-          <div class="options-container">
-            <button
-              *ngFor="let option of currentQuestion.options"
-              class="option-button"
-              [class.selected]="selectedAnswer === option"
-              [class.correct]="
-                showAnswer && option === currentQuestion.correctAnswer
-              "
-              [class.incorrect]="
-                showAnswer &&
-                selectedAnswer === option &&
-                option !== currentQuestion.correctAnswer
-              "
-              [disabled]="showAnswer"
-              (click)="selectAnswer(option)"
-            >
-              {{ option }}
-            </button>
-          </div>
-        </div>
-
-        <div class="feedback-container" *ngIf="showAnswer">
-          <div
-            class="feedback"
-            [class.correct]="isCorrect"
-            [class.incorrect]="!isCorrect"
-          >
-            <h3>{{ isCorrect ? 'Correto!' : 'Incorreto!' }}</h3>
-            <p>{{ feedbackMessage }}</p>
-          </div>
-          <button class="next-button" (click)="nextQuestion()">
-            {{
-              currentQuestionIndex < questions.length - 1
-                ? 'Próxima Questão'
-                : 'Ver Resultados'
-            }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Tela de carregamento -->
-      <div class="loading-container" *ngIf="loading">
-        <img
-          src="/assets/images/pikachu-loading.gif"
-          alt="Carregando..."
-          class="loading-gif"
-        />
-        <p>Preparando o quiz...</p>
-      </div>
-
-      <!-- Mensagem de erro -->
-      <div class="error-container" *ngIf="errorMessage">
-        <div class="error-message">
-          <h3>Ops! Ocorreu um erro</h3>
-          <p>{{ errorMessage }}</p>
-          <button class="retry-button" (click)="retryQuiz()">
-            Tentar Novamente
-          </button>
-        </div>
-      </div>
-
-      <!-- Resultados finais -->
-      <div class="results-container" *ngIf="quizCompleted">
-        <h2>Quiz Completo!</h2>
-        <div class="final-score">
-          <div class="score-circle">
-            <span class="score-number">{{ score }}</span>
-            <span class="score-total">/ {{ totalQuestions }}</span>
-          </div>
-          <p class="score-text">{{ getScoreMessage() }}</p>
-        </div>
-
-        <div class="action-buttons">
-          <button class="restart-button" (click)="restartQuiz()">
-            Jogar Novamente
-          </button>
-          <button class="home-button" routerLink="/pokedex">
-            Voltar para Pokédex
-          </button>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [
-    `
-      .quiz-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-
-      .quiz-header {
-        text-align: center;
-        margin-bottom: 30px;
-
-        h1 {
-          color: #e3350d;
-          font-size: 2.5rem;
-          margin-bottom: 10px;
-        }
-      }
-
-      .quiz-stats {
-        display: flex;
-        justify-content: space-between;
-        background-color: var(--card-background);
-        padding: 10px 20px;
-        border-radius: 30px;
-        box-shadow: 0 4px 12px var(--shadow-color);
-
-        .score {
-          font-weight: 600;
-          color: #e3350d;
-        }
-
-        .progress {
-          color: #666;
-        }
-      }
-
-      .quiz-content {
-        background-color: var(--card-background);
-        border-radius: 16px;
-        box-shadow: 0 4px 20px var(--shadow-color);
-        overflow: hidden;
-        margin-bottom: 30px;
-      }
-
-      .question-container {
-        padding: 30px;
-      }
-
-      .question {
-        font-size: 1.5rem;
-        margin-top: 0;
-        margin-bottom: 20px;
-        text-align: center;
-      }
-
-      .image-container {
-        display: flex;
-        justify-content: center;
-        margin: 20px 0;
-
-        .pokemon-image {
-          width: 200px;
-          height: 200px;
-          object-fit: contain;
-          filter: brightness(0);
-          transition: filter 0.5s ease;
-
-          &.revealed {
-            filter: brightness(1);
-          }
-        }
-      }
-
-      .stats-container {
-        margin: 20px 0;
-      }
-
-      .stat-bars {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .stat-item {
-        display: flex;
-        align-items: center;
-      }
-
-      .stat-label {
-        width: 100px;
-        font-size: 14px;
-      }
-
-      .stat-bar-container {
-        flex: 1;
-        height: 20px;
-        background-color: #f0f0f0;
-        border-radius: 10px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .stat-bar {
-        height: 100%;
-        border-radius: 10px;
-        transition: width 0.5s ease;
-
-        &.hp {
-          background-color: #ff5959;
-        }
-        &.attack {
-          background-color: #f5ac78;
-        }
-        &.defense {
-          background-color: #fae078;
-        }
-        &.specialAttack {
-          background-color: #9db7f5;
-        }
-        &.specialDefense {
-          background-color: #a7db8d;
-        }
-        &.speed {
-          background-color: #fa92b2;
-        }
-      }
-
-      .stat-value {
-        position: absolute;
-        top: 50%;
-        right: 10px;
-        transform: translateY(-50%);
-        font-size: 12px;
-        font-weight: 500;
-        color: #333;
-      }
-
-      .options-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 15px;
-        margin-top: 30px;
-      }
-
-      .option-button {
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #f5f5f5;
-        border: 2px solid transparent;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-align: center;
-
-        &:hover:not(:disabled) {
-          background-color: #e0e0e0;
-          transform: translateY(-2px);
-        }
-
-        &.selected {
-          border-color: #3d7dca;
-          background-color: rgba(61, 125, 202, 0.1);
-        }
-
-        &.correct {
-          border-color: #78c850;
-          background-color: rgba(120, 200, 80, 0.2);
-        }
-
-        &.incorrect {
-          border-color: #e3350d;
-          background-color: rgba(227, 53, 13, 0.2);
-        }
-
-        &:disabled {
-          cursor: default;
-        }
-      }
-
-      .feedback-container {
-        padding: 20px 30px 30px;
-        background-color: #f9f9f9;
-        border-top: 1px solid #eee;
-      }
-
-      .feedback {
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-
-        h3 {
-          margin-top: 0;
-          margin-bottom: 10px;
-          font-size: 1.2rem;
-        }
-
-        p {
-          margin: 0;
-        }
-
-        &.correct {
-          background-color: rgba(120, 200, 80, 0.2);
-          border: 1px solid #78c850;
-
-          h3 {
-            color: #2e8b57;
-          }
-        }
-
-        &.incorrect {
-          background-color: rgba(227, 53, 13, 0.2);
-          border: 1px solid #e3350d;
-
-          h3 {
-            color: #e3350d;
-          }
-        }
-      }
-
-      .next-button {
-        width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        background-color: #3d7dca;
-        color: white;
-        border: none;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background-color: #2a5a9c;
-          transform: translateY(-2px);
-        }
-      }
-
-      .loading-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-
-        .loading-gif {
-          width: 100px;
-          height: 100px;
-        }
-
-        p {
-          margin-top: 20px;
-          font-size: 18px;
-          color: #666;
-        }
-      }
-
-      .error-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-      }
-
-      .error-message {
-        background-color: var(--card-background);
-        border-radius: 16px;
-        box-shadow: 0 4px 20px var(--shadow-color);
-        padding: 30px;
-        text-align: center;
-        max-width: 500px;
-
-        h3 {
-          color: #e3350d;
-          margin-top: 0;
-          margin-bottom: 15px;
-        }
-
-        p {
-          margin-bottom: 20px;
-        }
-      }
-
-      .retry-button {
-        padding: 12px 24px;
-        border-radius: 8px;
-        background-color: #3d7dca;
-        color: white;
-        border: none;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background-color: #2a5a9c;
-          transform: translateY(-2px);
-        }
-      }
-
-      .results-container {
-        background-color: var(--card-background);
-        border-radius: 16px;
-        box-shadow: 0 4px 20px var(--shadow-color);
-        padding: 30px;
-        text-align: center;
-
-        h2 {
-          color: #e3350d;
-          font-size: 2rem;
-          margin-top: 0;
-          margin-bottom: 30px;
-        }
-      }
-
-      .final-score {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 40px;
-      }
-
-      .score-circle {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background-color: #f5f5f5;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px var(--shadow-color);
-
-        .score-number {
-          font-size: 3rem;
-          font-weight: 700;
-          color: #e3350d;
-        }
-
-        .score-total {
-          font-size: 1.5rem;
-          color: #666;
-        }
-      }
-
-      .score-text {
-        font-size: 1.2rem;
-        color: #333;
-        max-width: 400px;
-        margin: 0 auto;
-      }
-
-      .action-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-
-        @media (max-width: 576px) {
-          flex-direction: column;
-        }
-
-        button {
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border: none;
-
-          &:hover {
-            transform: translateY(-2px);
-          }
-        }
-
-        .restart-button {
-          background-color: #e3350d;
-          color: white;
-
-          &:hover {
-            background-color: darken(#e3350d, 10%);
-          }
-        }
-
-        .home-button {
-          background-color: #f0f0f0;
-          color: #333;
-
-          &:hover {
-            background-color: #e0e0e0;
-          }
-        }
-      }
-    `,
-  ],
+  templateUrl: './pokemon-quiz.component.html',
+  styleUrls: ['./pokemon-quiz.component.scss'],
 })
 export class PokemonQuizComponent implements OnInit {
   questions: QuizQuestion[] = [];
@@ -565,185 +48,374 @@ export class PokemonQuizComponent implements OnInit {
   isCorrect: boolean = false;
   feedbackMessage: string = '';
   score: number = 0;
-  totalQuestions: number = 10;
-  loading: boolean = true;
+  loading: boolean = false;
   quizCompleted: boolean = false;
   errorMessage: string = '';
+  showSettings: boolean = true;
+
+  questionCountOptions: number[] = [10, 20, 30];
+
+  difficultyOptions: DifficultyOption[] = [
+    {
+      value: 'very-easy',
+      label: 'Muito Fácil',
+      description: '1ª Geração (1-151)',
+      stars: [1],
+      maxPokemonId: 151,
+    },
+    {
+      value: 'easy',
+      label: 'Fácil',
+      description: '1ª e 2ª Geração (1-251)',
+      stars: [1, 2],
+      maxPokemonId: 251,
+    },
+    {
+      value: 'medium',
+      label: 'Médio',
+      description: 'Até 4ª Geração (1-493)',
+      stars: [1, 2, 3],
+      maxPokemonId: 493,
+    },
+    {
+      value: 'hard',
+      label: 'Difícil',
+      description: 'Até 6ª Geração (1-721)',
+      stars: [1, 2, 3, 4],
+      maxPokemonId: 721,
+    },
+    {
+      value: 'very-hard',
+      label: 'Muito Difícil',
+      description: 'Todas as Gerações (1-898+)',
+      stars: [1, 2, 3, 4, 5],
+      maxPokemonId: 898,
+    },
+  ];
+
+  settings: QuizSettings = {
+    questionCount: 10,
+    difficulty: 'easy',
+  };
+
+  // Dados de evolução para Pokémon comuns
+  evolutionChains: { [key: string]: string[] } = {
+    bulbasaur: ['bulbasaur', 'ivysaur', 'venusaur'],
+    charmander: ['charmander', 'charmeleon', 'charizard'],
+    squirtle: ['squirtle', 'wartortle', 'blastoise'],
+    caterpie: ['caterpie', 'metapod', 'butterfree'],
+    weedle: ['weedle', 'kakuna', 'beedrill'],
+    pidgey: ['pidgey', 'pidgeotto', 'pidgeot'],
+    rattata: ['rattata', 'raticate'],
+    pikachu: ['pichu', 'pikachu', 'raichu'],
+    sandshrew: ['sandshrew', 'sandslash'],
+    nidoran: ['nidoran', 'nidorina', 'nidoqueen'],
+    vulpix: ['vulpix', 'ninetales'],
+    jigglypuff: ['igglybuff', 'jigglypuff', 'wigglytuff'],
+    zubat: ['zubat', 'golbat', 'crobat'],
+    oddish: ['oddish', 'gloom', 'vileplume'],
+    meowth: ['meowth', 'persian'],
+    psyduck: ['psyduck', 'golduck'],
+    growlithe: ['growlithe', 'arcanine'],
+    poliwag: ['poliwag', 'poliwhirl', 'poliwrath'],
+    abra: ['abra', 'kadabra', 'alakazam'],
+    machop: ['machop', 'machoke', 'machamp'],
+    geodude: ['geodude', 'graveler', 'golem'],
+    magnemite: ['magnemite', 'magneton', 'magnezone'],
+    gastly: ['gastly', 'haunter', 'gengar'],
+    onix: ['onix', 'steelix'],
+    drowzee: ['drowzee', 'hypno'],
+    krabby: ['krabby', 'kingler'],
+    voltorb: ['voltorb', 'electrode'],
+    exeggcute: ['exeggcute', 'exeggutor'],
+    cubone: ['cubone', 'marowak'],
+    koffing: ['koffing', 'weezing'],
+    rhyhorn: ['rhyhorn', 'rhydon', 'rhyperior'],
+    chansey: ['chansey', 'blissey'],
+    horsea: ['horsea', 'seadra', 'kingdra'],
+    goldeen: ['goldeen', 'seaking'],
+    staryu: ['staryu', 'starmie'],
+    scyther: ['scyther', 'scizor'],
+    magikarp: ['magikarp', 'gyarados'],
+    eevee: [
+      'eevee',
+      'vaporeon',
+      'jolteon',
+      'flareon',
+      'espeon',
+      'umbreon',
+      'leafeon',
+      'glaceon',
+      'sylveon',
+    ],
+    dratini: ['dratini', 'dragonair', 'dragonite'],
+    chikorita: ['chikorita', 'bayleef', 'meganium'],
+    cyndaquil: ['cyndaquil', 'quilava', 'typhlosion'],
+    totodile: ['totodile', 'croconaw', 'feraligatr'],
+    sentret: ['sentret', 'furret'],
+    hoothoot: ['hoothoot', 'noctowl'],
+    ledyba: ['ledyba', 'ledian'],
+    spinarak: ['spinarak', 'ariados'],
+    chinchou: ['chinchou', 'lanturn'],
+    togepi: ['togepi', 'togetic', 'togekiss'],
+    mareep: ['mareep', 'flaaffy', 'ampharos'],
+    marill: ['azurill', 'marill', 'azumarill'],
+    hoppip: ['hoppip', 'skiploom', 'jumpluff'],
+    sunkern: ['sunkern', 'sunflora'],
+    wooper: ['wooper', 'quagsire'],
+    pineco: ['pineco', 'forretress'],
+    snubbull: ['snubbull', 'granbull'],
+    teddiursa: ['teddiursa', 'ursaring'],
+    slugma: ['slugma', 'magcargo'],
+    swinub: ['swinub', 'piloswine', 'mamoswine'],
+    remoraid: ['remoraid', 'octillery'],
+    houndour: ['houndour', 'houndoom'],
+    larvitar: ['larvitar', 'pupitar', 'tyranitar'],
+    // Terceira geração
+    treecko: ['treecko', 'grovyle', 'sceptile'],
+    torchic: ['torchic', 'combusken', 'blaziken'],
+    mudkip: ['mudkip', 'marshtomp', 'swampert'],
+    poochyena: ['poochyena', 'mightyena'],
+    zigzagoon: ['zigzagoon', 'linoone'],
+    wurmple: ['wurmple', 'silcoon', 'beautifly'],
+    lotad: ['lotad', 'lombre', 'ludicolo'],
+    seedot: ['seedot', 'nuzleaf', 'shiftry'],
+    taillow: ['taillow', 'swellow'],
+    wingull: ['wingull', 'pelipper'],
+    ralts: ['ralts', 'kirlia', 'gardevoir'],
+    shroomish: ['shroomish', 'breloom'],
+    slakoth: ['slakoth', 'vigoroth', 'slaking'],
+    nincada: ['nincada', 'ninjask', 'shedinja'],
+    whismur: ['whismur', 'loudred', 'exploud'],
+    makuhita: ['makuhita', 'hariyama'],
+    aron: ['aron', 'lairon', 'aggron'],
+    meditite: ['meditite', 'medicham'],
+    electrike: ['electrike', 'manectric'],
+    gulpin: ['gulpin', 'swalot'],
+    carvanha: ['carvanha', 'sharpedo'],
+    wailmer: ['wailmer', 'wailord'],
+    numel: ['numel', 'camerupt'],
+    spoink: ['spoink', 'grumpig'],
+    trapinch: ['trapinch', 'vibrava', 'flygon'],
+    cacnea: ['cacnea', 'cacturne'],
+    swablu: ['swablu', 'altaria'],
+    barboach: ['barboach', 'whiscash'],
+    corphish: ['corphish', 'crawdaunt'],
+    baltoy: ['baltoy', 'claydol'],
+    lileep: ['lileep', 'cradily'],
+    anorith: ['anorith', 'armaldo'],
+    feebas: ['feebas', 'milotic'],
+    shuppet: ['shuppet', 'banette'],
+    duskull: ['duskull', 'dusclops', 'dusknoir'],
+    snorunt: ['snorunt', 'glalie', 'froslass'],
+    spheal: ['spheal', 'sealeo', 'walrein'],
+    bagon: ['bagon', 'shelgon', 'salamence'],
+    beldum: ['beldum', 'metang', 'metagross'],
+  };
 
   constructor(private pokemonService: PokemonService) {}
 
   ngOnInit(): void {
-    this.generateQuiz();
+    // Não iniciar o quiz automaticamente, mostrar configurações primeiro
   }
 
   get currentQuestion(): QuizQuestion {
     return this.questions[this.currentQuestionIndex];
   }
 
+  startQuiz(): void {
+    this.showSettings = false;
+    this.generateQuiz();
+  }
+
   async generateQuiz(): Promise<void> {
     this.loading = true;
     this.errorMessage = '';
+    this.questions = []; // Limpar perguntas anteriores
 
     try {
       console.log('Iniciando geração do quiz...');
+      console.log(
+        `Configurações: ${this.settings.questionCount} perguntas, dificuldade ${this.settings.difficulty}`
+      );
 
-      // Obter Pokémon para o quiz - usando fetchPokemons
-      console.log('Buscando Pokémon...');
-      const pokemons = await this.pokemonService.fetchPokemons(50);
+      // Determinar o número máximo de Pokémon com base na dificuldade
+      const difficultyOption = this.difficultyOptions.find(
+        (d) => d.value === this.settings.difficulty
+      );
+      const maxPokemonId = difficultyOption?.maxPokemonId || 151;
+
+      console.log(`Buscando Pokémon até o ID ${maxPokemonId}...`);
+      const pokemons = await this.pokemonService.fetchPokemons(maxPokemonId);
 
       console.log(`Recebidos ${pokemons.length} Pokémon`);
 
-      if (!pokemons || pokemons.length < 10) {
+      if (!pokemons || pokemons.length < 20) {
         throw new Error(
           'Não foi possível obter Pokémon suficientes para o quiz'
         );
       }
 
-      // Criar perguntas manualmente para garantir que funcionem
-      console.log('Criando perguntas do quiz...');
+      // Embaralhar os Pokémon para ter uma seleção aleatória
+      const shuffledPokemons = this.shuffleArray([...pokemons]);
 
-      // Perguntas de "Quem é este Pokémon?"
-      const imageQuestions = pokemons.slice(0, 3).map((pokemon) => {
-        const options = [pokemon.name];
+      // Distribuição das perguntas: 60% quem é este Pokémon, 20% tipo, 20% evolução
+      const imageQuestionCount = Math.floor(this.settings.questionCount * 0.6);
+      const typeQuestionCount = Math.floor(this.settings.questionCount * 0.2);
+      const evolutionQuestionCount =
+        this.settings.questionCount - imageQuestionCount - typeQuestionCount;
 
-        // Adicionar 3 nomes aleatórios de outros Pokémon
-        while (options.length < 4) {
-          const randomPokemon =
-            pokemons[Math.floor(Math.random() * pokemons.length)].name;
-          if (!options.includes(randomPokemon)) {
-            options.push(randomPokemon);
-          }
-        }
+      console.log(
+        `Distribuição de perguntas: ${imageQuestionCount} de imagem, ${typeQuestionCount} de tipo, ${evolutionQuestionCount} de evolução`
+      );
 
-        // Embaralhar opções
-        const shuffledOptions = this.shuffleArray([...options]);
+      // Criar perguntas de "Quem é este Pokémon?"
+      const imageQuestions = shuffledPokemons
+        .slice(0, imageQuestionCount)
+        .map((pokemon) => {
+          const options = this.generateRandomPokemonNames(
+            pokemon.name,
+            shuffledPokemons
+          );
 
-        return {
-          type: 'image' as const,
-          question: 'Quem é este Pokémon?',
-          options: shuffledOptions,
-          correctAnswer: pokemon.name,
-          image: pokemon.image,
-          pokemonName: pokemon.name,
-          pokemonId: pokemon.id,
-        };
-      });
+          return {
+            type: 'image' as const,
+            question: 'Quem é este Pokémon?',
+            options,
+            correctAnswer: this.capitalizeFirstLetter(pokemon.name),
+            image: pokemon.image,
+            pokemonName: pokemon.name,
+            pokemonId: pokemon.id,
+          };
+        });
 
       // Perguntas de tipo
-      const typeQuestions = pokemons.slice(3, 6).map((pokemon) => {
-        const correctType = this.translateType(pokemon.type[0]);
+      const typeQuestions = shuffledPokemons
+        .slice(imageQuestionCount, imageQuestionCount + typeQuestionCount)
+        .map((pokemon) => {
+          const correctType = this.translateType(pokemon.type[0]);
 
-        // Lista de tipos possíveis
-        const allTypes = [
-          'Normal',
-          'Fogo',
-          'Água',
-          'Elétrico',
-          'Planta',
-          'Gelo',
-          'Lutador',
-          'Venenoso',
-          'Terra',
-          'Voador',
-          'Psíquico',
-          'Inseto',
-          'Pedra',
-          'Fantasma',
-          'Dragão',
-          'Sombrio',
-          'Metálico',
-          'Fada',
-        ];
+          // Lista de tipos possíveis
+          const allTypes = [
+            'Normal',
+            'Fogo',
+            'Água',
+            'Elétrico',
+            'Planta',
+            'Gelo',
+            'Lutador',
+            'Venenoso',
+            'Terra',
+            'Voador',
+            'Psíquico',
+            'Inseto',
+            'Pedra',
+            'Fantasma',
+            'Dragão',
+            'Sombrio',
+            'Metálico',
+            'Fada',
+          ];
 
-        // Remover o tipo correto da lista
-        const otherTypes = allTypes.filter((type) => type !== correctType);
+          // Remover o tipo correto da lista
+          const otherTypes = allTypes.filter((type) => type !== correctType);
 
-        // Selecionar 3 tipos aleatórios
-        const randomTypes = this.shuffleArray(otherTypes).slice(0, 3);
+          // Selecionar 3 tipos aleatórios
+          const randomTypes = this.shuffleArray(otherTypes).slice(0, 3);
 
-        // Adicionar o tipo correto e embaralhar
-        const options = this.shuffleArray([...randomTypes, correctType]);
+          // Adicionar o tipo correto e embaralhar
+          const options = this.shuffleArray([...randomTypes, correctType]);
 
-        return {
-          type: 'type' as const,
-          question: `Qual é o tipo principal de ${this.capitalizeFirstLetter(
-            pokemon.name
-          )}?`,
-          options,
-          correctAnswer: correctType,
-          image: pokemon.image,
-          pokemonName: pokemon.name,
-          pokemonId: pokemon.id,
-        };
-      });
+          return {
+            type: 'type' as const,
+            question: `Qual é o tipo principal de ${this.capitalizeFirstLetter(
+              pokemon.name
+            )}?`,
+            options,
+            correctAnswer: correctType,
+            image: pokemon.image,
+            pokemonName: pokemon.name,
+            pokemonId: pokemon.id,
+          };
+        });
 
-      // Perguntas de estatísticas
-      const statsQuestions = pokemons.slice(6, 9).map((pokemon) => {
-        const options = [pokemon.name];
+      // Perguntas de evolução
+      const evolutionQuestions = [];
 
-        // Adicionar 3 nomes aleatórios de outros Pokémon
-        while (options.length < 4) {
-          const randomPokemon =
-            pokemons[Math.floor(Math.random() * pokemons.length)].name;
-          if (!options.includes(randomPokemon)) {
-            options.push(randomPokemon);
+      // Selecionar Pokémon que temos dados de evolução
+      for (
+        let i = imageQuestionCount + typeQuestionCount;
+        i < shuffledPokemons.length &&
+        evolutionQuestions.length < evolutionQuestionCount;
+        i++
+      ) {
+        const pokemon = shuffledPokemons[i];
+        if (!pokemon) continue;
+
+        const pokemonName = pokemon.name.toLowerCase();
+
+        // Verificar se temos dados de evolução para este Pokémon
+        let evolutionChain = null;
+
+        // Procurar em todas as cadeias de evolução
+        for (const [basePokemon, chain] of Object.entries(
+          this.evolutionChains
+        )) {
+          if (chain.includes(pokemonName)) {
+            evolutionChain = chain;
+            break;
           }
         }
 
-        // Embaralhar opções
-        const shuffledOptions = this.shuffleArray([...options]);
+        if (evolutionChain) {
+          // Encontrar a posição do Pokémon na cadeia
+          const pokemonIndex = evolutionChain.indexOf(pokemonName);
 
-        return {
-          type: 'stats' as const,
-          question: 'A qual Pokémon pertencem estas estatísticas?',
-          options: shuffledOptions,
-          correctAnswer: pokemon.name,
-          stats: pokemon.stats,
-          pokemonName: pokemon.name,
-          pokemonId: pokemon.id,
-        };
-      });
+          // Verificar se este Pokémon evolui (não é o último da cadeia)
+          if (pokemonIndex < evolutionChain.length - 1) {
+            const correctEvolution = this.capitalizeFirstLetter(
+              evolutionChain[pokemonIndex + 1]
+            );
 
-      // Perguntas de habilidade (simplificadas)
-      const abilityQuestions = pokemons.slice(9, 12).map((pokemon) => {
-        const options = [pokemon.name];
+            // Gerar opções aleatórias
+            const otherPokemons = shuffledPokemons
+              .filter(
+                (p) => p.name.toLowerCase() !== correctEvolution.toLowerCase()
+              )
+              .map((p) => this.capitalizeFirstLetter(p.name));
 
-        // Adicionar 3 nomes aleatórios de outros Pokémon
-        while (options.length < 4) {
-          const randomPokemon =
-            pokemons[Math.floor(Math.random() * pokemons.length)].name;
-          if (!options.includes(randomPokemon)) {
-            options.push(randomPokemon);
+            const randomOptions = this.shuffleArray(otherPokemons).slice(0, 3);
+            const options = this.shuffleArray([
+              ...randomOptions,
+              correctEvolution,
+            ]);
+
+            evolutionQuestions.push({
+              type: 'evolution' as const,
+              question: `Em qual Pokémon ${this.capitalizeFirstLetter(
+                pokemon.name
+              )} evolui?`,
+              options,
+              correctAnswer: correctEvolution,
+              image: pokemon.image,
+              pokemonName: pokemon.name,
+              pokemonId: pokemon.id,
+            });
           }
         }
-
-        // Embaralhar opções
-        const shuffledOptions = this.shuffleArray([...options]);
-
-        return {
-          type: 'ability' as const,
-          question: `Qual Pokémon é conhecido por ter habilidades especiais relacionadas a "${this.capitalizeFirstLetter(
-            pokemon.name
-          )}"?`,
-          options: shuffledOptions,
-          correctAnswer: pokemon.name,
-          pokemonName: pokemon.name,
-          pokemonId: pokemon.id,
-        };
-      });
+      }
 
       // Combinar e embaralhar as perguntas
       console.log('Combinando e embaralhando perguntas...');
       const allQuestions = [
         ...imageQuestions,
         ...typeQuestions,
-        ...statsQuestions,
-        ...abilityQuestions,
+        ...evolutionQuestions,
       ];
 
       this.questions = this.shuffleArray(allQuestions).slice(
         0,
-        this.totalQuestions
+        this.settings.questionCount
       );
 
       console.log(`Quiz gerado com ${this.questions.length} perguntas`);
@@ -753,6 +425,10 @@ export class PokemonQuizComponent implements OnInit {
       }
 
       this.loading = false;
+      this.currentQuestionIndex = 0;
+      this.score = 0;
+      this.selectedAnswer = '';
+      this.showAnswer = false;
     } catch (error) {
       console.error('Erro ao gerar quiz:', error);
       this.loading = false;
@@ -761,10 +437,33 @@ export class PokemonQuizComponent implements OnInit {
     }
   }
 
+  generateRandomPokemonNames(
+    correctName: string,
+    allPokemons: any[]
+  ): string[] {
+    // Capitalizar o nome correto
+    const capitalizedCorrectName = this.capitalizeFirstLetter(correctName);
+    const options = [capitalizedCorrectName];
+
+    // Adicionar nomes aleatórios de outros Pokémon
+    while (options.length < 4) {
+      const randomPokemon = this.capitalizeFirstLetter(
+        allPokemons[Math.floor(Math.random() * allPokemons.length)].name
+      );
+      if (!options.includes(randomPokemon)) {
+        options.push(randomPokemon);
+      }
+    }
+
+    return this.shuffleArray(options);
+  }
+
   selectAnswer(answer: string): void {
     this.selectedAnswer = answer;
     this.showAnswer = true;
-    this.isCorrect = answer === this.currentQuestion.correctAnswer;
+    this.isCorrect =
+      this.normalizeAnswer(answer) ===
+      this.normalizeAnswer(this.currentQuestion.correctAnswer);
 
     if (this.isCorrect) {
       this.score++;
@@ -784,6 +483,12 @@ export class PokemonQuizComponent implements OnInit {
     }
   }
 
+  // Normaliza a resposta para comparação (corrige o bug do Lanturn)
+  normalizeAnswer(answer: string): string {
+    if (!answer) return '';
+    return answer.trim().toLowerCase();
+  }
+
   nextQuestion(): void {
     if (this.currentQuestionIndex < this.questions.length - 1) {
       this.currentQuestionIndex++;
@@ -798,34 +503,25 @@ export class PokemonQuizComponent implements OnInit {
     this.showAnswer = false;
     this.isCorrect = false;
     this.feedbackMessage = '';
-
-    // Resetar imagem para silhueta se for uma questão de imagem
-    setTimeout(() => {
-      if (this.currentQuestion.type === 'image') {
-        const imageElement = document.querySelector(
-          '.pokemon-image'
-        ) as HTMLElement;
-        if (imageElement) {
-          imageElement.classList.remove('revealed');
-        }
-      }
-    }, 0);
   }
 
   restartQuiz(): void {
     this.score = 0;
     this.currentQuestionIndex = 0;
     this.quizCompleted = false;
-    this.generateQuiz();
+    this.selectedAnswer = '';
+    this.showAnswer = false;
+    this.questions = [];
+    this.showSettings = true;
   }
 
   retryQuiz(): void {
     this.errorMessage = '';
-    this.generateQuiz();
+    this.showSettings = true;
   }
 
   getScoreMessage(): string {
-    const percentage = (this.score / this.totalQuestions) * 100;
+    const percentage = this.getScorePercentage();
 
     if (percentage >= 90) {
       return 'Incrível! Você é um verdadeiro Mestre Pokémon!';
@@ -840,30 +536,55 @@ export class PokemonQuizComponent implements OnInit {
     }
   }
 
-  getStatsArray(stats: any): { name: string; value: number }[] {
-    if (!stats) return [];
-
-    return [
-      { name: 'hp', value: stats.hp || 0 },
-      { name: 'attack', value: stats.attack || 0 },
-      { name: 'defense', value: stats.defense || 0 },
-      { name: 'specialAttack', value: stats.specialAttack || 0 },
-      { name: 'specialDefense', value: stats.specialDefense || 0 },
-      { name: 'speed', value: stats.speed || 0 },
-    ];
+  getScorePercentage(): number {
+    return Math.round((this.score / this.settings.questionCount) * 100);
   }
 
-  translateStat(stat: string): string {
-    const translations: { [key: string]: string } = {
-      hp: 'HP',
-      attack: 'Ataque',
-      defense: 'Defesa',
-      specialAttack: 'Atq. Esp.',
-      specialDefense: 'Def. Esp.',
-      speed: 'Velocidade',
-    };
+  getScoreCircleCircumference(): number {
+    return 2 * Math.PI * 90;
+  }
 
-    return translations[stat] || stat;
+  getScoreCircleOffset(): number {
+    const circumference = this.getScoreCircleCircumference();
+    const percentage = this.getScorePercentage();
+    return circumference - (circumference * percentage) / 100;
+  }
+
+  getBadgeClass(): string {
+    const percentage = this.getScorePercentage();
+
+    if (percentage >= 90) return 'master';
+    if (percentage >= 80) return 'platinum';
+    if (percentage >= 70) return 'gold';
+    if (percentage >= 50) return 'silver';
+    return 'bronze';
+  }
+
+  getBadgeIcon(): string {
+    const percentage = this.getScorePercentage();
+
+    if (percentage >= 90) return '🏆';
+    if (percentage >= 80) return '🌟';
+    if (percentage >= 70) return '🥇';
+    if (percentage >= 50) return '🥈';
+    return '🥉';
+  }
+
+  getBadgeTitle(): string {
+    const percentage = this.getScorePercentage();
+
+    if (percentage >= 90) return 'Mestre Pokémon';
+    if (percentage >= 80) return 'Treinador Elite';
+    if (percentage >= 70) return 'Treinador Avançado';
+    if (percentage >= 50) return 'Treinador Intermediário';
+    return 'Treinador Iniciante';
+  }
+
+  getDifficultyLabel(): string {
+    const difficultyOption = this.difficultyOptions.find(
+      (d) => d.value === this.settings.difficulty
+    );
+    return difficultyOption?.label || '';
   }
 
   translateType(type: string): string {
@@ -889,11 +610,6 @@ export class PokemonQuizComponent implements OnInit {
     };
 
     return translations[type.toLowerCase()] || this.capitalizeFirstLetter(type);
-  }
-
-  getStatPercentage(value: number): number {
-    // Base stat max is typically 255
-    return Math.min(100, (value / 255) * 100);
   }
 
   capitalizeFirstLetter(text: string): string {

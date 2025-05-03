@@ -1,1 +1,164 @@
-<p>pokemon-quiz works!</p>
+<div class="quiz-container">
+  <div class="quiz-header">
+    <h1>Quiz Pokémon</h1>
+    <div class="quiz-stats" *ngIf="!loading && !quizCompleted && !showSettings">
+      <span class="score">Pontuação: {{ score }}/{{ settings.questionCount }}</span>
+      <span class="progress">Questão {{ currentQuestionIndex + 1 }} de {{ questions.length }}</span>
+    </div>
+  </div>
+
+  <!-- Configurações do Quiz -->
+  <div class="settings-container" *ngIf="showSettings && !loading">
+    <h2>Configurações do Quiz</h2>
+
+    <div class="settings-group">
+      <h3>Número de Perguntas</h3>
+      <div class="options-grid">
+        <button
+          *ngFor="let count of questionCountOptions"
+          class="setting-option"
+          [class.selected]="settings.questionCount === count"
+          (click)="settings.questionCount = count"
+        >
+          {{ count }}
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <h3>Nível de Dificuldade</h3>
+      <div class="difficulty-options">
+        <button
+          *ngFor="let diff of difficultyOptions"
+          class="setting-option difficulty-option"
+          [class.selected]="settings.difficulty === diff.value"
+          (click)="settings.difficulty = diff.value"
+        >
+          <div class="difficulty-icon" [ngClass]="diff.value">
+            <i class="difficulty-stars">
+              <span *ngFor="let star of diff.stars" class="star">★</span>
+            </i>
+          </div>
+          <div class="difficulty-info">
+            <span class="difficulty-name">{{ diff.label }}</span>
+            <small>{{ diff.description }}</small>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <button class="start-button" (click)="startQuiz()">
+      <span class="pokeball-icon">
+        <span class="pokeball-top"></span>
+        <span class="pokeball-middle"></span>
+        <span class="pokeball-bottom"></span>
+      </span>
+      Iniciar Quiz
+    </button>
+  </div>
+
+  <div class="quiz-content" *ngIf="!loading && !quizCompleted && !showSettings && questions.length > 0">
+    <div class="question-container">
+      <h2 class="question">{{ currentQuestion.question }}</h2>
+
+      <!-- Questão com imagem -->
+      <div class="image-container">
+        <img [src]="currentQuestion.image" [alt]="currentQuestion.pokemonName"
+             class="pokemon-image"
+             [class.silhouette]="currentQuestion.type === 'image'"
+             [class.revealed]="showAnswer && currentQuestion.type === 'image'">
+      </div>
+
+      <!-- Opções de resposta (layout vertical) -->
+      <div class="options-container vertical">
+        <button
+          *ngFor="let option of currentQuestion.options"
+          class="option-button"
+          [class.selected]="selectedAnswer === option"
+          [class.correct]="showAnswer && normalizeAnswer(option) === normalizeAnswer(currentQuestion.correctAnswer)"
+          [class.incorrect]="showAnswer && selectedAnswer === option && normalizeAnswer(option) !== normalizeAnswer(currentQuestion.correctAnswer)"
+          [disabled]="showAnswer"
+          (click)="selectAnswer(option)"
+        >
+          {{ option }}
+        </button>
+      </div>
+    </div>
+
+    <div class="feedback-container" *ngIf="showAnswer">
+      <div class="feedback" [class.correct]="isCorrect" [class.incorrect]="!isCorrect">
+        <h3>{{ isCorrect ? 'Correto!' : 'Incorreto!' }}</h3>
+        <p>{{ feedbackMessage }}</p>
+      </div>
+      <button class="next-button" (click)="nextQuestion()">
+        {{ currentQuestionIndex < questions.length - 1 ? 'Próxima Questão' : 'Ver Resultados' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Tela de carregamento -->
+  <div class="loading-container" *ngIf="loading">
+    <img src="/assets/images/pikachu-loading.gif" alt="Carregando..." class="loading-gif">
+    <p>Preparando o quiz...</p>
+  </div>
+
+  <!-- Mensagem de erro -->
+  <div class="error-container" *ngIf="errorMessage">
+    <div class="error-message">
+      <h3>Ops! Ocorreu um erro</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="retry-button" (click)="retryQuiz()">Tentar Novamente</button>
+    </div>
+  </div>
+
+  <!-- Resultados finais -->
+  <div class="results-container" *ngIf="quizCompleted">
+    <div class="results-header">
+      <h2>Quiz Completo!</h2>
+      <div class="badge-container">
+        <div class="badge" [ngClass]="getBadgeClass()">
+          <span class="badge-icon">{{ getBadgeIcon() }}</span>
+          <span class="badge-title">{{ getBadgeTitle() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="final-score-container">
+      <div class="score-circle">
+        <div class="score-circle-inner">
+          <span class="score-number">{{ score }}</span>
+          <span class="score-total">/ {{ settings.questionCount }}</span>
+        </div>
+        <svg class="score-circle-svg" width="200" height="200">
+          <circle class="score-circle-bg" cx="100" cy="100" r="90"></circle>
+          <circle class="score-circle-progress" cx="100" cy="100" r="90"
+                  [style.strokeDasharray]="getScoreCircleCircumference()"
+                  [style.strokeDashoffset]="getScoreCircleOffset()"></circle>
+        </svg>
+      </div>
+
+      <div class="score-details">
+        <div class="score-percentage">
+          {{ getScorePercentage() }}%
+        </div>
+        <p class="score-text">{{ getScoreMessage() }}</p>
+
+        <div class="difficulty-info">
+          <span class="difficulty-label">Dificuldade:</span>
+          <span class="difficulty-value">{{ getDifficultyLabel() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="restart-button" (click)="restartQuiz()">
+        <span class="button-icon">↺</span>
+        Jogar Novamente
+      </button>
+      <button class="home-button" routerLink="/pokedex">
+        <span class="button-icon">🏠</span>
+        Voltar para Pokédex
+      </button>
+    </div>
+  </div>
+</div>
