@@ -89,6 +89,57 @@
       <div class="feedback" [class.correct]="isCorrect" [class.incorrect]="!isCorrect">
         <h3>{{ isCorrect ? 'Correto!' : 'Incorreto!' }}</h3>
         <p>{{ feedbackMessage }}</p>
+
+        <!-- Exibição de evolução para perguntas de evolução -->
+        <div class="evolution-display" *ngIf="currentQuestion.type === 'evolution' && currentQuestion.evolutionData">
+          <div class="evolution-chain">
+            <!-- Pokémon anterior na cadeia evolutiva -->
+            <div class="evolution-item" *ngIf="currentQuestion.evolutionData.previousPokemon">
+              <div class="evolution-image-container">
+                <img [src]="currentQuestion.evolutionData.previousPokemon.image"
+                     [alt]="currentQuestion.evolutionData.previousPokemon.name"
+                     class="evolution-image">
+              </div>
+              <div class="evolution-name">
+                {{ capitalizeFirstLetter(currentQuestion.evolutionData.previousPokemon.name) }}
+              </div>
+            </div>
+
+            <!-- Seta de evolução -->
+            <div class="evolution-arrow" *ngIf="currentQuestion.evolutionData.previousPokemon || currentQuestion.evolutionData.nextPokemon">
+              <span>→</span>
+            </div>
+
+            <!-- Pokémon atual -->
+            <div class="evolution-item current">
+              <div class="evolution-image-container">
+                <img [src]="currentQuestion.image"
+                     [alt]="currentQuestion.pokemonName"
+                     class="evolution-image">
+              </div>
+              <div class="evolution-name">
+                {{ capitalizeFirstLetter(currentQuestion.pokemonName || '') }}
+              </div>
+            </div>
+
+            <!-- Seta de evolução -->
+            <div class="evolution-arrow" *ngIf="currentQuestion.evolutionData.nextPokemon">
+              <span>→</span>
+            </div>
+
+            <!-- Próximo Pokémon na cadeia evolutiva -->
+            <div class="evolution-item" *ngIf="currentQuestion.evolutionData.nextPokemon">
+              <div class="evolution-image-container">
+                <img [src]="currentQuestion.evolutionData.nextPokemon.image"
+                     [alt]="currentQuestion.evolutionData.nextPokemon.name"
+                     class="evolution-image">
+              </div>
+              <div class="evolution-name">
+                {{ capitalizeFirstLetter(currentQuestion.evolutionData.nextPokemon.name) }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <button class="next-button" (click)="nextQuestion()">
         {{ currentQuestionIndex < questions.length - 1 ? 'Próxima Questão' : 'Ver Resultados' }}

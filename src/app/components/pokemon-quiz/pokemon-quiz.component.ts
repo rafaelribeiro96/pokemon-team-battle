@@ -5,6 +5,17 @@ import { RouterModule } from '@angular/router';
 import { PokemonService } from '../../services/pokemon.service';
 import { PokemonProgressBarComponent } from '../pokemon-progress-bar/pokemon-progress-bar.component';
 
+interface PokemonEvolutionData {
+  previousPokemon?: {
+    name: string;
+    image: string;
+  };
+  nextPokemon?: {
+    name: string;
+    image: string;
+  };
+}
+
 interface QuizQuestion {
   type: 'image' | 'type' | 'evolution';
   question: string;
@@ -13,6 +24,8 @@ interface QuizQuestion {
   image?: string;
   pokemonName?: string;
   pokemonId?: number;
+  evolutionData?: PokemonEvolutionData;
+  evolutionDirection?: 'next' | 'previous';
 }
 
 interface QuizSettings {
@@ -256,6 +269,12 @@ export class PokemonQuizComponent implements OnInit {
         );
       }
 
+      // Criar um mapa de ID para Pokémon para facilitar a busca
+      const pokemonMap = new Map();
+      pokemons.forEach((pokemon) => {
+        pokemonMap.set(pokemon.name.toLowerCase(), pokemon);
+      });
+
       // Embaralhar os Pokémon para ter uma seleção aleatória
       const shuffledPokemons = this.shuffleArray([...pokemons]);
 
@@ -371,16 +390,21 @@ export class PokemonQuizComponent implements OnInit {
           // Encontrar a posição do Pokémon na cadeia
           const pokemonIndex = evolutionChain.indexOf(pokemonName);
 
+          // Decidir aleatoriamente se perguntamos sobre a evolução ou pré-evolução
+          const askAboutEvolution =
+            pokemonIndex < evolutionChain.length - 1 && Math.random() > 0.5;
+          const askAboutPreEvolution = pokemonIndex > 0 && Math.random() > 0.5;
+
           // Verificar se este Pokémon evolui (não é o último da cadeia)
-          if (pokemonIndex < evolutionChain.length - 1) {
-            const correctEvolution = this.capitalizeFirstLetter(
-              evolutionChain[pokemonIndex + 1]
-            );
+          if (askAboutEvolution) {
+            const nextPokemonName = evolutionChain[pokemonIndex + 1];
+            const correctEvolution =
+              this.capitalizeFirstLetter(nextPokemonName);
 
             // Gerar opções aleatórias
             const otherPokemons = shuffledPokemons
               .filter(
-                (p) => p.name.toLowerCase() !== correctEvolution.toLowerCase()
+                (p) => p.name.toLowerCase() !== nextPokemonName.toLowerCase()
               )
               .map((p) => this.capitalizeFirstLetter(p.name));
 
@@ -389,6 +413,25 @@ export class PokemonQuizComponent implements OnInit {
               ...randomOptions,
               correctEvolution,
             ]);
+
+            // Preparar dados de evolução para exibição
+            const evolutionData: PokemonEvolutionData = {
+              nextPokemon: {
+                name: nextPokemonName,
+                image:
+                  pokemonMap.get(nextPokemonName.toLowerCase())?.image || '',
+              },
+            };
+
+            // Adicionar pré-evolução se existir
+            if (pokemonIndex > 0) {
+              const prevPokemonName = evolutionChain[pokemonIndex - 1];
+              evolutionData.previousPokemon = {
+                name: prevPokemonName,
+                image:
+                  pokemonMap.get(prevPokemonName.toLowerCase())?.image || '',
+              };
+            }
 
             evolutionQuestions.push({
               type: 'evolution' as const,
@@ -400,6 +443,60 @@ export class PokemonQuizComponent implements OnInit {
               image: pokemon.image,
               pokemonName: pokemon.name,
               pokemonId: pokemon.id,
+              evolutionData,
+              evolutionDirection: 'next' as 'next' | 'previous',
+            });
+          }
+          // Se o Pokémon é o último da cadeia ou se decidimos perguntar sobre pré-evolução
+          else if (askAboutPreEvolution) {
+            const prevPokemonName = evolutionChain[pokemonIndex - 1];
+            const correctPreEvolution =
+              this.capitalizeFirstLetter(prevPokemonName);
+
+            // Gerar opções aleatórias
+            const otherPokemons = shuffledPokemons
+              .filter(
+                (p) => p.name.toLowerCase() !== prevPokemonName.toLowerCase()
+              )
+              .map((p) => this.capitalizeFirstLetter(p.name));
+
+            const randomOptions = this.shuffleArray(otherPokemons).slice(0, 3);
+            const options = this.shuffleArray([
+              ...randomOptions,
+              correctPreEvolution,
+            ]);
+
+            // Preparar dados de evolução para exibição
+            const evolutionData: PokemonEvolutionData = {
+              previousPokemon: {
+                name: prevPokemonName,
+                image:
+                  pokemonMap.get(prevPokemonName.toLowerCase())?.image || '',
+              },
+            };
+
+            // Adicionar próxima evolução se existir
+            if (pokemonIndex < evolutionChain.length - 1) {
+              const nextPokemonName = evolutionChain[pokemonIndex + 1];
+              evolutionData.nextPokemon = {
+                name: nextPokemonName,
+                image:
+                  pokemonMap.get(nextPokemonName.toLowerCase())?.image || '',
+              };
+            }
+
+            evolutionQuestions.push({
+              type: 'evolution' as const,
+              question: `De qual Pokémon ${this.capitalizeFirstLetter(
+                pokemon.name
+              )} evoluiu?`,
+              options,
+              correctAnswer: correctPreEvolution,
+              image: pokemon.image,
+              pokemonName: pokemon.name,
+              pokemonId: pokemon.id,
+              evolutionData,
+              evolutionDirection: 'previous' as 'next' | 'previous',
             });
           }
         }
