@@ -14,22 +14,17 @@ import {
 } from '@angular/animations';
 import { ImgFallbackDirective } from '../../directives/fallback-image.directive';
 
-interface NewsItem {
-  id: number;
+interface GameMode {
+  id: string;
   title: string;
-  summary: string;
-  image: string;
-  date: string;
-  category: string;
-}
-
-interface FeaturedGame {
-  id: number;
-  title: string;
-  image: string;
-  platforms: string[];
-  releaseYear: number;
+  subtitle: string;
   description: string;
+  image: string;
+  buttonText: string;
+  buttonLink: string;
+  features: string[];
+  color: string;
+  icon: string;
 }
 
 interface FeaturedPokemon {
@@ -37,7 +32,6 @@ interface FeaturedPokemon {
   name: string;
   image: string;
   types: string[];
-  description: string;
 }
 
 @Component({
@@ -73,10 +67,42 @@ interface FeaturedPokemon {
         ),
       ]),
     ]),
-    trigger('heroAnimation', [
+    trigger('slideInRight', [
+      state('void', style({ opacity: 0, transform: 'translateX(30px)' })),
+      transition(':enter', [
+        animate(
+          '0.5s 0.2s ease-out',
+          style({ opacity: 1, transform: 'translateX(0)' })
+        ),
+      ]),
+    ]),
+    trigger('scaleIn', [
       state('void', style({ opacity: 0, transform: 'scale(0.9)' })),
       transition(':enter', [
-        animate('0.8s ease-out', style({ opacity: 1, transform: 'scale(1)' })),
+        animate('0.5s ease-out', style({ opacity: 1, transform: 'scale(1)' })),
+      ]),
+    ]),
+    trigger('bounce', [
+      state('void', style({ transform: 'translateY(0)' })),
+      transition(':enter', [
+        animate('1s ease-in-out', style({ transform: 'translateY(-10px)' })),
+        animate('1s ease-in-out', style({ transform: 'translateY(0)' })),
+      ]),
+    ]),
+    trigger('heroAnimation', [
+      transition(':increment', [
+        style({ transform: 'translateX(100%)', opacity: 0 }),
+        animate(
+          '600ms ease-out',
+          style({ transform: 'translateX(0)', opacity: 1 })
+        ),
+      ]),
+      transition(':decrement', [
+        style({ transform: 'translateX(-100%)', opacity: 0 }),
+        animate(
+          '600ms ease-out',
+          style({ transform: 'translateX(0)', opacity: 1 })
+        ),
       ]),
     ]),
   ],
@@ -85,165 +111,134 @@ export class HomeComponent implements OnInit {
   currentSlide = 0;
   activeTab = 0;
 
-  heroSlides = [
+  // Modos de jogo principais
+  gameModes: GameMode[] = [
     {
-      title: 'Monte sua Equipe Pokémon',
-      subtitle:
-        'Escolha seus Pokémon favoritos e prepare-se para batalhas épicas',
-      image: '/assets/images/hero-team-battle.jpg',
+      id: 'battle',
+      title: 'Modo Batalha',
+      subtitle: 'Estratégia e Ação',
+      description:
+        'Monte sua equipe de Pokémon e desafie outros treinadores em batalhas épicas. Utilize estratégias, aproveite vantagens de tipo e torne-se o campeão!',
+      image: '/assets/images/battle-mode.jpg',
       buttonText: 'Iniciar Batalha',
       buttonLink: '/battle',
+      features: [
+        'Batalhas em tempo real',
+        'Sistema de vantagens de tipo',
+        'Estratégias de equipe',
+        'Ranking de treinadores',
+      ],
+      color: '#e74c3c',
+      icon: 'sports_esports',
     },
     {
-      title: 'Explore a Pokédex Completa',
-      subtitle:
-        'Informações detalhadas sobre todos os Pokémon de todas as gerações',
-      image: '/assets/images/hero-pokedex.jpg',
-      buttonText: 'Acessar Pokédex',
-      buttonLink: '/pokedex',
+      id: 'quiz',
+      title: 'Modo Quiz',
+      subtitle: 'Teste seus Conhecimentos',
+      description:
+        'Quanto você realmente sabe sobre o mundo Pokémon? Desafie-se com perguntas sobre tipos, evoluções, habilidades e muito mais!',
+      image: '/assets/images/quiz-mode.jpg',
+      buttonText: 'Iniciar Quiz',
+      buttonLink: '/quiz',
+      features: [
+        'Perguntas de múltipla escolha',
+        'Diferentes níveis de dificuldade',
+        'Desafios cronometrados',
+        'Recordes pessoais',
+      ],
+      color: '#3498db',
+      icon: 'quiz',
     },
     {
-      title: 'Teste seus Conhecimentos',
-      subtitle:
-        'Desafie-se com nosso quiz Pokémon e torne-se um verdadeiro Mestre',
+      id: 'comparator',
+      title: 'Comparador de Pokémon',
+      subtitle: 'Análise e Comparação',
+      description:
+        'Compare estatísticas, habilidades e vantagens entre diferentes Pokémon. Descubra qual tem mais chances de vencer em uma batalha direta!',
+      image: '/assets/images/comparator-mode.jpg',
+      buttonText: 'Comparar Pokémon',
+      buttonLink: '/comparator',
+      features: [
+        'Comparação visual de estatísticas',
+        'Análise de vantagens de tipo',
+        'Previsão de resultados de batalha',
+        'Pokémon de todas as gerações',
+      ],
+      color: '#2ecc71',
+      icon: 'compare',
+    },
+  ];
+
+  // Slides do herói
+  heroSlides = [
+    {
+      title: 'Batalhas Épicas',
+      subtitle: 'Monte sua equipe e derrote seus oponentes',
+      image: '/assets/images/hero-battle.jpg',
+      buttonText: 'Iniciar Batalha',
+      buttonLink: '/battle',
+      color: '#e74c3c',
+    },
+    {
+      title: 'Desafie seu Conhecimento',
+      subtitle: 'Teste o quanto você sabe sobre Pokémon',
       image: '/assets/images/hero-quiz.jpg',
       buttonText: 'Iniciar Quiz',
       buttonLink: '/quiz',
+      color: '#3498db',
+    },
+    {
+      title: 'Compare e Analise',
+      subtitle: 'Descubra qual Pokémon tem vantagem',
+      image: '/assets/images/hero-comparator.jpg',
+      buttonText: 'Comparar Pokémon',
+      buttonLink: '/comparator',
+      color: '#2ecc71',
     },
   ];
 
-  newsItems: NewsItem[] = [
-    {
-      id: 1,
-      title: 'Nova Atualização do Team Battle',
-      summary:
-        'Adicionamos novos Pokémon da região de Paldea e melhoramos o sistema de batalha.',
-      image: '/assets/images/news-update.jpg',
-      date: '02/05/2023',
-      category: 'Atualizações',
-    },
-    {
-      id: 2,
-      title: 'Evento de Batalha Especial',
-      summary:
-        'Participe do evento especial de fim de semana com regras exclusivas e prêmios.',
-      image: '/assets/images/news-event.jpg',
-      date: '28/04/2023',
-      category: 'Eventos',
-    },
-    {
-      id: 3,
-      title: 'Guia de Estratégia: Tipos Água',
-      summary:
-        'Confira nosso guia completo sobre como montar times eficientes com Pokémon do tipo Água.',
-      image: '/assets/images/news-water.jpg',
-      date: '25/04/2023',
-      category: 'Guias',
-    },
-    {
-      id: 4,
-      title: 'Pokémon Legends: Arceus - Análise',
-      summary:
-        'Nossa análise completa do mais recente jogo da franquia Pokémon.',
-      image: '/assets/images/news-arceus.jpg',
-      date: '20/04/2023',
-      category: 'Jogos',
-    },
-  ];
-
-  featuredGames: FeaturedGame[] = [
-    {
-      id: 1,
-      title: 'Pokémon Scarlet & Violet',
-      image: '/assets/images/game-scarlet-violet.jpg',
-      platforms: ['Nintendo Switch'],
-      releaseYear: 2022,
-      description:
-        'Explore a região de Paldea em um mundo aberto cheio de novos Pokémon e desafios.',
-    },
-    {
-      id: 2,
-      title: 'Pokémon Legends: Arceus',
-      image: '/assets/images/game-legends-arceus.jpg',
-      platforms: ['Nintendo Switch'],
-      releaseYear: 2022,
-      description:
-        'Viaje para o passado da região de Sinnoh e descubra os segredos dos Pokémon lendários.',
-    },
-    {
-      id: 3,
-      title: 'Pokémon Brilliant Diamond & Shining Pearl',
-      image: '/assets/images/game-bdsp.jpg',
-      platforms: ['Nintendo Switch'],
-      releaseYear: 2021,
-      description:
-        'Reviva a aventura clássica da região de Sinnoh com gráficos e mecânicas modernizadas.',
-    },
-  ];
-
+  // Pokémon em destaque
   featuredPokemon: FeaturedPokemon[] = [
     {
       id: 25,
       name: 'Pikachu',
       image: '/assets/images/pokemon-pikachu.png',
       types: ['Elétrico'],
-      description:
-        'O Pokémon mascote da franquia, conhecido por sua velocidade e ataques elétricos poderosos.',
     },
     {
       id: 6,
       name: 'Charizard',
       image: '/assets/images/pokemon-charizard.png',
       types: ['Fogo', 'Voador'],
-      description:
-        'Um dos Pokémon mais populares, capaz de lançar chamas intensas que podem derreter qualquer coisa.',
     },
     {
       id: 150,
       name: 'Mewtwo',
       image: '/assets/images/pokemon-mewtwo.png',
       types: ['Psíquico'],
-      description:
-        'Um Pokémon lendário criado geneticamente, com imensos poderes psíquicos.',
     },
     {
       id: 384,
       name: 'Rayquaza',
       image: '/assets/images/pokemon-rayquaza.png',
       types: ['Dragão', 'Voador'],
-      description:
-        'Um Pokémon lendário que vive na camada de ozônio e tem o poder de acalmar outros Pokémon lendários.',
     },
   ];
 
+  // Estatísticas do portal
+  stats = [
+    { value: '10,543', label: 'Treinadores', icon: 'person' },
+    { value: '156,782', label: 'Batalhas', icon: 'bolt' },
+    { value: '42,195', label: 'Quiz Completados', icon: 'psychology' },
+    { value: '1,025', label: 'Pokémon', icon: 'catching_pokemon' },
+  ];
+
+  // Links rápidos
   quickLinks = [
-    { icon: 'sports_esports', text: 'Batalha', route: '/battle' },
     { icon: 'menu_book', text: 'Pokédex', route: '/pokedex' },
-    { icon: 'quiz', text: 'Quiz', route: '/quiz' },
-    { icon: 'videogame_asset', text: 'Jogos', route: '/games' },
     { icon: 'leaderboard', text: 'Ranking', route: '/ranking' },
+    { icon: 'videogame_asset', text: 'Jogos', route: '/games' },
     { icon: 'person', text: 'Perfil', route: '/profile' },
-  ];
-
-  upcomingEvents = [
-    {
-      title: 'Torneio Regional',
-      date: '15/05/2023',
-      description:
-        'Participe do torneio regional e mostre suas habilidades como treinador.',
-    },
-    {
-      title: 'Evento de Tipos Fantasma',
-      date: '31/10/2023',
-      description:
-        'Evento especial de Halloween com foco em Pokémon do tipo Fantasma.',
-    },
-    {
-      title: 'Atualização de Primavera',
-      date: '20/09/2023',
-      description:
-        'Nova atualização com Pokémon sazonais e mecânicas de jogo inéditas.',
-    },
   ];
 
   ngOnInit() {
@@ -251,6 +246,9 @@ export class HomeComponent implements OnInit {
     setInterval(() => {
       this.nextSlide();
     }, 6000);
+
+    // Adicionar efeito de flutuação aos elementos
+    this.setupFloatingElements();
   }
 
   nextSlide() {
@@ -266,11 +264,12 @@ export class HomeComponent implements OnInit {
     this.currentSlide = index;
   }
 
-  setActiveTab(index: number) {
-    this.activeTab = index;
-  }
-
   getTypeClass(type: string): string {
     return `type-${type.toLowerCase()}`;
+  }
+
+  setupFloatingElements() {
+    // Implementação de efeitos de flutuação para elementos decorativos
+    // Seria implementado com JavaScript/DOM manipulation
   }
 }

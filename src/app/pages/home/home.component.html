@@ -1,24 +1,11 @@
 <div class="home-container">
-  <!-- Top Navigation -->
-  <nav class="top-nav">
-    <div class="logo-container">
-      <img src="/assets/images/pokeball-icon.png" alt="Pokéball" fallback="assets/images/imagemDefault.png">
-      <h2>Pokémon Team Battle</h2>
-    </div>
-
-    <div class="nav-links">
-      <a routerLink="/" class="active">Home</a>
-      <a routerLink="/battle">Batalha</a>
-      <a routerLink="/pokedex">Pokédex</a>
-      <a routerLink="/quiz">Quiz</a>
-      <a routerLink="/games">Jogos</a>
-      <a routerLink="/about">Sobre</a>
-    </div>
-
-    <button class="mobile-menu-button">
-      <mat-icon>menu</mat-icon>
-    </button>
-  </nav>
+  <!-- Pokébolas decorativas -->
+  <div class="floating-pokeballs">
+    <div class="pokeball pokeball-red"></div>
+    <div class="pokeball pokeball-blue"></div>
+    <div class="pokeball pokeball-yellow"></div>
+    <div class="pokeball pokeball-green"></div>
+  </div>
 
   <!-- Hero Section com Carrossel -->
   <section class="hero-section">
@@ -30,8 +17,9 @@
       <div class="hero-content">
         <h1>{{ slide.title }}</h1>
         <p>{{ slide.subtitle }}</p>
-        <button [routerLink]="slide.buttonLink" class="hero-button">
+        <button [routerLink]="slide.buttonLink" class="hero-button" [style.background-color]="slide.color">
           {{ slide.buttonText }}
+          <mat-icon>arrow_forward</mat-icon>
         </button>
       </div>
     </div>
@@ -48,11 +36,150 @@
       <div *ngFor="let slide of heroSlides; let i = index"
            class="dot"
            [class.active]="i === currentSlide"
+           [style.background-color]="i === currentSlide ? slide.color : ''"
            (click)="setSlide(i)"></div>
     </div>
   </section>
 
-  <!-- Quick Links -->
+  <!-- Modos de Jogo Principais -->
+  <section class="game-modes-section">
+    <h2 class="section-title">Modos de Jogo</h2>
+    <p class="section-subtitle">Escolha como você quer jogar hoje</p>
+
+    <div class="game-modes-container">
+      <!-- Modo Batalha -->
+      <div class="game-mode-card battle-mode" [@fadeIn]>
+        <div class="mode-header" [style.background-color]="gameModes[0].color">
+          <div class="mode-icon">
+            <mat-icon>{{ gameModes[0].icon }}</mat-icon>
+          </div>
+          <h3>{{ gameModes[0].title }}</h3>
+          <span class="mode-subtitle">{{ gameModes[0].subtitle }}</span>
+        </div>
+        <div class="mode-content">
+          <div class="mode-image">
+            <img [src]="gameModes[0].image" [alt]="gameModes[0].title" fallback="assets/images/imagemDefault.png">
+          </div>
+          <p class="mode-description">{{ gameModes[0].description }}</p>
+          <ul class="mode-features">
+            <li *ngFor="let feature of gameModes[0].features">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ feature }}</span>
+            </li>
+          </ul>
+          <div class="mode-pokemon">
+            <div class="pokemon-avatar" *ngFor="let pokemon of featuredPokemon.slice(0, 3)">
+              <img [src]="pokemon.image" [alt]="pokemon.name" fallback="assets/images/imagemDefault.png">
+            </div>
+          </div>
+          <button [routerLink]="gameModes[0].buttonLink" class="mode-button" [style.background-color]="gameModes[0].color">
+            {{ gameModes[0].buttonText }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo Quiz -->
+      <div class="game-mode-card quiz-mode" [@slideIn]>
+        <div class="mode-header" [style.background-color]="gameModes[1].color">
+          <div class="mode-icon">
+            <mat-icon>{{ gameModes[1].icon }}</mat-icon>
+          </div>
+          <h3>{{ gameModes[1].title }}</h3>
+          <span class="mode-subtitle">{{ gameModes[1].subtitle }}</span>
+        </div>
+        <div class="mode-content">
+          <div class="mode-image">
+            <img [src]="gameModes[1].image" [alt]="gameModes[1].title" fallback="assets/images/imagemDefault.png">
+          </div>
+          <p class="mode-description">{{ gameModes[1].description }}</p>
+          <ul class="mode-features">
+            <li *ngFor="let feature of gameModes[1].features">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ feature }}</span>
+            </li>
+          </ul>
+          <div class="quiz-preview">
+            <div class="quiz-question">
+              <span>Qual destes Pokémon é do tipo Água?</span>
+              <div class="quiz-options">
+                <div class="quiz-option">Charmander</div>
+                <div class="quiz-option correct">Squirtle</div>
+                <div class="quiz-option">Bulbasaur</div>
+              </div>
+            </div>
+          </div>
+          <button [routerLink]="gameModes[1].buttonLink" class="mode-button" [style.background-color]="gameModes[1].color">
+            {{ gameModes[1].buttonText }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo Comparador -->
+      <div class="game-mode-card comparator-mode" [@slideInRight]>
+        <div class="mode-header" [style.background-color]="gameModes[2].color">
+          <div class="mode-icon">
+            <mat-icon>{{ gameModes[2].icon }}</mat-icon>
+          </div>
+          <h3>{{ gameModes[2].title }}</h3>
+          <span class="mode-subtitle">{{ gameModes[2].subtitle }}</span>
+        </div>
+        <div class="mode-content">
+          <div class="mode-image">
+            <img [src]="gameModes[2].image" [alt]="gameModes[2].title" fallback="assets/images/imagemDefault.png">
+          </div>
+          <p class="mode-description">{{ gameModes[2].description }}</p>
+          <ul class="mode-features">
+            <li *ngFor="let feature of gameModes[2].features">
+              <mat-icon>check_circle</mat-icon>
+              <span>{{ feature }}</span>
+            </li>
+          </ul>
+          <div class="comparator-preview">
+            <div class="compare-pokemon">
+              <img [src]="featuredPokemon[0].image" [alt]="featuredPokemon[0].name" fallback="assets/images/imagemDefault.png">
+              <div class="vs-badge">VS</div>
+              <img [src]="featuredPokemon[1].image" [alt]="featuredPokemon[1].name" fallback="assets/images/imagemDefault.png">
+            </div>
+            <div class="stat-bars">
+              <div class="stat-bar">
+                <div class="stat-fill" style="width: 70%"></div>
+              </div>
+              <div class="stat-bar">
+                <div class="stat-fill" style="width: 85%"></div>
+              </div>
+            </div>
+          </div>
+          <button [routerLink]="gameModes[2].buttonLink" class="mode-button" [style.background-color]="gameModes[2].color">
+            {{ gameModes[2].buttonText }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estatísticas Animadas -->
+  <section class="stats-section" [@fadeIn]>
+    <div class="stats-container">
+      <div class="stats-header">
+        <h2>Estatísticas do Portal</h2>
+        <p>Junte-se a milhares de treinadores em nossa comunidade</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card" *ngFor="let stat of stats" [@scaleIn]>
+          <div class="stat-icon">
+            <mat-icon>{{ stat.icon }}</mat-icon>
+          </div>
+          <div class="stat-value">{{ stat.value }}</div>
+          <div class="stat-label">{{ stat.label }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Links Rápidos -->
   <section class="quick-links">
     <div class="links-container">
       <a *ngFor="let link of quickLinks" [routerLink]="link.route" class="quick-link">
@@ -62,187 +189,18 @@
     </div>
   </section>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Notícias -->
-    <section class="news-section" [@fadeIn]>
-      <div class="section-header">
-        <h2>Últimas Notícias</h2>
-        <a href="#" class="view-all">Ver todas <mat-icon>arrow_forward</mat-icon></a>
-      </div>
-
-      <div class="news-grid">
-        <div *ngFor="let news of newsItems" class="news-card" [@slideIn]>
-          <div class="news-image">
-            <img [src]="news.image" [alt]="news.title" fallback="assets/images/imagemDefault.png">
-            <span class="news-category">{{ news.category }}</span>
-          </div>
-          <div class="news-content">
-            <div class="news-date">{{ news.date }}</div>
-            <h3>{{ news.title }}</h3>
-            <p>{{ news.summary }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Conteúdo em Abas -->
-    <section class="tabbed-section" [@fadeIn]>
-      <mat-tab-group mat-align-tabs="center" class="tab-header" [(selectedIndex)]="activeTab">
-        <mat-tab label="Jogos em Destaque"></mat-tab>
-        <mat-tab label="Pokémon Populares"></mat-tab>
-        <mat-tab label="Próximos Eventos"></mat-tab>
-      </mat-tab-group>
-
-      <div class="tab-content">
-        <!-- Jogos em Destaque -->
-        <div *ngIf="activeTab === 0" class="games-grid">
-          <div *ngFor="let game of featuredGames" class="game-card">
-            <div class="game-image">
-              <img [src]="game.image" [alt]="game.title" fallback="assets/images/imagemDefault.png">
-              <span class="game-year">{{ game.releaseYear }}</span>
-            </div>
-            <div class="game-content">
-              <h3>{{ game.title }}</h3>
-              <div class="game-platforms">
-                <span *ngFor="let platform of game.platforms">{{ platform }}</span>
-              </div>
-              <p>{{ game.description }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pokémon Populares -->
-        <div *ngIf="activeTab === 1" class="pokemon-grid">
-          <div *ngFor="let pokemon of featuredPokemon" class="pokemon-card">
-            <div class="pokemon-image">
-              <img [src]="pokemon.image" [alt]="pokemon.name" fallback="assets/images/imagemDefault.png">
-            </div>
-            <div class="pokemon-content">
-              <div class="pokemon-header">
-                <h3>{{ pokemon.name }}</h3>
-                <span class="pokemon-number">#{{ pokemon.id.toString().padStart(3, '0') }}</span>
-              </div>
-              <div class="pokemon-types">
-                <span *ngFor="let type of pokemon.types"
-                      class="type-badge"
-                      [ngClass]="getTypeClass(type)">
-                  {{ type }}
-                </span>
-              </div>
-              <p>{{ pokemon.description }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Próximos Eventos -->
-        <div *ngIf="activeTab === 2" class="events-list">
-          <div *ngFor="let event of upcomingEvents" class="event-item">
-            <div class="event-header">
-              <h3>{{ event.title }}</h3>
-              <span class="event-date">{{ event.date }}</span>
-            </div>
-            <p>{{ event.description }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Estatísticas -->
-    <section class="stats-section" [@fadeIn]>
-      <h2>Estatísticas do Portal</h2>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value">10,543</div>
-          <div class="stat-label">Treinadores</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">893</div>
-          <div class="stat-label">Pokémon</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">156,782</div>
-          <div class="stat-label">Batalhas</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">42,195</div>
-          <div class="stat-label">Quiz Completados</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Call to Action -->
-    <section class="cta-section" [@fadeIn]>
-      <div class="cta-content">
-        <h2>Torne-se um Mestre Pokémon</h2>
-        <p>Junte-se à nossa comunidade e comece sua jornada para se tornar um verdadeiro Mestre Pokémon. Batalhe, colete e evolua!</p>
-        <div class="cta-buttons">
-          <button routerLink="/register" class="primary">Registrar-se</button>
-          <button routerLink="/about" class="secondary">Saiba Mais</button>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Footer -->
-  <!-- <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-column">
-        <h3>Navegação</h3>
-        <ul>
-          <li><a routerLink="/"><mat-icon>home</mat-icon> Home</a></li>
-          <li><a routerLink="/battle"><mat-icon>sports_esports</mat-icon> Batalha</a></li>
-          <li><a routerLink="/pokedex"><mat-icon>menu_book</mat-icon> Pokédex</a></li>
-          <li><a routerLink="/quiz"><mat-icon>quiz</mat-icon> Quiz</a></li>
-          <li><a routerLink="/games"><mat-icon>videogame_asset</mat-icon> Jogos</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-column">
-        <h3>Recursos</h3>
-        <ul>
-          <li><a href="#"><mat-icon>article</mat-icon> Guias</a></li>
-          <li><a href="#"><mat-icon>leaderboard</mat-icon> Ranking</a></li>
-          <li><a href="#"><mat-icon>event</mat-icon> Eventos</a></li>
-          <li><a href="#"><mat-icon>forum</mat-icon> Fórum</a></li>
-          <li><a href="#"><mat-icon>help</mat-icon> Ajuda</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-column">
-        <h3>Sobre Nós</h3>
-        <ul>
-          <li><a routerLink="/about"><mat-icon>info</mat-icon> Quem Somos</a></li>
-          <li><a routerLink="/contact"><mat-icon>email</mat-icon> Contato</a></li>
-          <li><a routerLink="/terms"><mat-icon>gavel</mat-icon> Termos de Uso</a></li>
-          <li><a routerLink="/privacy"><mat-icon>privacy_tip</mat-icon> Privacidade</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-column">
-        <h3>Conecte-se</h3>
-        <div class="social-links">
-          <a href="#" aria-label="Facebook"><mat-icon>facebook</mat-icon></a>
-          <a href="#" aria-label="Twitter"><mat-icon>twitter</mat-icon></a>
-          <a href="#" aria-label="Instagram"><mat-icon>instagram</mat-icon></a>
-          <a href="#" aria-label="YouTube"><mat-icon>youtube_searched_for</mat-icon></a>
-          <a href="#" aria-label="Discord"><mat-icon>discord</mat-icon></a>
-        </div>
-        <p style="margin-top: 15px; color: #ccc; font-size: 0.9rem;">
-          Inscreva-se em nossa newsletter para receber as últimas notícias e atualizações.
-        </p>
+  <!-- Call to Action -->
+  <section class="cta-section" [@fadeIn]>
+    <div class="cta-content">
+      <h2>Torne-se um Mestre Pokémon</h2>
+      <p>Junte-se à nossa comunidade e comece sua jornada para se tornar um verdadeiro Mestre Pokémon. Batalhe, colete e evolua!</p>
+      <div class="cta-buttons">
+        <button routerLink="/register" class="primary">Registrar-se</button>
+        <button routerLink="/about" class="secondary">Saiba Mais</button>
       </div>
     </div>
-
-    <div class="footer-bottom">
-      <div class="copyright">
-        &copy; 2023 Pokémon Team Battle. Todos os direitos reservados.
-      </div>
-      <div class="footer-links">
-        <a href="#">Termos</a>
-        <a href="#">Privacidade</a>
-        <a href="#">Cookies</a>
-      </div>
+    <div class="cta-pokemon">
+      <img src="/assets/images/legendary-pokemon.png" alt="Pokémon Lendários" class="legendary-pokemon" fallback="assets/images/imagemDefault.png">
     </div>
-  </footer> -->
+  </section>
 </div>
