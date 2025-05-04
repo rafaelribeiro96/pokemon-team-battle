@@ -9,10 +9,13 @@
   </app-scoreboard>
 
   <div class="battle-layout" [class.selection-mode]="!battleInProgress() && !battleEnded()">
-    <div class="team-column team-one" [class.winner]="winner() === 'Time 1'">
+    <div class="team-column team-one"
+         [class.winner]="winner() === 'Time 1'"
+         [class.gym-selected]="teamOneGym() !== ''"
+         [ngClass]="getGymClass(teamOneGym())">
       <h3>
-        <app-pokemon-icon iconId="trainer-red" size="sm"></app-pokemon-icon>
-        Time 1
+        <app-pokemon-icon [iconId]="teamOneTrainer()" size="sm"></app-pokemon-icon>
+        {{ teamOneName() || 'Time 1' }}
       </h3>
 
       <!-- Componente de construção de time - visível apenas quando não está em batalha -->
@@ -57,7 +60,7 @@
     <div class="battle-arena" [class.slim-mode]="!battleInProgress() && !battleEnded()">
       <!-- Ícone do Ginásio -->
       <div class="gym-icon">
-        <app-pokemon-icon [iconId]="selectedGym" size="lg"></app-pokemon-icon>
+        <app-pokemon-icon [iconId]="currentGym()" size="lg"></app-pokemon-icon>
       </div>
 
       <div *ngIf="battleInProgress()" class="current-battle">
@@ -119,10 +122,13 @@
       <app-battle-report *ngIf="battleLog().length > 0" [log]="battleLog()"></app-battle-report>
     </div>
 
-    <div class="team-column team-two" [class.winner]="winner() === 'Time 2'">
+    <div class="team-column team-two"
+         [class.winner]="winner() === 'Time 2'"
+         [class.gym-selected]="teamTwoGym() !== ''"
+         [ngClass]="getGymClass(teamTwoGym())">
       <h3>
-        <app-pokemon-icon iconId="trainer-blue" size="sm"></app-pokemon-icon>
-        Time 2
+        <app-pokemon-icon [iconId]="teamTwoTrainer()" size="sm"></app-pokemon-icon>
+        {{ teamTwoName() || 'Time 2' }}
       </h3>
 
       <!-- Componente de construção de time - visível apenas quando não está em batalha -->

@@ -28,7 +28,6 @@ import {
     MatButtonModule,
     CommonModule,
     BattleReportComponent,
-    BattleHeaderComponent,
     PokemonCardComponent,
     ScoreboardComponent,
     PokemonIconsModule,
@@ -112,6 +111,14 @@ export class BattleComponent {
   vsState = 'hidden';
   selectedGym = 'fire-gym'; // Pode ser 'fire-gym', 'water-gym', ou 'electric-gym'
 
+  // Propriedades para armazenar informações dos times
+  teamOneName = signal<string>('Time 1');
+  teamTwoName = signal<string>('Time 2');
+  teamOneTrainer = signal<string>('trainer-red');
+  teamTwoTrainer = signal<string>('trainer-blue');
+  teamOneGym = signal<string>('');
+  teamTwoGym = signal<string>('');
+
   // Novas propriedades para animações de ícones
   showAttackIcon = false;
   attackIconPosition = { x: 0, y: 0 };
@@ -129,6 +136,8 @@ export class BattleComponent {
 
   // Flag para controlar o cancelamento da batalha
   private battleCancelled = false;
+  teamOneBuilderRef: any;
+  teamTwoBuilderRef: any;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -154,14 +163,58 @@ export class BattleComponent {
     normal: ['fighting'],
   };
 
-  setTeamOne(team: Pokemon[]) {
-    this.teamOne.set(team);
-    this.updateStrongestPokemon([...team, ...this.teamTwo()]);
+  // Método para obter o ginásio atual com base no turno\
+  currentGym(): string {
+    if (!this.battleInProgress()) {
+      return this.teamOneGym() || this.teamTwoGym() || 'fire-gym';
+    }
+
+    // Durante a batalha, alterna entre os ginásios dos times
+    const isOddTurn = this.turnNumber() % 2 === 1;
+
+    if (this.teamOneGym() && this.teamTwoGym()) {
+      return isOddTurn ? this.teamOneGym() : this.teamTwoGym();
+    } else if (this.teamOneGym()) {
+      return this.teamOneGym();
+    } else if (this.teamTwoGym()) {
+      return this.teamTwoGym();
+    } else {
+      return 'fire-gym'; // Ginásio padrão se nenhum for selecionado
+    }
   }
 
+  // Método para obter a classe CSS do ginásio
+  getGymClass(gymId: string): string {
+    if (!gymId) return '';
+
+    const gymType = gymId.split('-')[0]; // Extrai 'fire', 'water', etc.
+    return `gym-${gymType}`;
+  }
+
+  // Atualizar o método setTeamOne para capturar informações do time
+  setTeamOne(team: Pokemon[]) {
+    this.teamOne.set(team);
+
+    // Capturar informações do time do componente team-builder
+    if (this.teamOneBuilderRef) {
+      const builder = this.teamOneBuilderRef.nativeElement;
+      this.teamOneName.set(builder.teamName?.() || 'Time 1');
+      this.teamOneTrainer.set(builder.trainerAvatar?.() || 'trainer-red');
+      this.teamOneGym.set(builder.selectedGym?.() || '');
+    }
+  }
+
+  // Atualizar o método setTeamTwo para capturar informações do time
   setTeamTwo(team: Pokemon[]) {
     this.teamTwo.set(team);
-    this.updateStrongestPokemon([...this.teamOne(), ...team]);
+
+    // Capturar informações do time do componente team-builder
+    if (this.teamTwoBuilderRef) {
+      const builder = this.teamTwoBuilderRef.nativeElement;
+      this.teamTwoName.set(builder.teamName?.() || 'Time 2');
+      this.teamTwoTrainer.set(builder.trainerAvatar?.() || 'trainer-blue');
+      this.teamTwoGym.set(builder.selectedGym?.() || '');
+    }
   }
 
   // Método para atualizar os times

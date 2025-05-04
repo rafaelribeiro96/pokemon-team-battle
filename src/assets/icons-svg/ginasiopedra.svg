@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Fundo do Ginásio -->
+  <circle cx="50" cy="50" r="45" fill="#EFEBE9" stroke="#795548" stroke-width="3"/>
+  <!-- Símbolo de Pedra -->
+  <path d="M25 30L40 20H60L75 30V60L60 80H40L25 60V30Z" fill="#795548" stroke="#3E2723" stroke-width="2"/>
+  <path d="M35 35L45 30H55L65 35V55L55 65H45L35 55V35Z" fill="#A1887F" stroke="#795548" stroke-width="1"/>
+  <!-- Detalhes da Pedra -->
+  <path d="M30 40L35 35M40 25L45 30M55 30L60 25M65 35L70 40M70 50L65 55M60 70L55 65M45 65L40 70M35 55L30 50" stroke="#3E2723" stroke-width="2" fill="none"/>
+  <!-- Emblema do Ginásio -->
+  <circle cx="50" cy="50" r="10" fill="#FFFFFF" stroke="#3E2723" stroke-width="2"/>
+  <path d="M45 45L50 42H55L60 45V55L55 58H50L45 55V45Z" fill="#795548" stroke="#3E2723" stroke-width="1"/>
+</svg>

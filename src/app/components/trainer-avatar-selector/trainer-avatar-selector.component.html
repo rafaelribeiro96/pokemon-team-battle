@@ -1,1 +1,30 @@
-<p>trainer-avatar-selector works!</p>
+<!-- src/app/components/trainer-avatar-selector/trainer-avatar-selector.component.html -->
+<div class="trainer-avatar-selector">
+  <h3>Escolha um Treinador</h3>
+
+  <div class="avatars-grid">
+    <div
+      *ngFor="let avatar of availableAvatars"
+      class="avatar-item"
+      [class.selected]="selectedAvatar === avatar.id"
+      (click)="selectAvatar(avatar.id)"
+    >
+      <app-pokemon-icon [iconId]="avatar.id" size="lg"></app-pokemon-icon>
+      <div class="avatar-info">
+        <div class="avatar-name">{{ avatar.name }}</div>
+        <div class="avatar-description" *ngIf="avatar.description">{{ avatar.description }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="cancel-btn" (click)="cancel()">Cancelar</button>
+    <button
+      class="confirm-btn"
+      (click)="selectAvatar(selectedAvatar!)"
+      [disabled]="!selectedAvatar"
+    >
+      Confirmar
+    </button>
+  </div>
+</div>

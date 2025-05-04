@@ -538,3 +538,68 @@
     }
   }
 }
+
+.team-column.gym-selected {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.15;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  &.gym-fire {
+    &::before {
+      background: linear-gradient(135deg, #F08030, #F5AC78);
+    }
+  }
+
+  &.gym-water {
+    &::before {
+      background: linear-gradient(135deg, #6890F0, #98D8D8);
+    }
+  }
+
+  &.gym-electric {
+    &::before {
+      background: linear-gradient(135deg, #F8D030, #FAE078);
+    }
+  }
+
+  &.gym-grass {
+    &::before {
+      background: linear-gradient(135deg, #78C850, #A7DB8D);
+    }
+  }
+
+  &.gym-psychic {
+    &::before {
+      background: linear-gradient(135deg, #F85888, #FA92B2);
+    }
+  }
+
+  &.gym-rock {
+    &::before {
+      background: linear-gradient(135deg, #B8A038, #D1C17D);
+    }
+  }
+
+  &.gym-poison {
+    &::before {
+      background: linear-gradient(135deg, #A040A0, #C183C1);
+    }
+  }
+
+  &.gym-ground {
+    &::before {
+      background: linear-gradient(135deg, #E0C068, #EBD69D);
+    }
+  }
+}

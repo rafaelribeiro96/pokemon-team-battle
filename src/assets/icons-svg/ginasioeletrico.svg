@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Fundo do Ginásio -->
+  <circle cx="50" cy="50" r="45" fill="#FFF9C4" stroke="#FFC107" stroke-width="3"/>
+  <!-- Símbolo de Eletricidade -->
+  <path d="M55 15L30 50H45L40 85L65 45H50L55 15Z" fill="#FFEB3B" stroke="#FFA000" stroke-width="2"/>
+  <!-- Raios Secundários -->
+  <path d="M30 40L20 55L35 50L30 40Z" fill="#FFEB3B" stroke="#FFA000" stroke-width="2"/>
+  <path d="M70 40L80 55L65 50L70 40Z" fill="#FFEB3B" stroke="#FFA000" stroke-width="2"/>
+  <!-- Emblema do Ginásio -->
+  <circle cx="50" cy="50" r="15" fill="#FFFFFF" stroke="#FFA000" stroke-width="2"/>
+  <path d="M55 40L45 50H50L45 60L55 50H50L55 40Z" fill="#FFEB3B" stroke="#FFA000" stroke-width="1"/>
+</svg>

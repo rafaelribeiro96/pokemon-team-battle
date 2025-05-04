@@ -97,6 +97,7 @@ export class PokemonIconComponent implements OnChanges {
   @Input() clickable: boolean = false;
   @Input() showPlaceholder: boolean = true;
   @Input() customStyle: { [key: string]: string } = {};
+  iconPath!: string;
 
   icon?: PokemonIcon;
 
@@ -105,6 +106,21 @@ export class PokemonIconComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['iconId']) {
       this.loadIcon();
+    }
+  }
+
+  ngOnInit() {
+    const icon = this.iconId
+      ? this.pokemonIconsService.getIconById(this.iconId)
+      : undefined;
+    if (icon) {
+      this.iconPath = icon.path;
+    } else {
+      // Usar um ícone de interrogação como fallback
+      this.iconPath = 'assets/icons-svg/interrogação.svg';
+      console.warn(
+        `Ícone não encontrado: ${this.iconId}, usando ícone padrão.`
+      );
     }
   }
 
