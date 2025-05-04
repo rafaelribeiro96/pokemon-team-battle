@@ -1,41 +1,107 @@
+:root {
+  --pokemon-red: #e51c23;
+  --pokemon-blue: #3c5aa6;
+  --pokemon-yellow: #ffcb05;
+  --pokemon-black: #222224;
+}
+
 .app-footer {
-  background-color: var(--pokemon-black);
+  position: relative;
   color: white;
-  padding: 40px 0 20px;
-  margin-top: 50px;
+  padding: 0;
+  margin-top: 80px;
+  margin-bottom: 0;
+  overflow: hidden;
+  width: 100%;
+  background-color: var(--pokemon-black);
+
+  .footer-wave {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    margin-bottom: -5px;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
 
   .footer-container {
+    background-color: var(--pokemon-black);
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 20px 20px;
+    position: relative;
+    z-index: 2;
 
     .footer-content {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-      margin-bottom: 30px;
+      gap: 40px;
+      padding: 40px 0;
 
       .footer-section {
         h3 {
           color: var(--pokemon-yellow);
-          margin-bottom: 15px;
-          font-size: 1.2rem;
+          margin-bottom: 20px;
+          font-size: 1.3rem;
+          font-weight: 700;
           position: relative;
+          display: inline-block;
 
           &::after {
             content: '';
             position: absolute;
-            bottom: -5px;
+            bottom: -8px;
             left: 0;
             width: 40px;
-            height: 2px;
-            background-color: var(--pokemon-red);
+            height: 3px;
+            background: linear-gradient(to right, var(--pokemon-red), var(--pokemon-blue));
+            border-radius: 3px;
           }
         }
 
-        p {
-          color: #ccc;
-          line-height: 1.6;
+        &.about-section {
+          .footer-logo {
+            margin-bottom: 15px;
+
+            .footer-logo-img {
+              height: 50px;
+              width: auto;
+            }
+          }
+
+          p {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 20px;
+          }
+
+          .social-links {
+            display: flex;
+            gap: 15px;
+
+            .social-link {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 40px;
+              height: 40px;
+              background-color: rgba(255, 255, 255, 0.1);
+              color: white;
+              text-decoration: none;
+              border-radius: 50%;
+              transition: all 0.3s ease;
+
+              &:hover {
+                background-color: var(--pokemon-red);
+                transform: translateY(-5px);
+              }
+            }
+          }
         }
 
         .footer-links {
@@ -44,37 +110,104 @@
           margin: 0;
 
           li {
-            margin-bottom: 8px;
+            margin-bottom: 12px;
 
             a {
               color: #ccc;
               text-decoration: none;
-              transition: color 0.3s ease;
+              transition: all 0.3s ease;
+              display: inline-block;
+              position: relative;
+              padding-left: 15px;
+
+              &::before {
+                content: '→';
+                position: absolute;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--pokemon-red);
+                opacity: 0;
+                transition: all 0.3s ease;
+              }
 
               &:hover {
                 color: var(--pokemon-yellow);
+                padding-left: 20px;
+
+                &::before {
+                  opacity: 1;
+                }
               }
             }
           }
         }
 
-        .social-links {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
+        &.contact-section {
+          .contact-info {
+            margin-bottom: 20px;
 
-          .social-link {
-            display: inline-block;
-            padding: 5px 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #ccc;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: all 0.3s ease;
+            .contact-item {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              margin-bottom: 15px;
+              color: #ccc;
 
-            &:hover {
-              background-color: var(--pokemon-red);
+              mat-icon {
+                color: var(--pokemon-yellow);
+              }
+            }
+          }
+
+          .newsletter {
+            h4 {
               color: white;
+              margin-bottom: 10px;
+              font-size: 1.1rem;
+            }
+
+            .newsletter-form {
+              display: flex;
+              gap: 5px;
+
+              input {
+                flex: 1;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 20px;
+                background-color: rgba(255, 255, 255, 0.1);
+                color: white;
+                outline: none;
+                transition: all 0.3s ease;
+
+                &:focus {
+                  background-color: rgba(255, 255, 255, 0.2);
+                }
+
+                &::placeholder {
+                  color: #aaa;
+                }
+              }
+
+              button {
+                width: 40px;
+                height: 40px;
+                border: none;
+                border-radius: 50%;
+                background-color: var(--pokemon-red);
+                color: white;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+
+                &:hover {
+                  background-color: var(--pokemon-yellow);
+                  transform: translateX(3px);
+                }
+              }
             }
           }
         }
@@ -84,13 +217,165 @@
     .footer-bottom {
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       padding-top: 20px;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
 
-      p {
-        color: #888;
-        font-size: 0.9rem;
-        margin: 5px 0;
+      .copyright {
+        p {
+          color: #888;
+          font-size: 0.9rem;
+          margin: 5px 0;
+        }
       }
+
+      .footer-bottom-links {
+        display: flex;
+        gap: 20px;
+
+        a {
+          color: #888;
+          text-decoration: none;
+          font-size: 0.9rem;
+          transition: color 0.3s ease;
+
+          &:hover {
+            color: var(--pokemon-yellow);
+          }
+        }
+      }
+    }
+  }
+
+  .pokeball-decoration {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, var(--pokemon-red) 0%, var(--pokemon-red) 48%, black 48%, black 52%, white 52%, white 100%);
+    opacity: 0.1;
+    z-index: 1;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      background-color: white;
+      border-radius: 50%;
+      border: 5px solid black;
+    }
+
+    &.left {
+      bottom: 50px;
+      left: -50px;
+    }
+
+    &.right {
+      top: 100px;
+      right: -50px;
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 992px) {
+  .app-footer {
+    .footer-container {
+      .footer-content {
+        gap: 30px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    .footer-wave {
+      height: 100px;
+    }
+
+    .footer-container {
+      .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+
+        .copyright {
+          order: 2;
+        }
+
+        .footer-bottom-links {
+          order: 1;
+          justify-content: center;
+          margin-bottom: 15px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .app-footer {
+    margin-top: 50px;
+    margin-bottom: 0;
+
+    .footer-container {
+      .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+
+        .footer-section {
+          h3 {
+            &::after {
+              left: 50%;
+              transform: translateX(-50%);
+            }
+          }
+
+          &.about-section {
+            .social-links {
+              justify-content: center;
+            }
+          }
+
+          .footer-links {
+            li a {
+              padding-left: 0;
+
+              &::before {
+                display: none;
+              }
+
+              &:hover {
+                padding-left: 0;
+                transform: translateX(5px);
+              }
+            }
+          }
+
+          &.contact-section {
+            .contact-info {
+              .contact-item {
+                justify-content: center;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .pokeball-decoration {
+      display: none;
     }
   }
 }

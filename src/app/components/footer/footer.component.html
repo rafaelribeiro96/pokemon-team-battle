@@ -1,12 +1,35 @@
 <footer class="app-footer">
+  <div class="footer-wave">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+      <path fill="#222224" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+    </svg>
+  </div>
+
   <div class="footer-container">
     <div class="footer-content">
-      <div class="footer-section">
+      <div class="footer-section about-section">
+        <div class="footer-logo">
+          <img src="/assets/images/logo-pokemon.png" alt="Pokémon Logo" class="footer-logo-img">
+        </div>
         <h3>Pokémon Team Battle</h3>
-        <p>Monte suas equipes e prepare-se para batalhas emocionantes!</p>
+        <p>Monte suas equipes e prepare-se para batalhas emocionantes no mundo Pokémon!</p>
+        <div class="social-links">
+          <a href="#" class="social-link" aria-label="Twitter">
+            <mat-icon>twitter</mat-icon>
+          </a>
+          <a href="#" class="social-link" aria-label="Facebook">
+            <mat-icon>facebook</mat-icon>
+          </a>
+          <a href="#" class="social-link" aria-label="Instagram">
+            <mat-icon>instagram</mat-icon>
+          </a>
+          <a href="#" class="social-link" aria-label="Discord">
+            <mat-icon>discord</mat-icon>
+          </a>
+        </div>
       </div>
 
-      <div class="footer-section">
+      <div class="footer-section links-section">
         <h3>Links Rápidos</h3>
         <ul class="footer-links">
           <li><a routerLink="/">Início</a></li>
@@ -14,23 +37,59 @@
           <li><a routerLink="/pokedex">Pokédex</a></li>
           <li><a routerLink="/games">Jogos</a></li>
           <li><a routerLink="/trainer">Perfil</a></li>
+          <li><a routerLink="/comparator">Comparador</a></li>
+          <li><a routerLink="/quiz">Quiz</a></li>
         </ul>
       </div>
 
-      <div class="footer-section">
-        <h3>Redes Sociais</h3>
-        <div class="social-links">
-          <a href="#" class="social-link">Twitter</a>
-          <a href="#" class="social-link">Facebook</a>
-          <a href="#" class="social-link">Instagram</a>
-          <a href="#" class="social-link">Discord</a>
+      <div class="footer-section features-section">
+        <h3>Recursos</h3>
+        <ul class="footer-links">
+          <li><a routerLink="/pokedex">Pokédex Completa</a></li>
+          <li><a routerLink="/types">Tabela de Tipos</a></li>
+          <li><a routerLink="/moves">Lista de Movimentos</a></li>
+          <li><a routerLink="/items">Itens</a></li>
+          <li><a routerLink="/abilities">Habilidades</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section contact-section">
+        <h3>Contato</h3>
+        <div class="contact-info">
+          <div class="contact-item">
+            <mat-icon>email</mat-icon>
+            <span>contato&#64;pokemonteambattle.com</span>
+          </div>
+          <div class="contact-item">
+            <mat-icon>location_on</mat-icon>
+            <span>Cidade de Pallet, Região de Kanto</span>
+          </div>
+        </div>
+        <div class="newsletter">
+          <h4>Receba Novidades</h4>
+          <div class="newsletter-form">
+            <input type="email" placeholder="Seu e-mail" aria-label="Seu e-mail">
+            <button type="button" aria-label="Inscrever-se">
+              <mat-icon>send</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; {{ currentYear }} Pokémon Team Battle. Todos os direitos reservados.</p>
-      <p>Pokémon e todos os nomes relacionados são marcas registradas da Nintendo.</p>
+      <div class="copyright">
+        <p>&copy; {{ currentYear }} Pokémon Team Battle. Todos os direitos reservados.</p>
+        <p>Pokémon e todos os nomes relacionados são marcas registradas da Nintendo.</p>
+      </div>
+      <div class="footer-bottom-links">
+        <a routerLink="/privacy">Privacidade</a>
+        <a routerLink="/terms">Termos</a>
+        <a routerLink="/cookies">Cookies</a>
+      </div>
     </div>
   </div>
+
+  <div class="pokeball-decoration left"></div>
+  <div class="pokeball-decoration right"></div>
 </footer>
