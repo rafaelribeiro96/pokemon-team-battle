@@ -17,6 +17,9 @@ export interface Pokemon {
   isAttacking?: boolean;
   isFainted?: boolean;
   selected?: boolean;
+  originalPosition?: number;
+  battlesFought?: number;
+  consecutiveBattles?: number;
 }
 
 export interface PokemonDetail extends Pokemon {

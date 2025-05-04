@@ -23,6 +23,7 @@ import { TeamBuilderComponent } from '../../components/team-builder/team-builder
 import { BattleReportComponent } from '../../components/battle-report/battle-report.component';
 import type { Pokemon } from '../../models/pokemon.model';
 import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
+import { BattlePokemon } from '../../models/battle.model';
 
 interface CurrentBattle {
   p1: Pokemon | null;
@@ -273,6 +274,7 @@ export class BattleComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // Modificação no método startBattle para preservar a ordem dos Pokémon
   async startBattle() {
     if (this.teamOne().length === 0 || this.teamTwo().length === 0) {
       alert(
@@ -295,18 +297,26 @@ export class BattleComponent implements OnInit {
     this.teamTwoScore.set(0);
     this.battleLog.set([]);
 
-    const teamOnePokemons = [...this.teamOne()].map((p) => ({
+    // Preservar a ordem original dos Pokémon e adicionar propriedades de batalha
+    const teamOnePokemons = [...this.teamOne()].map((p, index) => ({
       ...p,
       stats: { ...p.stats },
       isFainted: false,
       isAttacking: false,
-    }));
-    const teamTwoPokemons = [...this.teamTwo()].map((p) => ({
+      originalPosition: index,
+      battlesFought: 0,
+      consecutiveBattles: 0,
+    })) as BattlePokemon[];
+
+    const teamTwoPokemons = [...this.teamTwo()].map((p, index) => ({
       ...p,
       stats: { ...p.stats },
       isFainted: false,
       isAttacking: false,
-    }));
+      originalPosition: index,
+      battlesFought: 0,
+      consecutiveBattles: 0,
+    })) as BattlePokemon[];
 
     // Atualizar o Pokémon mais forte da batalha
     this.updateStrongestPokemon([...teamOnePokemons, ...teamTwoPokemons]);
@@ -322,11 +332,23 @@ export class BattleComponent implements OnInit {
       teamTwoPokemons.length > 0 &&
       !this.battleCancelled
     ) {
-      const p1Index = Math.floor(Math.random() * teamOnePokemons.length);
-      const p2Index = Math.floor(Math.random() * teamTwoPokemons.length);
+      // Selecionar Pokémon estrategicamente em vez de aleatoriamente
+      const p1 = this.selectNextPokemon(teamOnePokemons, teamTwoPokemons, 1);
+      const p2 = this.selectNextPokemon(teamTwoPokemons, teamOnePokemons, 2);
 
-      const p1 = teamOnePokemons[p1Index];
-      const p2 = teamTwoPokemons[p2Index];
+      // Incrementar contadores de batalha
+      p1.battlesFought = (p1.battlesFought || 0) + 1;
+      p1.consecutiveBattles = (p1.consecutiveBattles || 0) + 1;
+      p2.battlesFought = (p2.battlesFought || 0) + 1;
+      p2.consecutiveBattles = (p2.consecutiveBattles || 0) + 1;
+
+      // Resetar contadores de batalhas consecutivas para outros Pokémon
+      teamOnePokemons.forEach((pokemon) => {
+        if (pokemon !== p1) pokemon.consecutiveBattles = 0;
+      });
+      teamTwoPokemons.forEach((pokemon) => {
+        if (pokemon !== p2) pokemon.consecutiveBattles = 0;
+      });
 
       // Mostrar animação de novo Pokémon selecionado
       this.showNewPokemonAnimation(p1, 1);
@@ -459,10 +481,22 @@ export class BattleComponent implements OnInit {
         this.updateTeams();
 
         if (secondAttacker === p1) {
-          teamOnePokemons.splice(p1Index, 1);
+          // Remover o Pokémon desmaiado do time
+          const index = teamOnePokemons.findIndex(
+            (p) => p.id === secondAttacker.id
+          );
+          if (index !== -1) {
+            teamOnePokemons.splice(index, 1);
+          }
           this.teamTwoScore.update((val) => val + 1);
         } else {
-          teamTwoPokemons.splice(p2Index, 1);
+          // Remover o Pokémon desmaiado do time
+          const index = teamTwoPokemons.findIndex(
+            (p) => p.id === secondAttacker.id
+          );
+          if (index !== -1) {
+            teamTwoPokemons.splice(index, 1);
+          }
           this.teamOneScore.update((val) => val + 1);
         }
       } else {
@@ -569,10 +603,22 @@ export class BattleComponent implements OnInit {
           this.updateTeams();
 
           if (firstAttacker === p1) {
-            teamOnePokemons.splice(p1Index, 1);
+            // Remover o Pokémon desmaiado do time
+            const index = teamOnePokemons.findIndex(
+              (p) => p.id === firstAttacker.id
+            );
+            if (index !== -1) {
+              teamOnePokemons.splice(index, 1);
+            }
             this.teamTwoScore.update((val) => val + 1);
           } else {
-            teamTwoPokemons.splice(p2Index, 1);
+            // Remover o Pokémon desmaiado do time
+            const index = teamTwoPokemons.findIndex(
+              (p) => p.id === firstAttacker.id
+            );
+            if (index !== -1) {
+              teamTwoPokemons.splice(index, 1);
+            }
             this.teamOneScore.update((val) => val + 1);
           }
         }
@@ -610,6 +656,78 @@ export class BattleComponent implements OnInit {
       // Atualiza os times uma última vez para garantir que todos os estados estejam corretos
       this.updateTeams();
     }
+  }
+
+  // Novo método para selecionar o próximo Pokémon estrategicamente
+  selectNextPokemon(
+    team: Pokemon[],
+    opposingTeam: Pokemon[],
+    teamNumber: number
+  ): Pokemon {
+    if (team.length === 0) {
+      throw new Error(`Time ${teamNumber} não tem Pokémon disponíveis`);
+    }
+
+    if (team.length === 1) {
+      // Se só tiver um Pokémon, não há escolha
+      return team[0];
+    }
+
+    // Estratégia 1: Usar a ordem original nos primeiros turnos
+    if (this.turnNumber() <= 2) {
+      // Nos primeiros turnos, usar a ordem original de seleção
+      team.sort(
+        (a, b) => (a.originalPosition || 0) - (b.originalPosition || 0)
+      );
+      return team[0];
+    }
+
+    // Estratégia 2: Evitar usar o mesmo Pokémon por muitos turnos consecutivos
+    const overusedPokemon = team.find((p) => (p.consecutiveBattles || 0) >= 3);
+    if (overusedPokemon) {
+      // Se algum Pokémon foi usado por 3+ turnos consecutivos, trocar
+      const freshPokemon = team.find((p) => p !== overusedPokemon);
+      if (freshPokemon) {
+        this.battleLog.update((log) => [
+          ...log,
+          `${overusedPokemon.name} está cansado após ${overusedPokemon.consecutiveBattles} batalhas consecutivas. ${freshPokemon.name} entra em seu lugar!`,
+        ]);
+        return freshPokemon;
+      }
+    }
+
+    // Estratégia 3: Vantagem de tipo contra o oponente atual
+    if (opposingTeam.length > 0) {
+      const currentOpponent = opposingTeam[0];
+
+      // Encontrar Pokémon com vantagem de tipo
+      for (const pokemon of team) {
+        if (this.isAttackSuperEffective(pokemon, currentOpponent)) {
+          this.battleLog.update((log) => [
+            ...log,
+            `${pokemon.name} foi escolhido estrategicamente por ter vantagem contra ${currentOpponent.name}!`,
+          ]);
+          return pokemon;
+        }
+      }
+    }
+
+    // Estratégia 4: Balancear o uso dos Pokémon (usar os menos utilizados)
+    team.sort((a, b) => (a.battlesFought || 0) - (b.battlesFought || 0));
+
+    // Estratégia 5: Priorizar Pokémon com mais HP percentual
+    const healthyPokemon = team.filter((p) => p.stats.hp / p.stats.maxHp > 0.5);
+
+    if (healthyPokemon.length > 0) {
+      // Entre os Pokémon saudáveis, escolher o menos utilizado
+      healthyPokemon.sort(
+        (a, b) => (a.battlesFought || 0) - (b.battlesFought || 0)
+      );
+      return healthyPokemon[0];
+    }
+
+    // Se nenhuma estratégia específica se aplicar, usar o Pokémon menos utilizado
+    return team[0];
   }
 
   // Método para atualizar um Pokémon específico no time
