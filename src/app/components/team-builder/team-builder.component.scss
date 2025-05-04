@@ -205,17 +205,25 @@
     }
   }
 
+  /* Adicionando estilos para o filtro por tipo */
   .filter-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+
+    h3 {
+      margin: 0;
+    }
 
     .type-filter {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 15px;
+      flex-wrap: wrap;
 
       label {
         font-weight: bold;
@@ -223,7 +231,7 @@
       }
 
       .type-select {
-        padding: 8px 12px;
+        padding: 10px 15px;
         border-radius: 20px;
         border: 2px solid #3b4cca;
         background-color: white;
@@ -231,15 +239,55 @@
         font-weight: bold;
         cursor: pointer;
         outline: none;
+        transition: all 0.3s ease;
 
         &:focus {
           border-color: #ffcb05;
           box-shadow: 0 0 0 2px rgba(255, 203, 5, 0.3);
         }
+
+        /* Cores para os tipos */
+        &.type-normal { border-color: #A8A878; background-color: rgba(168, 168, 120, 0.1); }
+        &.type-fire { border-color: #F08030; background-color: rgba(240, 128, 48, 0.1); }
+        &.type-water { border-color: #6890F0; background-color: rgba(104, 144, 240, 0.1); }
+        &.type-grass { border-color: #78C850; background-color: rgba(120, 200, 80, 0.1); }
+        &.type-electric { border-color: #F8D030; background-color: rgba(248, 208, 48, 0.1); }
+        &.type-ice { border-color: #98D8D8; background-color: rgba(152, 216, 216, 0.1); }
+        &.type-fighting { border-color: #C03028; background-color: rgba(192, 48, 40, 0.1); }
+        &.type-poison { border-color: #A040A0; background-color: rgba(160, 64, 160, 0.1); }
+        &.type-ground { border-color: #E0C068; background-color: rgba(224, 192, 104, 0.1); }
+        &.type-flying { border-color: #A890F0; background-color: rgba(168, 144, 240, 0.1); }
+        &.type-psychic { border-color: #F85888; background-color: rgba(248, 88, 136, 0.1); }
+        &.type-bug { border-color: #A8B820; background-color: rgba(168, 184, 32, 0.1); }
+        &.type-rock { border-color: #B8A038; background-color: rgba(184, 160, 56, 0.1); }
+        &.type-ghost { border-color: #705898; background-color: rgba(112, 88, 152, 0.1); }
+        &.type-dragon { border-color: #7038F8; background-color: rgba(112, 56, 248, 0.1); }
+        &.type-dark { border-color: #705848; background-color: rgba(112, 88, 72, 0.1); }
+        &.type-steel { border-color: #B8B8D0; background-color: rgba(184, 184, 208, 0.1); }
+        &.type-fairy { border-color: #EE99AC; background-color: rgba(238, 153, 172, 0.1); }
+      }
+
+      .type-random-button {
+        background: linear-gradient(135deg, #3b4cca, #1a237e);
+        color: white;
+        border-radius: 20px;
+        padding: 8px 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
       }
     }
   }
 
+  /* Modificação para padronizar o tamanho dos cards vazios */
   .team-slots {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -280,7 +328,8 @@
     &.type-mixed { background: linear-gradient(135deg, rgba(120, 120, 120, 0.2), rgba(255, 255, 255, 0.1)); }
 
     .team-slot {
-      min-height: 160px;
+      min-height: 220px;
+      max-height: 220px;
       border-radius: 10px;
       overflow: hidden;
       transition: all 0.3s ease;
@@ -297,7 +346,8 @@
         border: 2px dashed #999;
         border-radius: 10px;
         height: 100%;
-        min-height: 160px;
+        min-height: 191px;
+        max-height: 191px;
 
         .empty-icon {
           opacity: 0.5;
@@ -320,6 +370,8 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     position: relative;
     transition: transform 0.2s, box-shadow 0.2s;
+    min-height: 191px;
+    max-height: 191px;
 
     &:hover {
       transform: translateY(-5px);
@@ -525,4 +577,3 @@
     }
   }
 }
-

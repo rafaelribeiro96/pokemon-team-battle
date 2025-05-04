@@ -305,6 +305,78 @@ export class TeamBuilderComponent {
     this.cdr.detectChanges();
   }
 
+  // Adicionar o método para montar time aleatório por tipo
+  addRandomByType() {
+    const type = this.selectedType();
+    if (type === 'all') {
+      // Se "todos os tipos" estiver selecionado, usar o método existente
+      this.addRandomToTeam();
+      return;
+    }
+
+    const remainingSlots = 6 - this.team().length;
+    if (remainingSlots <= 0) return;
+
+    // Filtrar Pokémon pelo tipo selecionado
+    const typedPokemons = this.availablePokemons().filter(
+      (pokemon) => pokemon.type && pokemon.type.includes(type)
+    );
+
+    // Filtrar Pokémon de tipo normal para completar se necessário
+    const normalPokemons = this.availablePokemons().filter(
+      (pokemon) => pokemon.type && pokemon.type.includes('normal')
+    );
+
+    // Criar um array para armazenar os Pokémon selecionados
+    const selectedPokemons: Pokemon[] = [];
+
+    // Adicionar Pokémon do tipo selecionado
+    while (
+      selectedPokemons.length < remainingSlots &&
+      typedPokemons.length > 0
+    ) {
+      const randomIndex = Math.floor(Math.random() * typedPokemons.length);
+      const randomPokemon = { ...typedPokemons[randomIndex] };
+      selectedPokemons.push(randomPokemon);
+
+      // Remover o Pokémon selecionado da lista para evitar duplicatas
+      typedPokemons.splice(randomIndex, 1);
+    }
+
+    // Se ainda não tiver 6 Pokémon, completar com tipo normal
+    if (selectedPokemons.length < remainingSlots) {
+      const normalPokemonsToAdd = Math.min(
+        remainingSlots - selectedPokemons.length,
+        normalPokemons.length
+      );
+
+      for (let i = 0; i < normalPokemonsToAdd; i++) {
+        if (normalPokemons.length > 0) {
+          const randomIndex = Math.floor(Math.random() * normalPokemons.length);
+          const randomPokemon = { ...normalPokemons[randomIndex] };
+          selectedPokemons.push(randomPokemon);
+
+          // Remover o Pokémon selecionado da lista para evitar duplicatas
+          normalPokemons.splice(randomIndex, 1);
+        }
+      }
+    }
+
+    // Adicionar os Pokémon selecionados ao time
+    this.team.set([...this.team(), ...selectedPokemons]);
+    this.emitTeamChange();
+
+    // Atualizar a lista de disponíveis
+    this.availablePokemons.set(
+      this.availablePokemons().filter(
+        (p) => !selectedPokemons.some((sp) => sp.id === p.id)
+      )
+    );
+
+    // Forçar detecção de mudanças
+    this.cdr.detectChanges();
+  }
+
   // Métodos para controle de modais
   openGymSelector() {
     this.showGymSelector.set(true);

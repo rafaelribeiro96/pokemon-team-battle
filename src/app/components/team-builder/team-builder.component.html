@@ -14,7 +14,7 @@
         <app-custom-icon name="edit" size="xs" color="#3b4cca" class="edit-icon"></app-custom-icon>
       </div>
 
-      <div class="team-strength" *ngIf="team().length > 0">
+      <div class="team-strength" >
         <div class="strength-meter" [ngClass]="getTeamStrengthClass()">
           <div class="strength-label">Força do Time</div>
           <div class="strength-value">{{ getTeamStrength() }}</div>
@@ -100,9 +100,15 @@
       <h3>Lista de Pokémon</h3>
       <div class="type-filter">
         <label for="type-select">Filtrar por tipo:</label>
-        <select id="type-select" [(ngModel)]="selectedType" class="type-select">
-          <option *ngFor="let type of pokemonTypes" [value]="type.value">{{ type.label }}</option>
+        <select id="type-select" [ngModel]="selectedType()" (ngModelChange)="selectedType.set($event)" class="type-select" [ngClass]="'type-' + selectedType()">
+          <option *ngFor="let type of pokemonTypes" [value]="type.value" [ngClass]="'type-' + type.value">{{ type.label }}</option>
         </select>
+
+        <button mat-raised-button class="type-random-button" (click)="addRandomByType()">
+          <app-pokemon-icon [iconId]="selectedType() + '-type'" size="sm" *ngIf="selectedType() !== 'all'"></app-pokemon-icon>
+          <app-pokemon-icon iconId="random" size="sm" *ngIf="selectedType() === 'all'"></app-pokemon-icon>
+          Aleatório por Tipo
+        </button>
       </div>
     </div>
 
