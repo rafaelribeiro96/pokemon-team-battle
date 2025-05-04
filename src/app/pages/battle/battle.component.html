@@ -58,9 +58,9 @@
     </div>
 
     <div class="battle-arena" [class.slim-mode]="!battleInProgress() && !battleEnded()">
-      <!-- Ícone do Ginásio -->
-      <div class="gym-icon">
-        <app-pokemon-icon [iconId]="currentGym()" size="lg"></app-pokemon-icon>
+      <!-- Ícone do Ginásio - Mostrar apenas se houver um ginásio selecionado -->
+      <div class="gym-icon" *ngIf="currentGym()">
+        <app-pokemon-icon [iconId]="currentGym()!" size="lg"></app-pokemon-icon>
       </div>
 
       <div *ngIf="battleInProgress()" class="current-battle">

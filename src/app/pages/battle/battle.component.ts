@@ -1,38 +1,66 @@
-/* battle.component.ts */
-import { Component, signal, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { TeamBuilderComponent } from '../../components/team-builder/team-builder.component';
-import { MatButtonModule } from '@angular/material/button';
-import { Pokemon } from '../../models/pokemon.model';
+import {
+  Component,
+  ViewChild,
+  ElementRef,
+  signal,
+  OnInit,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BattleReportComponent } from '../../components/battle-report/battle-report.component';
-import { BattleHeaderComponent } from '../../components/battle-header/battle-header.component';
+import { MatButtonModule } from '@angular/material/button';
+import {
+  trigger,
+  style,
+  animate,
+  transition,
+  state,
+} from '@angular/animations';
+import { PokemonService } from '../../services/pokemon.service';
 import { PokemonCardComponent } from '../../components/pokemon-card/pokemon-card.component';
 import { ScoreboardComponent } from '../../components/scoreboard/scoreboard.component';
-import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
 import { PokemonIconComponent } from '../../components/pokemon-icon/pokemon-icon.component';
-import {
-  animate,
-  state,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
+import { TeamBuilderComponent } from '../../components/team-builder/team-builder.component';
+import { BattleReportComponent } from '../../components/battle-report/battle-report.component';
+import { Pokemon } from '../../models/pokemon.model';
+import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
+
+interface CurrentBattle {
+  p1: Pokemon | null;
+  p2: Pokemon | null;
+  p1IsAttacking?: boolean;
+  p2IsAttacking?: boolean;
+  p1IsDefending?: boolean;
+  p2IsDefending?: boolean;
+  p1IsSuperEffective?: boolean;
+  p2IsSuperEffective?: boolean;
+}
+
+interface AnimationPosition {
+  x: number;
+  y: number;
+}
+
+interface NewPokemonAnimation {
+  show: boolean;
+  position: AnimationPosition;
+  player: number;
+}
 
 @Component({
-  standalone: true,
   selector: 'app-battle',
-  templateUrl: './battle.component.html',
-  styleUrls: ['./battle.component.scss'],
+  standalone: true,
   imports: [
-    TeamBuilderComponent,
-    MatButtonModule,
     CommonModule,
-    BattleReportComponent,
+    MatButtonModule,
     PokemonCardComponent,
     ScoreboardComponent,
-    PokemonIconsModule,
     PokemonIconComponent,
+    TeamBuilderComponent,
+    BattleReportComponent,
+    PokemonIconsModule,
   ],
+  templateUrl: './battle.component.html',
+  styleUrls: ['./battle.component.scss'],
   animations: [
     trigger('battleStart', [
       state(
@@ -81,23 +109,14 @@ import {
     ]),
   ],
 })
-export class BattleComponent {
+export class BattleComponent implements OnInit {
   @ViewChild('teamOneBuilder') teamOneBuilder!: TeamBuilderComponent;
   @ViewChild('teamTwoBuilder') teamTwoBuilder!: TeamBuilderComponent;
 
   teamOne = signal<Pokemon[]>([]);
   teamTwo = signal<Pokemon[]>([]);
   battleLog = signal<string[]>([]);
-  currentBattle = signal<{
-    p1: Pokemon | null;
-    p2: Pokemon | null;
-    p1IsAttacking?: boolean;
-    p2IsAttacking?: boolean;
-    p1IsDefending?: boolean;
-    p2IsDefending?: boolean;
-    p1IsSuperEffective?: boolean;
-    p2IsSuperEffective?: boolean;
-  }>({
+  currentBattle = signal<CurrentBattle>({
     p1: null,
     p2: null,
   });
@@ -109,7 +128,6 @@ export class BattleComponent {
   teamTwoScore = signal(0);
   battleStartState = 'hidden';
   vsState = 'hidden';
-  selectedGym = 'fire-gym'; // Pode ser 'fire-gym', 'water-gym', ou 'electric-gym'
 
   // Propriedades para armazenar informações dos times
   teamOneName = signal<string>('Time 1');
@@ -136,10 +154,15 @@ export class BattleComponent {
 
   // Flag para controlar o cancelamento da batalha
   private battleCancelled = false;
-  teamOneBuilderRef: any;
-  teamTwoBuilderRef: any;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private pokemonService: PokemonService
+  ) {}
+
+  ngOnInit() {
+    // Inicializar o componente
+  }
 
   // Mapeamento de tipos e suas fraquezas
   typeWeaknesses: { [key: string]: string[] } = {
@@ -163,10 +186,11 @@ export class BattleComponent {
     normal: ['fighting'],
   };
 
-  // Método para obter o ginásio atual com base no turno\
-  currentGym(): string {
+  // Método para obter o ginásio atual com base no turno
+  currentGym(): string | null {
+    // Inicialmente, não mostrar nenhum ícone de ginásio
     if (!this.battleInProgress()) {
-      return this.teamOneGym() || this.teamTwoGym() || 'fire-gym';
+      return null;
     }
 
     // Durante a batalha, alterna entre os ginásios dos times
@@ -179,7 +203,7 @@ export class BattleComponent {
     } else if (this.teamTwoGym()) {
       return this.teamTwoGym();
     } else {
-      return 'fire-gym'; // Ginásio padrão se nenhum for selecionado
+      return null; // Nenhum ginásio selecionado
     }
   }
 
@@ -196,11 +220,12 @@ export class BattleComponent {
     this.teamOne.set(team);
 
     // Capturar informações do time do componente team-builder
-    if (this.teamOneBuilderRef) {
-      const builder = this.teamOneBuilderRef.nativeElement;
-      this.teamOneName.set(builder.teamName?.() || 'Time 1');
-      this.teamOneTrainer.set(builder.trainerAvatar?.() || 'trainer-red');
-      this.teamOneGym.set(builder.selectedGym?.() || '');
+    if (this.teamOneBuilder) {
+      this.teamOneName.set(this.teamOneBuilder.teamName() || 'Time 1');
+      this.teamOneTrainer.set(
+        this.teamOneBuilder.trainerAvatar() || 'trainer-red'
+      );
+      this.teamOneGym.set(this.teamOneBuilder.selectedGym() || '');
     }
   }
 
@@ -209,11 +234,12 @@ export class BattleComponent {
     this.teamTwo.set(team);
 
     // Capturar informações do time do componente team-builder
-    if (this.teamTwoBuilderRef) {
-      const builder = this.teamTwoBuilderRef.nativeElement;
-      this.teamTwoName.set(builder.teamName?.() || 'Time 2');
-      this.teamTwoTrainer.set(builder.trainerAvatar?.() || 'trainer-blue');
-      this.teamTwoGym.set(builder.selectedGym?.() || '');
+    if (this.teamTwoBuilder) {
+      this.teamTwoName.set(this.teamTwoBuilder.teamName() || 'Time 2');
+      this.teamTwoTrainer.set(
+        this.teamTwoBuilder.trainerAvatar() || 'trainer-blue'
+      );
+      this.teamTwoGym.set(this.teamTwoBuilder.selectedGym() || '');
     }
   }
 
@@ -688,7 +714,6 @@ export class BattleComponent {
   }
 
   // Novos métodos para animações com ícones
-
   showBattleStartAnimation() {
     // Implementação da animação de início de batalha com o ícone do ginásio
     const battleArena = document.querySelector('.battle-arena');
@@ -708,7 +733,7 @@ export class BattleComponent {
 
       // Adicionar ícone do ginásio
       const iconElement = document.createElement('div');
-      iconElement.setAttribute('appPokemonIcon', this.selectedGym);
+      iconElement.setAttribute('appPokemonIcon', this.currentGym() || '');
       iconElement.setAttribute('size', 'xl');
 
       animationElement.appendChild(iconElement);
@@ -730,10 +755,10 @@ export class BattleComponent {
     let attackIconId = 'fight';
     if (attacker.type && attacker.type.length > 0) {
       const type = attacker.type[0].toLowerCase();
-      if (type === 'fire') attackIconId = 'fire-attack';
-      else if (type === 'water') attackIconId = 'water-attack';
-      else if (type === 'grass') attackIconId = 'grass-attack';
-      else if (type === 'electric') attackIconId = 'electric-attack';
+      if (type === 'fire') attackIconId = 'fire-type';
+      else if (type === 'water') attackIconId = 'water-type';
+      else if (type === 'grass') attackIconId = 'grass-type';
+      else if (type === 'electric') attackIconId = 'electric-type';
     }
 
     // Configurar a animação

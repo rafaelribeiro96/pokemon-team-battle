@@ -375,14 +375,14 @@ export class PokemonIconsService {
     {
       id: 'trainer-leaf',
       name: 'Treinadora Verde',
-      path: 'assets/icons-svg/trinadorgreen.svg',
+      path: 'assets/icons-svg/treinadorgreen.svg',
       category: 'interface',
       tags: ['trainer', 'character', 'green', 'female'],
     },
     {
       id: 'trainer-gold',
       name: 'Treinador Dourado',
-      path: 'assets/icons-svg/trinadoryellow.svg',
+      path: 'assets/icons-svg/treinadoryellow.svg',
       category: 'interface',
       tags: ['trainer', 'character', 'gold'],
     },
@@ -415,7 +415,7 @@ export class PokemonIconsService {
       tags: ['trainer', 'character', 'sapphire', 'female'],
     },
 
-    // Tipos
+    // Tipos - usando os ícones de ginásio para os tipos que não têm ícones específicos
     {
       id: 'normal-type',
       name: 'Tipo Normal',
@@ -426,119 +426,119 @@ export class PokemonIconsService {
     {
       id: 'fire-type',
       name: 'Tipo Fogo',
-      path: 'assets/icons/Pokemon_Go-19_icon-fogo.com_67638.svg',
+      path: 'assets/icons-svg/ginasiofogo.svg',
       category: 'type',
       tags: ['element', 'fire'],
     },
     {
       id: 'water-type',
       name: 'Tipo Água',
-      path: 'assets/icons/Pokemon_Go-04_icon-agua.com_67620.svg',
+      path: 'assets/icons-svg/ginasioagua.svg',
       category: 'type',
       tags: ['element', 'water'],
     },
     {
       id: 'grass-type',
       name: 'Tipo Planta',
-      path: 'assets/icons/grass-type.svg',
+      path: 'assets/icons-svg/ginasioplanta.svg',
       category: 'type',
       tags: ['element', 'grass'],
     },
     {
       id: 'electric-type',
       name: 'Tipo Elétrico',
-      path: 'assets/icons/electric-type.svg',
+      path: 'assets/icons-svg/ginasioeletrico.svg',
       category: 'type',
       tags: ['element', 'electric'],
     },
     {
       id: 'ice-type',
       name: 'Tipo Gelo',
-      path: 'assets/icons/ice-type.svg',
+      path: 'assets/icons-svg/ginasioagua.svg', // Usando água como substituto para gelo
       category: 'type',
       tags: ['element', 'ice'],
     },
     {
       id: 'fighting-type',
       name: 'Tipo Lutador',
-      path: 'assets/icons/fighting-type.svg',
+      path: 'assets/icons-svg/ginasiofogo.svg', // Usando fogo como substituto para lutador
       category: 'type',
       tags: ['element', 'fighting'],
     },
     {
       id: 'poison-type',
       name: 'Tipo Venenoso',
-      path: 'assets/icons/poison-type.svg',
+      path: 'assets/icons-svg/ginasioveneno.svg',
       category: 'type',
       tags: ['element', 'poison'],
     },
     {
       id: 'ground-type',
       name: 'Tipo Terra',
-      path: 'assets/icons/ground-type.svg',
+      path: 'assets/icons-svg/ginasioterra.svg',
       category: 'type',
       tags: ['element', 'ground'],
     },
     {
       id: 'flying-type',
       name: 'Tipo Voador',
-      path: 'assets/icons/flying-type.svg',
+      path: 'assets/icons-svg/ginasioeletrico.svg', // Usando elétrico como substituto para voador
       category: 'type',
       tags: ['element', 'flying'],
     },
     {
       id: 'psychic-type',
       name: 'Tipo Psíquico',
-      path: 'assets/icons/psychic-type.svg',
+      path: 'assets/icons-svg/ginasiopsiquico.svg',
       category: 'type',
       tags: ['element', 'psychic'],
     },
     {
       id: 'bug-type',
       name: 'Tipo Inseto',
-      path: 'assets/icons/bug-type.svg',
+      path: 'assets/icons-svg/ginasioplanta.svg', // Usando planta como substituto para inseto
       category: 'type',
       tags: ['element', 'bug'],
     },
     {
       id: 'rock-type',
       name: 'Tipo Pedra',
-      path: 'assets/icons/rock-type.svg',
+      path: 'assets/icons-svg/ginasiopedra.svg',
       category: 'type',
       tags: ['element', 'rock'],
     },
     {
       id: 'ghost-type',
       name: 'Tipo Fantasma',
-      path: 'assets/icons/ghost-type.svg',
+      path: 'assets/icons-svg/ginasiopsiquico.svg', // Usando psíquico como substituto para fantasma
       category: 'type',
       tags: ['element', 'ghost'],
     },
     {
       id: 'dragon-type',
       name: 'Tipo Dragão',
-      path: 'assets/icons/dragon-type.svg',
+      path: 'assets/icons-svg/ginasiofogo.svg', // Usando fogo como substituto para dragão
       category: 'type',
       tags: ['element', 'dragon'],
     },
     {
       id: 'dark-type',
       name: 'Tipo Sombrio',
-      path: 'assets/icons/dark-type.svg',
+      path: 'assets/icons-svg/ginasioveneno.svg', // Usando veneno como substituto para sombrio
       category: 'type',
       tags: ['element', 'dark'],
     },
     {
       id: 'steel-type',
       name: 'Tipo Metálico',
-      path: 'assets/icons/steel-type.svg',
+      path: 'assets/icons-svg/ginasiopedra.svg', // Usando pedra como substituto para metálico
       category: 'type',
       tags: ['element', 'steel'],
     },
     {
       id: 'fairy-type',
       name: 'Tipo Fada',
-      path: 'assets/icons/fairy-type.svg',
+      path: 'assets/icons-svg/ginasiopsiquico.svg', // Usando psíquico como substituto para fada
       category: 'type',
       tags: ['element', 'fairy'],
     },

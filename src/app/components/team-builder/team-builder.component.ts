@@ -23,7 +23,6 @@ import {
   query,
   stagger,
 } from '@angular/animations';
-import { TeamService } from '../../services/team.service';
 import { GymSelectorComponent } from '../gym-selector/gym-selector.component';
 import { TrainerAvatarSelectorComponent } from '../trainer-avatar-selector/trainer-avatar-selector.component';
 
@@ -122,7 +121,6 @@ export class TeamBuilderComponent {
 
   constructor(
     private pokemonService: PokemonService,
-    private teamService: TeamService,
     private cdr: ChangeDetectorRef
   ) {
     this.pokemonService.fetchPokemons().then(() => {
@@ -132,14 +130,6 @@ export class TeamBuilderComponent {
       }));
       this.availablePokemons.set(pokemons);
     });
-
-    // Carregar time salvo, se existir
-    const savedTeam = this.teamService.loadTeam();
-    if (savedTeam && savedTeam.pokemons.length > 0) {
-      this.team.set(savedTeam.pokemons);
-      this.teamName.set(savedTeam.name || 'Minha Equipe');
-      this.trainerAvatar.set(savedTeam.trainerAvatar || 'trainer-red');
-    }
   }
 
   // Método para obter a classe de tipo para o background do time
@@ -311,18 +301,6 @@ export class TeamBuilderComponent {
 
     // Forçar detecção de mudanças
     this.cdr.detectChanges();
-  }
-
-  // Método para salvar o time atual
-  saveTeam() {
-    this.teamService.saveTeam({
-      name: this.teamName(),
-      trainerAvatar: this.trainerAvatar(),
-      pokemons: this.team(),
-    });
-
-    // Mostrar mensagem de sucesso (pode ser implementado com um serviço de toast)
-    alert('Time salvo com sucesso!');
   }
 
   // Métodos para controle de modais
