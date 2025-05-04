@@ -1,3 +1,4 @@
+/* team-builder.component.ts */
 import {
   Component,
   EventEmitter,
