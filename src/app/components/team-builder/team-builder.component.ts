@@ -1,18 +1,18 @@
-/* team-builder.component.ts */
 import {
   Component,
   EventEmitter,
   Input,
   Output,
   signal,
-  ChangeDetectorRef,
+  type ChangeDetectorRef,
 } from '@angular/core';
-import { PokemonService } from '../../services/pokemon.service';
-import { Pokemon } from '../../models/pokemon.model';
+import type { PokemonService } from '../../services/pokemon.service';
+import type { Pokemon } from '../../models/pokemon.model';
 import { PokemonListComponent } from '../pokemon-list/pokemon-list.component';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
+import { CustomIconComponent } from '../custom-icon/custom-icon.component';
 
 @Component({
   standalone: true,
@@ -24,6 +24,7 @@ import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
     CommonModule,
     MatButtonModule,
     PokemonIconComponent,
+    CustomIconComponent,
   ],
 })
 export class TeamBuilderComponent {
@@ -47,28 +48,64 @@ export class TeamBuilderComponent {
 
   addPokemonToTeam(pokemon: Pokemon) {
     if (this.team().length < 6 && !this.team().includes(pokemon)) {
-      this.team.set([...this.team(), pokemon]);
+      // Criar uma cópia do Pokémon para evitar referências compartilhadas
+      const pokemonCopy = { ...pokemon };
+
+      // Adicionar ao time
+      const updatedTeam = [...this.team(), pokemonCopy];
+      this.team.set(updatedTeam);
+
+      // Emitir a mudança
       this.emitTeamChange();
+
+      // Atualizar a lista de disponíveis
+      this.availablePokemons.set(
+        this.availablePokemons().filter((p) => p.id !== pokemon.id)
+      );
+
+      // Forçar detecção de mudanças
+      this.cdr.detectChanges();
     }
   }
 
   removePokemonFromTeam(pokemon: Pokemon) {
     this.team.set(this.team().filter((p) => p.id !== pokemon.id));
     this.emitTeamChange();
+
+    // Adicionar o Pokémon de volta à lista de disponíveis
+    const pokemonToAdd = { ...pokemon };
+    this.availablePokemons.set([...this.availablePokemons(), pokemonToAdd]);
+
+    // Forçar detecção de mudanças
+    this.cdr.detectChanges();
   }
 
   addRandomToTeam() {
     const remainingSlots = 6 - this.team().length;
     const availablePokemons = this.getAvailablePokemonsForTeam();
 
-    const randomPokemons = Array.from(
-      { length: remainingSlots },
-      () =>
-        availablePokemons[Math.floor(Math.random() * availablePokemons.length)]
-    );
+    if (availablePokemons.length === 0) return;
+
+    const randomPokemons = [];
+    for (let i = 0; i < remainingSlots && availablePokemons.length > 0; i++) {
+      const randomIndex = Math.floor(Math.random() * availablePokemons.length);
+      const randomPokemon = { ...availablePokemons[randomIndex] };
+      randomPokemons.push(randomPokemon);
+      availablePokemons.splice(randomIndex, 1);
+    }
 
     this.team.set([...this.team(), ...randomPokemons]);
     this.emitTeamChange();
+
+    // Atualizar a lista de disponíveis
+    this.availablePokemons.set(
+      this.availablePokemons().filter(
+        (p) => !randomPokemons.some((rp) => rp.id === p.id)
+      )
+    );
+
+    // Forçar detecção de mudanças
+    this.cdr.detectChanges();
   }
 
   autoCompleteTeam() {
@@ -83,11 +120,21 @@ export class TeamBuilderComponent {
     ) {
       const randomIndex = Math.floor(Math.random() * availablePokemons.length);
       const randomPokemon = availablePokemons.splice(randomIndex, 1)[0];
-      randomPokemons.push(randomPokemon);
+      randomPokemons.push({ ...randomPokemon });
     }
 
     this.team.set([...this.team(), ...randomPokemons]);
     this.emitTeamChange();
+
+    // Atualizar a lista de disponíveis
+    this.availablePokemons.set(
+      this.availablePokemons().filter(
+        (p) => !randomPokemons.some((rp) => rp.id === p.id)
+      )
+    );
+
+    // Forçar detecção de mudanças
+    this.cdr.detectChanges();
   }
 
   private getAvailablePokemonsForTeam(): Pokemon[] {

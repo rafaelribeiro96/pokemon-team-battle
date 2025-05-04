@@ -68,93 +68,130 @@
     }
   }
 
-  .team {
+  .team-slots {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 15px;
     width: 100%;
 
-    .pokemon-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #ffffff;
-      border: 2px solid #3b4cca;
+    .team-slot {
+      min-height: 200px;
       border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: all 0.3s ease;
+
+      &.filled {
+        transform: scale(1.02);
+      }
+
+      .empty-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.05);
+        border: 2px dashed #999;
+        border-radius: 10px;
+        height: 100%;
+        min-height: 200px;
+        padding: 15px;
+
+        .empty-icon {
+          opacity: 0.5;
+          filter: grayscale(100%);
+          margin-bottom: 10px;
+        }
+
+        span {
+          font-size: 0.9rem;
+          color: #666;
+        }
+      }
+    }
+  }
+
+  .pokemon-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    border: 2px solid #3b4cca;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      margin-bottom: 5px;
+    }
+
+    span {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .hp-bar {
+      width: 80%;
+      height: 8px;
+      background-color: #ccc;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 5px;
+
+      .hp {
+        height: 100%;
+        background-color: #4caf50;
+        transition: width 0.5s ease;
+
+        &.low {
+          background-color: #ff9800;
+        }
+
+        &.critical {
+          background-color: #f44336;
+        }
+      }
+    }
+
+    button {
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      margin-top: auto;
+    }
+
+    &.fainted {
+      opacity: 0.6;
+      transform: scale(0.95) rotate(5deg);
+      filter: grayscale(100%);
+      background-color: #ffe6e6;
+      border: 2px solid #ff0000;
       position: relative;
-      transition: transform 0.2s, box-shadow 0.2s;
 
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      }
-
-      img {
-        width: 70px;
-        height: 70px;
-        object-fit: contain;
-        margin-bottom: 5px;
-      }
-
-      span {
-        font-size: 0.9rem;
+      &::after {
+        content: "FAINTED";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 1rem;
         font-weight: bold;
-        color: #333;
-        margin-bottom: 5px;
-      }
-
-      .hp-bar {
-        width: 80%;
-        height: 8px;
-        background-color: #ccc;
-        border-radius: 3px;
-        overflow: hidden;
-        margin-bottom: 5px;
-
-        .hp {
-          height: 100%;
-          background-color: #4caf50;
-          transition: width 0.5s ease;
-
-          &.low {
-            background-color: #ff9800;
-          }
-
-          &.critical {
-            background-color: #f44336;
-          }
-        }
-      }
-
-      button {
-        font-size: 0.8rem;
-        padding: 5px 10px;
-      }
-
-      &.fainted {
-        opacity: 0.6;
-        transform: scale(0.95) rotate(5deg);
-        filter: grayscale(100%);
-        background-color: #ffe6e6;
-        border: 2px solid #ff0000;
-        position: relative;
-
-        &::after {
-          content: "FAINTED";
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) rotate(-30deg);
-          font-size: 1rem;
-          font-weight: bold;
-          color: #ff0000;
-          text-shadow: 1px 1px 2px #000;
-          z-index: 10;
-        }
+        color: #ff0000;
+        text-shadow: 1px 1px 2px #000;
+        z-index: 10;
       }
     }
   }
@@ -164,4 +201,16 @@
   font-size: 0.8rem;
   margin-bottom: 5px;
   font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .team-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .team-slots {
+    grid-template-columns: 1fr;
+  }
 }

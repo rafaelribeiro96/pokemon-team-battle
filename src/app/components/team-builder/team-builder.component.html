@@ -13,26 +13,36 @@
   </div>
 
   <h3>Time Atual</h3>
-  <div class="team">
-    <div *ngFor="let pokemon of team()" class="pokemon-card" [class.fainted]="pokemon.isFainted">
-      <img [src]="pokemon.image" [alt]="pokemon.name" />
-      <span>{{ pokemon.name }}</span>
+  <div class="team-slots">
+    <div *ngFor="let slot of [0, 1, 2, 3, 4, 5]" class="team-slot" [class.filled]="team()[slot]">
+      <ng-container *ngIf="team()[slot]; else emptySlot">
+        <div class="pokemon-card" [class.fainted]="team()[slot].isFainted">
+          <img [src]="team()[slot].image" [alt]="team()[slot].name" />
+          <span>{{ team()[slot].name }}</span>
 
-      <div class="hp-bar">
-        <div class="hp"
-             [ngClass]="{
-               'low': (pokemon.stats.hp / pokemon.stats.maxHp) <= 0.5 && (pokemon.stats.hp / pokemon.stats.maxHp) > 0.25,
-               'critical': (pokemon.stats.hp / pokemon.stats.maxHp) <= 0.25
-             }"
-             [style.width.%]="(pokemon.stats.hp / pokemon.stats.maxHp) * 100"></div>
-      </div>
-      <div class="hp-text">
-        {{ pokemon.stats.hp }} / {{ pokemon.stats.maxHp }}
-      </div>
+          <div class="hp-bar">
+            <div class="hp"
+                [ngClass]="{
+                  'low': (team()[slot].stats.hp / team()[slot].stats.maxHp) <= 0.5 && (team()[slot].stats.hp / team()[slot].stats.maxHp) > 0.25,
+                  'critical': (team()[slot].stats.hp / team()[slot].stats.maxHp) <= 0.25
+                }"
+                [style.width.%]="(team()[slot].stats.hp / team()[slot].stats.maxHp) * 100"></div>
+          </div>
+          <div class="hp-text">
+            {{ team()[slot].stats.hp }} / {{ team()[slot].stats.maxHp }}
+          </div>
 
-      <button mat-button color="warn" (click)="removePokemonFromTeam(pokemon)" [disabled]="battleInProgress">
-        Remover
-      </button>
+          <button mat-button color="warn" (click)="removePokemonFromTeam(team()[slot])" [disabled]="battleInProgress">
+            Remover
+          </button>
+        </div>
+      </ng-container>
+      <ng-template #emptySlot>
+        <div class="empty-slot">
+          <app-custom-icon name="question" size="lg" color="#ffcb05" class="empty-icon"></app-custom-icon>
+          <span>Slot {{ slot + 1 }}</span>
+        </div>
+      </ng-template>
     </div>
   </div>
 
