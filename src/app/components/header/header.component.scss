@@ -1,3 +1,10 @@
+:root {
+  --pokemon-red: #e51c23;
+  --pokemon-blue: #3c5aa6;
+  --pokemon-yellow: #ffcb05;
+  --pokemon-black: #222224;
+}
+
 .app-header {
   background: linear-gradient(to right, var(--pokemon-red), var(--pokemon-blue));
   color: white;
@@ -16,11 +23,33 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 15px;
+    position: relative;
 
     .logo-container {
       .logo {
         height: 50px;
         width: auto;
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
       }
     }
 
@@ -30,24 +59,47 @@
         list-style: none;
         margin: 0;
         padding: 0;
-        gap: 20px;
+        gap: 15px;
 
         li {
           a {
             color: white;
             text-decoration: none;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 1rem;
             padding: 8px 12px;
             border-radius: 20px;
             transition: all 0.3s ease;
+            display: block;
+            position: relative;
+
+            &::after {
+              content: '';
+              position: absolute;
+              bottom: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 0;
+              height: 3px;
+              background-color: var(--pokemon-yellow);
+              transition: width 0.3s ease;
+              border-radius: 3px;
+            }
 
             &:hover {
               background-color: rgba(255, 255, 255, 0.2);
+
+              &::after {
+                width: 70%;
+              }
             }
 
             &.active {
               background-color: rgba(255, 255, 255, 0.3);
+
+              &::after {
+                width: 70%;
+              }
             }
           }
         }
@@ -66,6 +118,11 @@
         background-color: rgba(0, 0, 0, 0.2);
         padding: 5px 10px;
         border-radius: 20px;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.3);
+        }
 
         .play-button {
           background: none;
@@ -90,6 +147,21 @@
           align-items: center;
           gap: 5px;
 
+          .volume-icon {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+
+            &:hover {
+              color: var(--pokemon-yellow);
+            }
+          }
+
           .volume-slider {
             width: 60px;
             height: 4px;
@@ -97,6 +169,11 @@
             background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
             outline: none;
+            transition: all 0.3s ease;
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.5);
+            }
 
             &::-webkit-slider-thumb {
               -webkit-appearance: none;
@@ -105,6 +182,12 @@
               border-radius: 50%;
               background: white;
               cursor: pointer;
+              transition: all 0.3s ease;
+
+              &:hover {
+                background: var(--pokemon-yellow);
+                transform: scale(1.2);
+              }
             }
 
             &::-moz-range-thumb {
@@ -114,6 +197,12 @@
               background: white;
               cursor: pointer;
               border: none;
+              transition: all 0.3s ease;
+
+              &:hover {
+                background: var(--pokemon-yellow);
+                transform: scale(1.2);
+              }
             }
           }
         }
@@ -125,6 +214,14 @@
           align-items: center;
           gap: 8px;
           color: white;
+          background-color: rgba(0, 0, 0, 0.2);
+          border-radius: 20px;
+          padding: 5px 10px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.3);
+          }
 
           .avatar {
             width: 30px;
@@ -132,6 +229,11 @@
             border-radius: 50%;
             overflow: hidden;
             border: 2px solid white;
+            transition: all 0.3s ease;
+
+            &:hover {
+              border-color: var(--pokemon-yellow);
+            }
 
             .avatar-img {
               width: 100%;
@@ -141,8 +243,42 @@
           }
 
           .username {
-            font-weight: bold;
+            font-weight: 600;
           }
+        }
+      }
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 992px) {
+  .app-header {
+    .header-container {
+      .main-nav {
+        .nav-links {
+          gap: 5px;
+
+          li a {
+            padding: 6px 10px;
+            font-size: 0.9rem;
+          }
+        }
+      }
+
+      .right-section {
+        gap: 10px;
+
+        .music-player {
+          padding: 3px 8px;
+
+          .volume-control .volume-slider {
+            width: 40px;
+          }
+        }
+
+        .user-section .user-button .username {
+          font-size: 0.9rem;
         }
       }
     }
@@ -152,19 +288,93 @@
 @media (max-width: 768px) {
   .app-header {
     .header-container {
-      flex-direction: column;
-      align-items: center;
+      justify-content: space-between;
+
+      .mobile-menu-toggle {
+        display: block;
+        order: 3;
+      }
 
       .main-nav {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(to bottom, var(--pokemon-red), var(--pokemon-blue));
+        height: 0;
+        overflow: hidden;
+        transition: height 0.3s ease;
+        z-index: 1000;
+
+        &.mobile-open {
+          height: calc(100vh - 70px);
+          overflow-y: auto;
+        }
+
         .nav-links {
-          flex-wrap: wrap;
-          justify-content: center;
+          flex-direction: column;
+          padding: 20px;
+          gap: 15px;
+
+          li {
+            width: 100%;
+
+            a {
+              padding: 12px 15px;
+              font-size: 1.1rem;
+              width: 100%;
+              text-align: center;
+              border-radius: 10px;
+
+              &::after {
+                bottom: auto;
+                top: 0;
+                height: 100%;
+                width: 3px;
+                left: 0;
+                transform: none;
+              }
+
+              &:hover, &.active {
+                &::after {
+                  width: 3px;
+                  height: 100%;
+                }
+              }
+            }
+          }
         }
       }
 
       .right-section {
-        width: 100%;
-        justify-content: space-between;
+        order: 2;
+        margin-left: auto;
+
+        .music-player {
+          .volume-control {
+            display: none;
+          }
+        }
+
+        .user-section .user-button .username {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    .header-container {
+      padding: 0 10px;
+
+      .logo-container .logo {
+        height: 40px;
+      }
+
+      .right-section {
+        gap: 5px;
       }
     }
   }
