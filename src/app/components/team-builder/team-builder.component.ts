@@ -4,9 +4,9 @@ import {
   Input,
   Output,
   signal,
-  type ChangeDetectorRef,
+  ChangeDetectorRef,
 } from '@angular/core';
-import type { PokemonService } from '../../services/pokemon.service';
+import { PokemonService } from '../../services/pokemon.service';
 import type { Pokemon } from '../../models/pokemon.model';
 import { PokemonListComponent } from '../pokemon-list/pokemon-list.component';
 import { CommonModule } from '@angular/common';
@@ -86,7 +86,25 @@ export class TeamBuilderComponent {
 
     if (availablePokemons.length === 0) return;
 
-    const randomPokemons = [];
+    const randomPokemons: {
+      id: number;
+      name: string;
+      image: string;
+      type: string[];
+      stats: {
+        attack: number;
+        defense: number;
+        speed: number;
+        hp: number;
+        maxHp: number;
+        specialAttack: number;
+        specialDefense: number;
+      };
+      isDefeated?: boolean;
+      isAttacking?: boolean;
+      isFainted?: boolean;
+      selected?: boolean;
+    }[] = [];
     for (let i = 0; i < remainingSlots && availablePokemons.length > 0; i++) {
       const randomIndex = Math.floor(Math.random() * availablePokemons.length);
       const randomPokemon = { ...availablePokemons[randomIndex] };
@@ -112,7 +130,25 @@ export class TeamBuilderComponent {
     const remainingSlots = 6 - this.team().length;
     const availablePokemons = this.getAvailablePokemonsForTeam();
 
-    const randomPokemons = [];
+    const randomPokemons: {
+      id: number;
+      name: string;
+      image: string;
+      type: string[];
+      stats: {
+        attack: number;
+        defense: number;
+        speed: number;
+        hp: number;
+        maxHp: number;
+        specialAttack: number;
+        specialDefense: number;
+      };
+      isDefeated?: boolean;
+      isAttacking?: boolean;
+      isFainted?: boolean;
+      selected?: boolean;
+    }[] = [];
 
     while (
       randomPokemons.length < remainingSlots &&
