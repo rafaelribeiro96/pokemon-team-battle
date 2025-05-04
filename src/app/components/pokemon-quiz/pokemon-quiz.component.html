@@ -19,6 +19,7 @@
           class="setting-option"
           [class.selected]="settings.questionCount === count"
           (click)="settings.questionCount = count"
+          [attr.aria-pressed]="settings.questionCount === count"
         >
           {{ count }}
         </button>
@@ -33,6 +34,7 @@
           class="setting-option difficulty-option"
           [class.selected]="settings.difficulty === diff.value"
           (click)="settings.difficulty = diff.value"
+          [attr.aria-pressed]="settings.difficulty === diff.value"
         >
           <div class="difficulty-icon" [ngClass]="diff.value">
             <i class="difficulty-stars">
@@ -72,13 +74,14 @@
       <!-- Opções de resposta (layout vertical) -->
       <div class="options-container vertical">
         <button
-          *ngFor="let option of currentQuestion.options"
+          *ngFor="let option of currentQuestion.options; let i = index"
           class="option-button"
           [class.selected]="selectedAnswer === option"
           [class.correct]="showAnswer && normalizeAnswer(option) === normalizeAnswer(currentQuestion.correctAnswer)"
           [class.incorrect]="showAnswer && selectedAnswer === option && normalizeAnswer(option) !== normalizeAnswer(currentQuestion.correctAnswer)"
           [disabled]="showAnswer"
           (click)="selectAnswer(option)"
+          [attr.aria-label]="'Opção ' + (i + 1) + ': ' + option"
         >
           {{ option }}
         </button>

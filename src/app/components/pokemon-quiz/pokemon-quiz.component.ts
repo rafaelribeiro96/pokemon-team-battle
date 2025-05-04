@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -65,6 +65,7 @@ export class PokemonQuizComponent implements OnInit {
   quizCompleted: boolean = false;
   errorMessage: string = '';
   showSettings: boolean = true;
+  isMobile = false;
 
   questionCountOptions: number[] = [10, 20, 30];
 
@@ -228,8 +229,17 @@ export class PokemonQuizComponent implements OnInit {
 
   constructor(private pokemonService: PokemonService) {}
 
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.checkScreenSize();
+  }
+
   ngOnInit(): void {
-    // Não iniciar o quiz automaticamente, mostrar configurações primeiro
+    this.checkScreenSize();
+  }
+
+  checkScreenSize(): void {
+    this.isMobile = window.innerWidth < 768;
   }
 
   get currentQuestion(): QuizQuestion {
@@ -247,21 +257,13 @@ export class PokemonQuizComponent implements OnInit {
     this.questions = []; // Limpar perguntas anteriores
 
     try {
-      console.log('Iniciando geração do quiz...');
-      console.log(
-        `Configurações: ${this.settings.questionCount} perguntas, dificuldade ${this.settings.difficulty}`
-      );
-
       // Determinar o número máximo de Pokémon com base na dificuldade
       const difficultyOption = this.difficultyOptions.find(
         (d) => d.value === this.settings.difficulty
       );
       const maxPokemonId = difficultyOption?.maxPokemonId || 151;
 
-      console.log(`Buscando Pokémon até o ID ${maxPokemonId}...`);
       const pokemons = await this.pokemonService.fetchPokemons(maxPokemonId);
-
-      console.log(`Recebidos ${pokemons.length} Pokémon`);
 
       if (!pokemons || pokemons.length < 20) {
         throw new Error(
@@ -283,10 +285,6 @@ export class PokemonQuizComponent implements OnInit {
       const typeQuestionCount = Math.floor(this.settings.questionCount * 0.2);
       const evolutionQuestionCount =
         this.settings.questionCount - imageQuestionCount - typeQuestionCount;
-
-      console.log(
-        `Distribuição de perguntas: ${imageQuestionCount} de imagem, ${typeQuestionCount} de tipo, ${evolutionQuestionCount} de evolução`
-      );
 
       // Criar perguntas de "Quem é este Pokémon?"
       const imageQuestions = shuffledPokemons
@@ -503,7 +501,6 @@ export class PokemonQuizComponent implements OnInit {
       }
 
       // Combinar e embaralhar as perguntas
-      console.log('Combinando e embaralhando perguntas...');
       const allQuestions = [
         ...imageQuestions,
         ...typeQuestions,
@@ -514,8 +511,6 @@ export class PokemonQuizComponent implements OnInit {
         0,
         this.settings.questionCount
       );
-
-      console.log(`Quiz gerado com ${this.questions.length} perguntas`);
 
       if (this.questions.length === 0) {
         throw new Error('Não foi possível gerar perguntas para o quiz');
@@ -578,9 +573,19 @@ export class PokemonQuizComponent implements OnInit {
     } else {
       this.feedbackMessage = `A resposta correta é: ${this.currentQuestion.correctAnswer}`;
     }
+
+    // Rolar para o feedback em dispositivos móveis
+    if (this.isMobile) {
+      setTimeout(() => {
+        const feedbackElement = document.querySelector('.feedback-container');
+        if (feedbackElement) {
+          feedbackElement.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
   }
 
-  // Normaliza a resposta para comparação (corrige o bug do Lanturn)
+  // Normaliza a resposta para comparação
   normalizeAnswer(answer: string): string {
     if (!answer) return '';
     return answer.trim().toLowerCase();
@@ -590,6 +595,16 @@ export class PokemonQuizComponent implements OnInit {
     if (this.currentQuestionIndex < this.questions.length - 1) {
       this.currentQuestionIndex++;
       this.resetQuestion();
+
+      // Rolar para o topo da questão em dispositivos móveis
+      if (this.isMobile) {
+        setTimeout(() => {
+          const questionElement = document.querySelector('.question');
+          if (questionElement) {
+            questionElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
     } else {
       this.quizCompleted = true;
     }
@@ -610,6 +625,9 @@ export class PokemonQuizComponent implements OnInit {
     this.showAnswer = false;
     this.questions = [];
     this.showSettings = true;
+
+    // Rolar para o topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   retryQuiz(): void {
