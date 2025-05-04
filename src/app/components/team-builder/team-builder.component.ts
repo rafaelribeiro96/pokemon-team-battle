@@ -12,13 +12,19 @@ import { Pokemon } from '../../models/pokemon.model';
 import { PokemonListComponent } from '../pokemon-list/pokemon-list.component';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
 
 @Component({
   standalone: true,
   selector: 'app-team-builder',
   templateUrl: './team-builder.component.html',
   styleUrls: ['./team-builder.component.scss'],
-  imports: [PokemonListComponent, CommonModule, MatButtonModule],
+  imports: [
+    PokemonListComponent,
+    CommonModule,
+    MatButtonModule,
+    PokemonIconComponent,
+  ],
 })
 export class TeamBuilderComponent {
   availablePokemons = signal<Pokemon[]>([]);

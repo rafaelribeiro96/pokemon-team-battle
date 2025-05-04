@@ -2,8 +2,14 @@
 <div class="team-builder">
   <h2>Monte Seu Time</h2>
   <div class="team-actions">
-    <button mat-raised-button color="primary" (click)="addRandomToTeam()">Escolha Aleatória</button>
-    <button mat-raised-button color="accent" (click)="autoCompleteTeam()">Auto-Completar</button>
+    <button mat-raised-button class="random-button" (click)="addRandomToTeam()">
+      <app-pokemon-icon iconId="pokeball" size="sm"></app-pokemon-icon>
+      Escolha Aleatória
+    </button>
+    <button mat-raised-button class="auto-complete-button" (click)="autoCompleteTeam()">
+      <app-pokemon-icon iconId="pokeballs" size="sm"></app-pokemon-icon>
+      Auto-Completar
+    </button>
   </div>
 
   <h3>Time Atual</h3>

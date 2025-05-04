@@ -1,5 +1,12 @@
 /* battle-report.component.ts */
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  type OnChanges,
+  type SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
 import { PokemonIconComponent } from '../pokemon-icon/pokemon-icon.component';
@@ -26,183 +33,10 @@ interface LogEntry {
   selector: 'app-battle-report',
   standalone: true,
   imports: [CommonModule, PokemonIconsModule, PokemonIconComponent],
-  template: `
-    <div class="battle-report">
-      <div class="report-header">
-        <app-pokemon-icon iconId="crown" size="md"></app-pokemon-icon>
-        <h3>Relatório de Batalha</h3>
-      </div>
-
-      <div class="report-content">
-        <div class="winner-section" *ngIf="winner">
-          <h4>Vencedor</h4>
-          <div class="winner-info">
-            <app-pokemon-icon
-              [iconId]="winner.avatar || 'pikachu'"
-              size="lg"
-            ></app-pokemon-icon>
-            <div class="winner-name">{{ winner.name }}</div>
-          </div>
-        </div>
-
-        <div class="teams-stats">
-          <div class="team-stats team-one">
-            <h4>
-              <app-pokemon-icon
-                iconId="trainer-red"
-                size="sm"
-              ></app-pokemon-icon>
-              Time 1
-            </h4>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <app-pokemon-icon iconId="fight" size="sm"></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Ataques:</div>
-              <div class="stat-value">{{ teamOneStats.totalAttacks }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <app-pokemon-icon iconId="damage" size="sm"></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Dano Total:</div>
-              <div class="stat-value">{{ teamOneStats.totalDamage }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <app-pokemon-icon
-                  iconId="fainted-pokeball"
-                  size="sm"
-                ></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Knockouts:</div>
-              <div class="stat-value">{{ teamOneStats.knockouts }}</div>
-            </div>
-            <div class="stat-item" *ngIf="teamOneStats.strongestPokemon">
-              <div class="stat-icon">
-                <app-pokemon-icon iconId="crown" size="sm"></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Pokémon Mais Forte:</div>
-              <div class="stat-value">
-                {{ teamOneStats.strongestPokemon.name }}
-              </div>
-            </div>
-          </div>
-
-          <div class="team-stats team-two">
-            <h4>
-              <app-pokemon-icon
-                iconId="trainer-blue"
-                size="sm"
-              ></app-pokemon-icon>
-              Time 2
-            </h4>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <app-pokemon-icon iconId="fight" size="sm"></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Ataques:</div>
-              <div class="stat-value">{{ teamTwoStats.totalAttacks }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <app-pokemon-icon iconId="damage" size="sm"></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Dano Total:</div>
-              <div class="stat-value">{{ teamTwoStats.totalDamage }}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-icon">
-                <app-pokemon-icon
-                  iconId="fainted-pokeball"
-                  size="sm"
-                ></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Knockouts:</div>
-              <div class="stat-value">{{ teamTwoStats.knockouts }}</div>
-            </div>
-            <div class="stat-item" *ngIf="teamTwoStats.strongestPokemon">
-              <div class="stat-icon">
-                <app-pokemon-icon iconId="crown" size="sm"></app-pokemon-icon>
-              </div>
-              <div class="stat-label">Pokémon Mais Forte:</div>
-              <div class="stat-value">
-                {{ teamTwoStats.strongestPokemon.name }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="battle-summary">
-          <h4>Resumo da Batalha</h4>
-          <div class="stat-item">
-            <div class="stat-icon">
-              <app-pokemon-icon iconId="pokeball" size="sm"></app-pokemon-icon>
-            </div>
-            <div class="stat-label">Total de Pokémon:</div>
-            <div class="stat-value">
-              {{ teamOneStats.pokemonUsed + teamTwoStats.pokemonUsed }}
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">
-              <app-pokemon-icon iconId="coin" size="sm"></app-pokemon-icon>
-            </div>
-            <div class="stat-label">Pontos Ganhos:</div>
-            <div class="stat-value">{{ calculateTotalPoints() }}</div>
-          </div>
-        </div>
-
-        <div class="battle-log">
-          <h4>Log da Batalha</h4>
-          <div class="log-entries">
-            <div
-              *ngFor="let entry of reversedLogEntries"
-              class="log-entry"
-              [ngClass]="{
-                'team-one': entry.team === 1,
-                'team-two': entry.team === 2
-              }"
-            >
-              <div class="log-icon" [ngSwitch]="entry.type">
-                <app-pokemon-icon
-                  *ngSwitchCase="'attack'"
-                  iconId="fight"
-                  size="xs"
-                ></app-pokemon-icon>
-                <app-pokemon-icon
-                  *ngSwitchCase="'faint'"
-                  iconId="fainted-pokeball"
-                  size="xs"
-                ></app-pokemon-icon>
-                <app-pokemon-icon
-                  *ngSwitchCase="'switch'"
-                  iconId="pokeball"
-                  size="xs"
-                ></app-pokemon-icon>
-                <app-pokemon-icon
-                  *ngSwitchDefault
-                  iconId="pokedex"
-                  size="xs"
-                ></app-pokemon-icon>
-              </div>
-              <div class="log-message">{{ entry.message }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="report-actions">
-        <button class="action-btn" (click)="closeReport()">Fechar</button>
-        <button class="action-btn primary" (click)="newBattle()">
-          Nova Batalha
-        </button>
-      </div>
-    </div>
-  `,
+  templateUrl: './battle-report.component.html',
   styleUrls: ['./battle-report.component.scss'],
 })
-export class BattleReportComponent {
+export class BattleReportComponent implements OnChanges {
   @Input() log: string[] = [];
   @Output() close = new EventEmitter<void>();
   @Output() restart = new EventEmitter<void>();
@@ -237,8 +71,10 @@ export class BattleReportComponent {
     this.processLog();
   }
 
-  ngOnChanges() {
-    this.processLog();
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['log']) {
+      this.processLog();
+    }
   }
 
   processLog() {
@@ -269,7 +105,7 @@ export class BattleReportComponent {
 
     // Processar cada entrada do log
     for (const entry of this.log) {
-      let logEntry: LogEntry = { type: 'info', message: entry };
+      const logEntry: LogEntry = { type: 'info', message: entry };
 
       if (entry.includes('ataca')) {
         logEntry.type = 'attack';
@@ -280,7 +116,7 @@ export class BattleReportComponent {
         const defenderParts = parts[1].split(' e causa ');
         const defender = defenderParts[0];
         const damageParts = defenderParts[1].split(' de dano');
-        const damage = parseInt(damageParts[0], 10);
+        const damage = Number.parseInt(damageParts[0], 10);
         const isSuperEffective = entry.includes('SUPER EFETIVO');
 
         // Determinar a equipe do atacante
@@ -390,17 +226,6 @@ export class BattleReportComponent {
 
     // Se não conseguirmos determinar, assumimos Time 1 se não houver oponente
     return !opponent;
-  }
-
-  calculateTotalPoints(): number {
-    const attackPoints =
-      (this.teamOneStats.totalAttacks + this.teamTwoStats.totalAttacks) * 1.5;
-    const knockoutPoints =
-      (this.teamOneStats.knockouts + this.teamTwoStats.knockouts) * 3;
-    const pokemonPoints =
-      (this.teamOneStats.pokemonUsed + this.teamTwoStats.pokemonUsed) * 2;
-
-    return Math.floor(attackPoints + knockoutPoints + pokemonPoints);
   }
 
   closeReport() {

@@ -6,61 +6,97 @@
   </div>
 
   <div class="report-content">
-    <div class="winner-section" *ngIf="winner">
-      <h4>Vencedor</h4>
-      <div class="winner-info">
-        <app-pokemon-icon [iconId]="winner.avatar || 'pikachu'" size="lg"></app-pokemon-icon>
-        <div class="winner-name">{{ winner.name }}</div>
-      </div>
-    </div>
-
-    <div class="stats-section">
-      <h4>Estatísticas</h4>
-
-      <div class="stat-item">
-        <div class="stat-icon">
-          <app-pokemon-icon iconId="fight" size="sm"></app-pokemon-icon>
-        </div>
-        <div class="stat-label">Total de Ataques:</div>
-        <div class="stat-value">{{ battleStats.totalAttacks }}</div>
-      </div>
-
-      <div class="stat-item">
-        <div class="stat-icon">
-          <app-pokemon-icon iconId="crown" size="sm"></app-pokemon-icon>
-        </div>
-        <div class="stat-label">Pokémon Mais Forte:</div>
-        <div class="stat-value">{{ battleStats.strongestPokemon?.name }}</div>
-      </div>
-
-      <div class="stat-item">
-        <div class="stat-icon">
-          <app-pokemon-icon iconId="pokeball" size="sm"></app-pokemon-icon>
-        </div>
-        <div class="stat-label">Pokémon Utilizados:</div>
-        <div class="stat-value">{{ battleStats.totalPokemon }}</div>
-      </div>
-
-      <div class="stat-item">
-        <div class="stat-icon">
-          <app-pokemon-icon iconId="coin" size="sm"></app-pokemon-icon>
-        </div>
-        <div class="stat-label">Pontos Ganhos:</div>
-        <div class="stat-value">{{ battleStats.pointsEarned }}</div>
-      </div>
-    </div>
-
-    <div class="battle-log">
-      <h4>Log da Batalha</h4>
-      <div class="log-entries">
-        <div *ngFor="let entry of battleLog" class="log-entry">
-          <div class="log-icon" [ngSwitch]="entry.type">
-            <app-pokemon-icon *ngSwitchCase="'attack'" iconId="fight" size="xs"></app-pokemon-icon>
-            <app-pokemon-icon *ngSwitchCase="'faint'" iconId="open-pokeball" size="xs"></app-pokemon-icon>
-            <app-pokemon-icon *ngSwitchCase="'switch'" iconId="pokeball" size="xs"></app-pokemon-icon>
-            <app-pokemon-icon *ngSwitchDefault iconId="pokedex" size="xs"></app-pokemon-icon>
+    <div class="report-grid">
+      <!-- Coluna Time 1 -->
+      <div class="team-info team-one">
+        <h4>
+          <app-pokemon-icon iconId="trainer-red" size="sm"></app-pokemon-icon>
+          Time 1
+        </h4>
+        <div class="team-stats">
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="fight" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Ataques:</div>
+            <div class="stat-value">{{ teamOneStats.totalAttacks }}</div>
           </div>
-          <div class="log-message">{{ entry.message }}</div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="damage" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Dano Total:</div>
+            <div class="stat-value">{{ teamOneStats.totalDamage }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="fainted-pokeball" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Knockouts:</div>
+            <div class="stat-value">{{ teamOneStats.knockouts }}</div>
+          </div>
+          <div class="stat-item" *ngIf="teamOneStats.strongestPokemon">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="crown" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Pokémon Mais Forte:</div>
+            <div class="stat-value">{{ teamOneStats.strongestPokemon.name }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna Central - Log da Batalha -->
+      <div class="battle-log">
+        <h4>Log da Batalha</h4>
+        <div class="log-entries">
+          <div *ngFor="let entry of reversedLogEntries" class="log-entry"
+               [ngClass]="{'team-one': entry.team === 1, 'team-two': entry.team === 2}">
+            <div class="log-icon" [ngSwitch]="entry.type">
+              <app-pokemon-icon *ngSwitchCase="'attack'" iconId="fight" size="xs"></app-pokemon-icon>
+              <app-pokemon-icon *ngSwitchCase="'faint'" iconId="fainted-pokeball" size="xs"></app-pokemon-icon>
+              <app-pokemon-icon *ngSwitchCase="'switch'" iconId="pokeball" size="xs"></app-pokemon-icon>
+              <app-pokemon-icon *ngSwitchDefault iconId="pokedex" size="xs"></app-pokemon-icon>
+            </div>
+            <div class="log-message">{{ entry.message }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna Time 2 -->
+      <div class="team-info team-two">
+        <h4>
+          <app-pokemon-icon iconId="trainer-blue" size="sm"></app-pokemon-icon>
+          Time 2
+        </h4>
+        <div class="team-stats">
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="fight" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Ataques:</div>
+            <div class="stat-value">{{ teamTwoStats.totalAttacks }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="damage" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Dano Total:</div>
+            <div class="stat-value">{{ teamTwoStats.totalDamage }}</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="fainted-pokeball" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Knockouts:</div>
+            <div class="stat-value">{{ teamTwoStats.knockouts }}</div>
+          </div>
+          <div class="stat-item" *ngIf="teamTwoStats.strongestPokemon">
+            <div class="stat-icon">
+              <app-pokemon-icon iconId="crown" size="sm"></app-pokemon-icon>
+            </div>
+            <div class="stat-label">Pokémon Mais Forte:</div>
+            <div class="stat-value">{{ teamTwoStats.strongestPokemon.name }}</div>
+          </div>
         </div>
       </div>
     </div>

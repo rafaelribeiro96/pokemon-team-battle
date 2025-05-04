@@ -8,7 +8,7 @@
     [winner]="winner()">
   </app-scoreboard>
 
-  <div class="battle-layout">
+  <div class="battle-layout" [class.selection-mode]="!battleInProgress() && !battleEnded()">
     <div class="team-column team-one" [class.winner]="winner() === 'Time 1'">
       <h3>
         <app-pokemon-icon iconId="trainer-red" size="sm"></app-pokemon-icon>
@@ -54,7 +54,7 @@
       </div>
     </div>
 
-    <div class="battle-arena">
+    <div class="battle-arena" [class.slim-mode]="!battleInProgress() && !battleEnded()">
       <!-- Ícone do Ginásio -->
       <div class="gym-icon">
         <app-pokemon-icon [iconId]="selectedGym" size="lg"></app-pokemon-icon>
@@ -88,9 +88,10 @@
         <button
           mat-raised-button
           color="accent"
-          [disabled]="battleInProgress()"
+          [disabled]="battleInProgress() || teamOne().length === 0 || teamTwo().length === 0"
           (click)="startBattle()"
           *ngIf="!battleInProgress() && !battleEnded()"
+          class="fight-button"
         >
           <app-pokemon-icon iconId="battle" size="sm"></app-pokemon-icon>
           Lutar!
