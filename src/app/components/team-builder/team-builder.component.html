@@ -1,6 +1,29 @@
 <!-- team-builder.component.html -->
 <div class="team-builder">
-  <h2>Monte Seu Time</h2>
+  <div class="team-header">
+    <h2>Monte Seu Time</h2>
+
+    <div class="team-info">
+      <div class="team-name" (click)="openTeamNameInput()">
+        <h3>{{ teamName() }}</h3>
+        <app-custom-icon name="edit" size="sm" color="#3b4cca"></app-custom-icon>
+      </div>
+
+      <div class="team-trainer" (click)="openTrainerSelector()">
+        <app-pokemon-icon [iconId]="trainerAvatar()" size="md"></app-pokemon-icon>
+        <app-custom-icon name="edit" size="xs" color="#3b4cca" class="edit-icon"></app-custom-icon>
+      </div>
+
+      <div class="team-strength" *ngIf="team().length > 0">
+        <div class="strength-meter" [ngClass]="getTeamStrengthClass()">
+          <div class="strength-label">Força do Time</div>
+          <div class="strength-value">{{ getTeamStrength() }}</div>
+          <div class="strength-text">{{ getTeamStrengthText() }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="team-actions">
     <button mat-raised-button class="random-button" (click)="addRandomToTeam()">
       <app-pokemon-icon iconId="pokeball" size="sm"></app-pokemon-icon>
@@ -10,6 +33,14 @@
       <app-pokemon-icon iconId="pokeballs" size="sm"></app-pokemon-icon>
       Auto-Completar
     </button>
+    <button mat-raised-button class="save-button" (click)="saveTeam()" [disabled]="team().length === 0">
+      <app-custom-icon name="save" size="sm" color="white"></app-custom-icon>
+      Salvar Time
+    </button>
+    <button mat-raised-button class="gym-button" (click)="openGymSelector()">
+      <app-pokemon-icon iconId="badge" size="sm"></app-pokemon-icon>
+      Escolher Ginásio
+    </button>
   </div>
 
   <h3>Time Atual</h3>
@@ -18,20 +49,41 @@
       <ng-container *ngIf="team()[slot]; else emptySlot">
         <div class="pokemon-card"
              [class.fainted]="team()[slot].isFainted"
-             [ngClass]="getPokemonTypeClass(team()[slot])">
+             [ngClass]="getPokemonTypeClass(team()[slot])"
+             @pokemonAnimation>
           <img [src]="team()[slot].image" [alt]="team()[slot].name" />
-          <span>{{ team()[slot].name }}</span>
+          <span class="pokemon-name">{{ team()[slot].name }}</span>
 
-          <div class="hp-bar">
-            <div class="hp"
-                [ngClass]="{
-                  'low': (team()[slot].stats.hp / team()[slot].stats.maxHp) <= 0.5 && (team()[slot].stats.hp / team()[slot].stats.maxHp) > 0.25,
-                  'critical': (team()[slot].stats.hp / team()[slot].stats.maxHp) <= 0.25
-                }"
-                [style.width.%]="(team()[slot].stats.hp / team()[slot].stats.maxHp) * 100"></div>
-          </div>
-          <div class="hp-text">
-            {{ team()[slot].stats.hp }} / {{ team()[slot].stats.maxHp }}
+          <!-- Melhorada visualização de estatísticas -->
+          <div class="stats-container">
+            <div class="stat-row">
+              <div class="stat-label">HP</div>
+              <div class="stat-bar">
+                <div class="stat-fill hp" [style.width.%]="(team()[slot].stats.hp / 150) * 100"></div>
+              </div>
+              <div class="stat-value">{{ team()[slot].stats.hp }}</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">ATK</div>
+              <div class="stat-bar">
+                <div class="stat-fill atk" [style.width.%]="(team()[slot].stats.attack / 150) * 100"></div>
+              </div>
+              <div class="stat-value">{{ team()[slot].stats.attack }}</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">DEF</div>
+              <div class="stat-bar">
+                <div class="stat-fill def" [style.width.%]="(team()[slot].stats.defense / 150) * 100"></div>
+              </div>
+              <div class="stat-value">{{ team()[slot].stats.defense }}</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-label">SPD</div>
+              <div class="stat-bar">
+                <div class="stat-fill spd" [style.width.%]="(team()[slot].stats.speed / 150) * 100"></div>
+              </div>
+              <div class="stat-value">{{ team()[slot].stats.speed }}</div>
+            </div>
           </div>
 
           <button mat-button color="warn" (click)="removePokemonFromTeam(team()[slot])" [disabled]="battleInProgress">
@@ -47,10 +99,52 @@
     </div>
   </div>
 
-  <h3 *ngIf="team().length < 6">Lista de Pokémon</h3>
-  <app-pokemon-list
-    *ngIf="team().length < 6"
-    [pokemons]="availablePokemons()"
-    (selectPokemon)="addPokemonToTeam($event)"
-  ></app-pokemon-list>
+  <div *ngIf="team().length < 6">
+    <div class="filter-container">
+      <h3>Lista de Pokémon</h3>
+      <div class="type-filter">
+        <label for="type-select">Filtrar por tipo:</label>
+        <select id="type-select" [(ngModel)]="selectedType" class="type-select">
+          <option *ngFor="let type of pokemonTypes" [value]="type.value">{{ type.label }}</option>
+        </select>
+      </div>
+    </div>
+
+    <app-pokemon-list
+      [pokemons]="getFilteredPokemons()"
+      (selectPokemon)="addPokemonToTeam($event)"
+      @listAnimation>
+    </app-pokemon-list>
+  </div>
+
+  <!-- Modal para editar nome do time -->
+  <div class="modal-overlay" *ngIf="showTeamNameInput()" (click)="closeTeamNameInput()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Nome da Equipe</h3>
+      <input type="text" #teamNameInput [value]="teamName()" class="team-name-input">
+      <div class="modal-actions">
+        <button (click)="closeTeamNameInput()">Cancelar</button>
+        <button (click)="saveTeamName(teamNameInput.value)">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para seleção de ginásio -->
+  <div class="modal-overlay" *ngIf="showGymSelector()">
+    <div class="modal-content gym-selector-modal">
+      <app-gym-selector
+        (gymSelected)="selectGym($event)"
+        (cancelled)="closeGymSelector()">
+      </app-gym-selector>
+    </div>
+  </div>
+
+  <!-- Modal para seleção de treinador -->
+  <div class="modal-overlay" *ngIf="showTrainerSelector()">
+    <div class="modal-content trainer-selector-modal">
+      <app-trainer-avatar-selector
+        (avatarSelected)="selectTrainer($event)">
+      </app-trainer-avatar-selector>
+    </div>
+  </div>
 </div>

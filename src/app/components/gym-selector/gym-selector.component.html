@@ -1,1 +1,38 @@
-<p>gym-selector works!</p>
+<div class="gym-selector">
+  <h3>Escolha um Ginásio</h3>
+
+  <div class="gyms-grid">
+    <div
+      *ngFor="let gym of availableGyms"
+      class="gym-item"
+      [class.selected]="selectedGym === gym.id"
+      (click)="selectGym(gym.id)"
+    >
+      <app-pokemon-icon [iconId]="gym.id" size="lg"></app-pokemon-icon>
+      <div class="gym-info">
+        <div class="gym-name">{{ gym.name }}</div>
+        <div class="gym-type">
+          <app-pokemon-icon
+            [iconId]="gym.type + '-type'"
+            size="xs"
+          ></app-pokemon-icon>
+          {{ gym.type | titlecase }}
+        </div>
+        <div class="gym-leader">Líder: {{ gym.leader }}</div>
+        <div class="gym-description" *ngIf="gym.description">{{ gym.description }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="cancel-btn" (click)="cancel()">Cancelar</button>
+    <button
+      class="confirm-btn"
+      (click)="confirmSelection()"
+      [disabled]="!selectedGym"
+    >
+      <app-pokemon-icon iconId="badge" size="sm"></app-pokemon-icon>
+      Confirmar
+    </button>
+  </div>
+</div>
