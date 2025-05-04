@@ -1,3 +1,4 @@
+/* pokemon-icon.component.ts */
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {

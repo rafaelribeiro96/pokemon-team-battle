@@ -1,3 +1,4 @@
+/* trainer-avatar-selector.component.ts */
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
