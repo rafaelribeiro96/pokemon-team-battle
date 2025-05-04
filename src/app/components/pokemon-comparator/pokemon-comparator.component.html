@@ -1,1 +1,360 @@
-<p>pokemon-comparator works!</p>
+<div class="comparator-container">
+  <div class="pokeball-decoration top-left"></div>
+  <div class="pokeball-decoration top-right"></div>
+
+  <div class="comparator-header">
+    <div class="pokeball-icon"></div>
+    <h2 class="comparator-title">Comparador de Pokémon</h2>
+    <div class="pokeball-icon"></div>
+  </div>
+
+  <div class="pokemon-selectors" @fadeIn>
+    <div class="selector-container">
+      <div class="pokemon-selector">
+        <label for="pokemon1">Primeiro Pokémon</label>
+        <select
+          id="pokemon1"
+          [(ngModel)]="selectedPokemon1Id"
+          (change)="loadPokemon(1)"
+          [disabled]="loading"
+        >
+          <option value="">Selecione um Pokémon</option>
+          <option *ngFor="let pokemon of pokemonList" [value]="pokemon.id">
+            #{{ pokemon.id.toString().padStart(3, '0') }} - {{ pokemon.name | titlecase }}
+          </option>
+        </select>
+      </div>
+
+      <div class="vs-container">
+        <div class="vs-badge">VS</div>
+        <div class="vs-line"></div>
+      </div>
+
+      <div class="pokemon-selector">
+        <label for="pokemon2">Segundo Pokémon</label>
+        <select
+          id="pokemon2"
+          [(ngModel)]="selectedPokemon2Id"
+          (change)="loadPokemon(2)"
+          [disabled]="loading"
+        >
+          <option value="">Selecione um Pokémon</option>
+          <option *ngFor="let pokemon of pokemonList" [value]="pokemon.id">
+            #{{ pokemon.id.toString().padStart(3, '0') }} - {{ pokemon.name | titlecase }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="random-button" (click)="selectRandomPokemon()" [disabled]="loading">
+        <span class="button-icon">🎲</span> Pokémon Aleatórios
+      </button>
+      <button class="reset-button" (click)="resetComparison()" [disabled]="loading || (!pokemon1 && !pokemon2)">
+        <span class="button-icon">↺</span> Reiniciar
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-message" *ngIf="loading" @scaleIn>
+    <div class="loading-pokeball"></div>
+    <p>Carregando dados dos Pokémon...</p>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && (!pokemon1 || !pokemon2)" @fadeIn>
+    <img src="assets/images/professor-oak.png" alt="Professor Carvalho" class="professor-image">
+    <div class="speech-bubble">
+      <p>Olá, treinador! Selecione dois Pokémon para compará-los e descobrir qual tem mais chances de vencer em uma batalha.</p>
+    </div>
+  </div>
+
+  <div class="comparison-results" *ngIf="!loading && pokemon1 && pokemon2" @fadeIn>
+    <div class="pokemon-cards">
+      <div class="pokemon-card" [ngClass]="pokemon1.type[0]" @slideIn>
+        <div class="pokemon-number">#{{ pokemon1.id.toString().padStart(3, '0') }}</div>
+        <div class="pokemon-image-container">
+          <img [src]="pokemon1.image" [alt]="pokemon1.name" class="pokemon-image">
+          <div class="pokemon-shadow"></div>
+        </div>
+        <h3 class="pokemon-name">{{ pokemon1.name | titlecase }}</h3>
+        <div class="pokemon-types">
+          <span
+            *ngFor="let type of pokemon1.type"
+            class="type-badge"
+            [class]="type"
+          >
+            {{ type | titlecase }}
+          </span>
+        </div>
+        <div class="pokemon-dimensions">
+          <div class="dimension">
+            <span class="dimension-label">Altura</span>
+            <span class="dimension-value">{{ pokemon1.height / 10 }} m</span>
+          </div>
+          <div class="dimension">
+            <span class="dimension-label">Peso</span>
+            <span class="dimension-value">{{ pokemon1.weight / 10 }} kg</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="battle-prediction" @scaleIn>
+        <div class="prediction-header">
+          <h3>Previsão de Batalha</h3>
+        </div>
+
+        <div class="prediction-result">
+          <ng-container *ngIf="getTypeAdvantage() as typeAdvantage">
+            <div class="advantage-info">
+              <div class="winner-badge type-advantage">
+                <img [src]="typeAdvantage.winner?.image" [alt]="typeAdvantage.winner?.name" class="winner-image">
+                <div class="winner-details">
+                  <span class="winner-label">Vantagem de Tipo</span>
+                  <span class="winner-name">{{ typeAdvantage.winner?.name | titlecase }}</span>
+                  <span class="advantage-reason">{{ typeAdvantage.reason }}</span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="getWinner() && (!getTypeAdvantage() || getTypeAdvantage()?.winner?.id !== getWinner()?.id)">
+            <div class="advantage-info">
+              <div class="winner-badge stat-advantage">
+                <img [src]="getWinner()?.image" [alt]="getWinner()?.name" class="winner-image">
+                <div class="winner-details">
+                  <span class="winner-label">Vantagem Estatística</span>
+                  <span class="winner-name">{{ getWinner()?.name | titlecase }}</span>
+                  <span class="advantage-reason">Possui estatísticas totais superiores</span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="tie" *ngIf="!getWinner() && !getTypeAdvantage()">
+            <div class="tie-badge">
+              <div class="tie-icon">⚖️</div>
+              <div class="tie-details">
+                <span class="tie-label">Batalha Equilibrada</span>
+                <p class="tie-description">
+                  Os Pokémon estão equilibrados em força e tipo
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pokemon-card" [ngClass]="pokemon2.type[0]" @slideInRight>
+        <div class="pokemon-number">#{{ pokemon2.id.toString().padStart(3, '0') }}</div>
+        <div class="pokemon-image-container">
+          <img [src]="pokemon2.image" [alt]="pokemon2.name" class="pokemon-image">
+          <div class="pokemon-shadow"></div>
+        </div>
+        <h3 class="pokemon-name">{{ pokemon2.name | titlecase }}</h3>
+        <div class="pokemon-types">
+          <span
+            *ngFor="let type of pokemon2.type"
+            class="type-badge"
+            [class]="type"
+          >
+            {{ type | titlecase }}
+          </span>
+        </div>
+        <div class="pokemon-dimensions">
+          <div class="dimension">
+            <span class="dimension-label">Altura</span>
+            <span class="dimension-value">{{ pokemon2.height / 10 }} m</span>
+          </div>
+          <div class="dimension">
+            <span class="dimension-label">Peso</span>
+            <span class="dimension-value">{{ pokemon2.weight / 10 }} kg</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-comparison" @fadeIn>
+      <div class="stats-header">
+        <h3>Comparação de Estatísticas</h3>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-label">
+          <div class="stat-icon hp-icon"></div>
+          <span>HP</span>
+        </div>
+        <div class="stat-bars">
+          <div class="stat-bar-container" [class.higher]="getHigherStat(pokemon1.stats.hp, pokemon2.stats.hp) === 1">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon1.stats.hp)"
+              [style.background-color]="getStatColor('hp')"
+            ></div>
+            <span class="stat-value">{{ pokemon1.stats.hp }}</span>
+          </div>
+          <div class="stat-bar-container reverse" [class.higher]="getHigherStat(pokemon1.stats.hp, pokemon2.stats.hp) === 2">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon2.stats.hp)"
+              [style.background-color]="getStatColor('hp')"
+            ></div>
+            <span class="stat-value">{{ pokemon2.stats.hp }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-label">
+          <div class="stat-icon attack-icon"></div>
+          <span>Ataque</span>
+        </div>
+        <div class="stat-bars">
+          <div class="stat-bar-container" [class.higher]="getHigherStat(pokemon1.stats.attack, pokemon2.stats.attack) === 1">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon1.stats.attack)"
+              [style.background-color]="getStatColor('attack')"
+            ></div>
+            <span class="stat-value">{{ pokemon1.stats.attack }}</span>
+          </div>
+          <div class="stat-bar-container reverse" [class.higher]="getHigherStat(pokemon1.stats.attack, pokemon2.stats.attack) === 2">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon2.stats.attack)"
+              [style.background-color]="getStatColor('attack')"
+            ></div>
+            <span class="stat-value">{{ pokemon2.stats.attack }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-label">
+          <div class="stat-icon defense-icon"></div>
+          <span>Defesa</span>
+        </div>
+        <div class="stat-bars">
+          <div class="stat-bar-container" [class.higher]="getHigherStat(pokemon1.stats.defense, pokemon2.stats.defense) === 1">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon1.stats.defense)"
+              [style.background-color]="getStatColor('defense')"
+            ></div>
+            <span class="stat-value">{{ pokemon1.stats.defense }}</span>
+          </div>
+          <div class="stat-bar-container reverse" [class.higher]="getHigherStat(pokemon1.stats.defense, pokemon2.stats.defense) === 2">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon2.stats.defense)"
+              [style.background-color]="getStatColor('defense')"
+            ></div>
+            <span class="stat-value">{{ pokemon2.stats.defense }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-label">
+          <div class="stat-icon sp-attack-icon"></div>
+          <span>Ataque Esp.</span>
+        </div>
+        <div class="stat-bars">
+          <div class="stat-bar-container" [class.higher]="getHigherStat(pokemon1.stats.specialAttack, pokemon2.stats.specialAttack) === 1">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon1.stats.specialAttack)"
+              [style.background-color]="getStatColor('specialAttack')"
+            ></div>
+            <span class="stat-value">{{ pokemon1.stats.specialAttack }}</span>
+          </div>
+          <div class="stat-bar-container reverse" [class.higher]="getHigherStat(pokemon1.stats.specialAttack, pokemon2.stats.specialAttack) === 2">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon2.stats.specialAttack)"
+              [style.background-color]="getStatColor('specialAttack')"
+            ></div>
+            <span class="stat-value">{{ pokemon2.stats.specialAttack }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-label">
+          <div class="stat-icon sp-defense-icon"></div>
+          <span>Defesa Esp.</span>
+        </div>
+        <div class="stat-bars">
+          <div class="stat-bar-container" [class.higher]="getHigherStat(pokemon1.stats.specialDefense, pokemon2.stats.specialDefense) === 1">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon1.stats.specialDefense)"
+              [style.background-color]="getStatColor('specialDefense')"
+            ></div>
+            <span class="stat-value">{{ pokemon1.stats.specialDefense }}</span>
+          </div>
+          <div class="stat-bar-container reverse" [class.higher]="getHigherStat(pokemon1.stats.specialDefense, pokemon2.stats.specialDefense) === 2">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon2.stats.specialDefense)"
+              [style.background-color]="getStatColor('specialDefense')"
+            ></div>
+            <span class="stat-value">{{ pokemon2.stats.specialDefense }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-label">
+          <div class="stat-icon speed-icon"></div>
+          <span>Velocidade</span>
+        </div>
+        <div class="stat-bars">
+          <div class="stat-bar-container" [class.higher]="getHigherStat(pokemon1.stats.speed, pokemon2.stats.speed) === 1">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon1.stats.speed)"
+              [style.background-color]="getStatColor('speed')"
+            ></div>
+            <span class="stat-value">{{ pokemon1.stats.speed }}</span>
+          </div>
+          <div class="stat-bar-container reverse" [class.higher]="getHigherStat(pokemon1.stats.speed, pokemon2.stats.speed) === 2">
+            <div
+              class="stat-bar"
+              [style.width.%]="getStatPercentage(pokemon2.stats.speed)"
+              [style.background-color]="getStatColor('speed')"
+            ></div>
+            <span class="stat-value">{{ pokemon2.stats.speed }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row total">
+        <div class="stat-label">
+          <div class="stat-icon total-icon"></div>
+          <span>Total</span>
+        </div>
+        <div class="stat-bars">
+          <div class="stat-bar-container" [class.higher]="getHigherStat(getTotalStats(pokemon1), getTotalStats(pokemon2)) === 1">
+            <div
+              class="stat-bar"
+              [style.width.%]="getTotalStatPercentage(pokemon1)"
+              [style.background]="'linear-gradient(to right, #FF5959, #F5AC78, #FAE078, #9DB7F5, #A7DB8D, #FA92B2)'"
+            ></div>
+            <span class="stat-value">{{ getTotalStats(pokemon1) }}</span>
+          </div>
+          <div class="stat-bar-container reverse" [class.higher]="getHigherStat(getTotalStats(pokemon1), getTotalStats(pokemon2)) === 2">
+            <div
+              class="stat-bar"
+              [style.width.%]="getTotalStatPercentage(pokemon2)"
+              [style.background]="'linear-gradient(to right, #FF5959, #F5AC78, #FAE078, #9DB7F5, #A7DB8D, #FA92B2)'"
+            ></div>
+            <span class="stat-value">{{ getTotalStats(pokemon2) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pokeball-decoration bottom-left"></div>
+  <div class="pokeball-decoration bottom-right"></div>
+</div>
