@@ -1,3 +1,4 @@
+/* pokemon-icons.service.ts */
 import { Injectable } from '@angular/core';
 
 export interface PokemonIcon {

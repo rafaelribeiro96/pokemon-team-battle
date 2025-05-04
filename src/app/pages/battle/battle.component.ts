@@ -1,3 +1,4 @@
+/* battle.component.ts */
 import {
   Component,
   ViewChild,
