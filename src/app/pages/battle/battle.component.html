@@ -5,7 +5,13 @@
     [teamTwoScore]="teamTwoScore()"
     [teamOneCount]="getActiveTeamOneCount()"
     [teamTwoCount]="getActiveTeamTwoCount()"
-    [winner]="winner()">
+    [winner]="winner()"
+    [teamOneTrainer]="teamOneTrainer()"
+    [teamTwoTrainer]="teamTwoTrainer()"
+    [teamOneName]="teamOneName()"
+    [teamTwoName]="teamTwoName()"
+    [teamOneGym]="teamOneGym()"
+    [teamTwoGym]="teamTwoGym()">
   </app-scoreboard>
 
   <div class="battle-layout" [class.selection-mode]="!battleInProgress() && !battleEnded()">

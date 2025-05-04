@@ -18,10 +18,17 @@ import {
   imports: [CommonModule, PokemonIconsModule, PokemonIconComponent],
   template: `
     <div class="scoreboard">
-      <div class="team team-one" [class.winner]="winner === 'Time 1'">
+      <div
+        class="team team-one"
+        [class.winner]="winner === 'Time 1'"
+        [ngClass]="getGymClass(teamOneGym)"
+      >
         <div class="team-name">
-          <app-pokemon-icon iconId="trainer-red" size="sm"></app-pokemon-icon>
-          Time 1
+          <app-pokemon-icon
+            [iconId]="teamOneTrainer"
+            size="sm"
+          ></app-pokemon-icon>
+          {{ teamOneName }}
         </div>
         <div class="team-score" [@scoreChange]="teamOneScore">
           {{ teamOneScore }}
@@ -61,10 +68,17 @@ import {
         </app-pokemon-icon>
       </div>
 
-      <div class="team team-two" [class.winner]="winner === 'Time 2'">
+      <div
+        class="team team-two"
+        [class.winner]="winner === 'Time 2'"
+        [ngClass]="getGymClass(teamTwoGym)"
+      >
         <div class="team-name">
-          <app-pokemon-icon iconId="trainer-blue" size="sm"></app-pokemon-icon>
-          Time 2
+          <app-pokemon-icon
+            [iconId]="teamTwoTrainer"
+            size="sm"
+          ></app-pokemon-icon>
+          {{ teamTwoName }}
         </div>
         <div class="team-score" [@scoreChange]="teamTwoScore">
           {{ teamTwoScore }}
@@ -91,11 +105,11 @@ import {
     <div *ngIf="winner" class="winner-announcement" [@winnerAnnounce]>
       <div class="winner-text">
         <app-pokemon-icon
-          [iconId]="winner === 'Time 1' ? 'trainer-red' : 'trainer-blue'"
+          [iconId]="winner === 'Time 1' ? teamOneTrainer : teamTwoTrainer"
           size="md"
         >
         </app-pokemon-icon>
-        {{ winner }} VENCEU!
+        {{ winner === 'Time 1' ? teamOneName : teamTwoName }} VENCEU!
       </div>
     </div>
   `,
@@ -181,6 +195,14 @@ export class ScoreboardComponent implements OnChanges {
   @Input() teamTwoCount: number = 0;
   @Input() winner: string | null = null;
 
+  // New inputs for trainer icons and names
+  @Input() teamOneTrainer: string = 'trainer-red';
+  @Input() teamTwoTrainer: string = 'trainer-blue';
+  @Input() teamOneName: string = 'Time 1';
+  @Input() teamTwoName: string = 'Time 2';
+  @Input() teamOneGym: string = '';
+  @Input() teamTwoGym: string = '';
+
   previousTeamOneScore = 0;
   previousTeamTwoScore = 0;
 
@@ -191,5 +213,13 @@ export class ScoreboardComponent implements OnChanges {
     if (changes['teamTwoScore']) {
       this.previousTeamTwoScore = changes['teamTwoScore'].previousValue || 0;
     }
+  }
+
+  // Method to get gym class based on gym ID
+  getGymClass(gymId: string): string {
+    if (!gymId) return '';
+
+    const gymType = gymId.split('-')[0]; // Extracts 'fire', 'water', etc.
+    return `gym-${gymType}`;
   }
 }
