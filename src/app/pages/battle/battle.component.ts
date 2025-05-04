@@ -1,9 +1,8 @@
 import {
   Component,
   ViewChild,
-  ElementRef,
   signal,
-  OnInit,
+  type OnInit,
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -15,13 +14,13 @@ import {
   transition,
   state,
 } from '@angular/animations';
-import { PokemonService } from '../../services/pokemon.service';
+import type { PokemonService } from '../../services/pokemon.service';
 import { PokemonCardComponent } from '../../components/pokemon-card/pokemon-card.component';
 import { ScoreboardComponent } from '../../components/scoreboard/scoreboard.component';
 import { PokemonIconComponent } from '../../components/pokemon-icon/pokemon-icon.component';
 import { TeamBuilderComponent } from '../../components/team-builder/team-builder.component';
 import { BattleReportComponent } from '../../components/battle-report/battle-report.component';
-import { Pokemon } from '../../models/pokemon.model';
+import type { Pokemon } from '../../models/pokemon.model';
 import { PokemonIconsModule } from '../../pokemon-icons/pokemon-icons.module';
 
 interface CurrentBattle {
@@ -155,10 +154,7 @@ export class BattleComponent implements OnInit {
   // Flag para controlar o cancelamento da batalha
   private battleCancelled = false;
 
-  constructor(
-    private cdr: ChangeDetectorRef,
-    private pokemonService: PokemonService
-  ) {}
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     // Inicializar o componente
@@ -193,18 +189,16 @@ export class BattleComponent implements OnInit {
       return null;
     }
 
-    // Durante a batalha, alterna entre os ginásios dos times
-    const isOddTurn = this.turnNumber() % 2 === 1;
+    // Durante a batalha, mostrar o ginásio do time que está atacando
+    const currentBattle = this.currentBattle();
 
-    if (this.teamOneGym() && this.teamTwoGym()) {
-      return isOddTurn ? this.teamOneGym() : this.teamTwoGym();
-    } else if (this.teamOneGym()) {
-      return this.teamOneGym();
-    } else if (this.teamTwoGym()) {
-      return this.teamTwoGym();
-    } else {
-      return null; // Nenhum ginásio selecionado
+    if (currentBattle.p1IsAttacking) {
+      return this.teamOneGym() || null;
+    } else if (currentBattle.p2IsAttacking) {
+      return this.teamTwoGym() || null;
     }
+
+    return null; // Nenhum time está atacando no momento
   }
 
   // Método para obter a classe CSS do ginásio
@@ -227,6 +221,31 @@ export class BattleComponent implements OnInit {
       );
       this.teamOneGym.set(this.teamOneBuilder.selectedGym() || '');
     }
+  }
+
+  // Adicione estes novos métodos após os métodos setTeamOne e setTeamTwo existentes
+  setTeamOneTrainer(trainer: string) {
+    this.teamOneTrainer.set(trainer);
+  }
+
+  setTeamTwoTrainer(trainer: string) {
+    this.teamTwoTrainer.set(trainer);
+  }
+
+  setTeamOneName(name: string) {
+    this.teamOneName.set(name);
+  }
+
+  setTeamTwoName(name: string) {
+    this.teamTwoName.set(name);
+  }
+
+  setTeamOneGym(gym: string) {
+    this.teamOneGym.set(gym);
+  }
+
+  setTeamTwoGym(gym: string) {
+    this.teamTwoGym.set(gym);
   }
 
   // Atualizar o método setTeamTwo para capturar informações do time
@@ -275,13 +294,13 @@ export class BattleComponent implements OnInit {
     this.teamTwoScore.set(0);
     this.battleLog.set([]);
 
-    let teamOnePokemons = [...this.teamOne()].map((p) => ({
+    const teamOnePokemons = [...this.teamOne()].map((p) => ({
       ...p,
       stats: { ...p.stats },
       isFainted: false,
       isAttacking: false,
     }));
-    let teamTwoPokemons = [...this.teamTwo()].map((p) => ({
+    const teamTwoPokemons = [...this.teamTwo()].map((p) => ({
       ...p,
       stats: { ...p.stats },
       isFainted: false,
@@ -636,7 +655,7 @@ export class BattleComponent implements OnInit {
   calculateDamage(
     attacker: Pokemon,
     defender: Pokemon,
-    isSuperEffective: boolean = false
+    isSuperEffective = false
   ): number {
     const baseDamage = attacker.stats.attack * 0.8;
 

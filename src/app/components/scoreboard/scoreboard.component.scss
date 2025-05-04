@@ -38,35 +38,35 @@
 
   // Gym-specific background colors
   &.gym-fire {
-    background: linear-gradient(135deg, rgba(240, 128, 48, 0.3), rgba(240, 128, 48, 0.1));
+    background: linear-gradient(135deg, rgba(240, 128, 48, 0.5), rgba(240, 128, 48, 0.3));
   }
 
   &.gym-water {
-    background: linear-gradient(135deg, rgba(104, 144, 240, 0.3), rgba(104, 144, 240, 0.1));
+    background: linear-gradient(135deg, rgba(104, 144, 240, 0.5), rgba(104, 144, 240, 0.3));
   }
 
   &.gym-electric {
-    background: linear-gradient(135deg, rgba(248, 208, 48, 0.3), rgba(248, 208, 48, 0.1));
+    background: linear-gradient(135deg, rgba(248, 208, 48, 0.5), rgba(248, 208, 48, 0.3));
   }
 
   &.gym-grass {
-    background: linear-gradient(135deg, rgba(120, 200, 80, 0.3), rgba(120, 200, 80, 0.1));
+    background: linear-gradient(135deg, rgba(120, 200, 80, 0.5), rgba(120, 200, 80, 0.3));
   }
 
   &.gym-psychic {
-    background: linear-gradient(135deg, rgba(248, 88, 136, 0.3), rgba(248, 88, 136, 0.1));
+    background: linear-gradient(135deg, rgba(248, 88, 136, 0.5), rgba(248, 88, 136, 0.3));
   }
 
   &.gym-rock {
-    background: linear-gradient(135deg, rgba(184, 160, 56, 0.3), rgba(184, 160, 56, 0.1));
+    background: linear-gradient(135deg, rgba(184, 160, 56, 0.5), rgba(184, 160, 56, 0.3));
   }
 
   &.gym-poison {
-    background: linear-gradient(135deg, rgba(160, 64, 160, 0.3), rgba(160, 64, 160, 0.1));
+    background: linear-gradient(135deg, rgba(160, 64, 160, 0.5), rgba(160, 64, 160, 0.3));
   }
 
   &.gym-ground {
-    background: linear-gradient(135deg, rgba(224, 192, 104, 0.3), rgba(224, 192, 104, 0.1));
+    background: linear-gradient(135deg, rgba(224, 192, 104, 0.5), rgba(224, 192, 104, 0.3));
   }
 
   &.winner {

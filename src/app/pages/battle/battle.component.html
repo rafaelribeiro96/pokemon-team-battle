@@ -29,7 +29,10 @@
         <app-team-builder
           #teamOneBuilder
           [battleInProgress]="battleInProgress()"
-          (teamChange)="setTeamOne($event)">
+          (teamChange)="setTeamOne($event)"
+          (trainerChange)="setTeamOneTrainer($event)"
+          (teamNameChange)="setTeamOneName($event)"
+          (gymChange)="setTeamOneGym($event)">
         </app-team-builder>
       </div>
 
@@ -65,8 +68,13 @@
 
     <div class="battle-arena" [class.slim-mode]="!battleInProgress() && !battleEnded()">
       <!-- Ícone do Ginásio - Mostrar apenas se houver um ginásio selecionado -->
-      <div class="gym-icon" *ngIf="currentGym()">
-        <app-pokemon-icon [iconId]="currentGym()!" size="lg"></app-pokemon-icon>
+      <div class="gym-icons" *ngIf="battleInProgress()">
+        <div class="gym-icon gym-icon-left" *ngIf="teamOneGym()">
+          <app-pokemon-icon [iconId]="teamOneGym()" size="md"></app-pokemon-icon>
+        </div>
+        <div class="gym-icon gym-icon-right" *ngIf="teamTwoGym()">
+          <app-pokemon-icon [iconId]="teamTwoGym()" size="md"></app-pokemon-icon>
+        </div>
       </div>
 
       <div *ngIf="battleInProgress()" class="current-battle">
@@ -142,7 +150,10 @@
         <app-team-builder
           #teamTwoBuilder
           [battleInProgress]="battleInProgress()"
-          (teamChange)="setTeamTwo($event)">
+          (teamChange)="setTeamTwo($event)"
+          (trainerChange)="setTeamTwoTrainer($event)"
+          (teamNameChange)="setTeamTwoName($event)"
+          (gymChange)="setTeamTwoGym($event)">
         </app-team-builder>
       </div>
 

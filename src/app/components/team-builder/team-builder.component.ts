@@ -1,4 +1,3 @@
-/* team-builder.component.ts */
 import {
   Component,
   EventEmitter,
@@ -77,6 +76,9 @@ export class TeamBuilderComponent {
   availablePokemons = signal<Pokemon[]>([]);
   team = signal<Pokemon[]>([]);
   @Output() teamChange = new EventEmitter<Pokemon[]>();
+  @Output() trainerChange = new EventEmitter<string>();
+  @Output() teamNameChange = new EventEmitter<string>();
+  @Output() gymChange = new EventEmitter<string>();
   @Input() battleInProgress = false;
 
   // Novo campo para nome da equipe
@@ -314,6 +316,7 @@ export class TeamBuilderComponent {
 
   selectGym(gymId: string) {
     this.selectedGym.set(gymId);
+    this.gymChange.emit(gymId);
     this.showGymSelector.set(false);
   }
 
@@ -327,6 +330,7 @@ export class TeamBuilderComponent {
 
   selectTrainer(avatarId: string) {
     this.trainerAvatar.set(avatarId);
+    this.trainerChange.emit(avatarId);
     this.showTrainerSelector.set(false);
   }
 
@@ -341,6 +345,7 @@ export class TeamBuilderComponent {
   saveTeamName(name: string) {
     if (name.trim()) {
       this.teamName.set(name);
+      this.teamNameChange.emit(name);
     }
     this.showTeamNameInput.set(false);
   }

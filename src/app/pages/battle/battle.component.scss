@@ -153,17 +153,31 @@
     pointer-events: none;
   }
 
-  .gym-icon {
+  // Adicione estes estilos para os ícones de ginásio
+  .gym-icons {
     position: absolute;
     top: 10px;
-    right: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
     z-index: 2;
+  }
+
+  .gym-icon {
     opacity: 0.7;
     transition: all 0.3s ease;
 
     &:hover {
       opacity: 1;
       transform: scale(1.1);
+    }
+
+    &.gym-icon-left {
+      margin-left: 10px;
+    }
+
+    &.gym-icon-right {
+      margin-right: 10px;
     }
   }
 }
@@ -539,6 +553,7 @@
   }
 }
 
+// Aumente a opacidade das cores de fundo dos ginásios
 .team-column.gym-selected {
   position: relative;
   overflow: hidden;
@@ -550,7 +565,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    opacity: 0.15;
+    opacity: 0.25; // Aumentado de 0.15 para 0.25
     z-index: 0;
     pointer-events: none;
   }
