@@ -46,6 +46,33 @@ export class TeamBuilderComponent {
     });
   }
 
+  // Método para obter a classe de tipo para o background do time
+  getTeamBackgroundClass(): string {
+    const team = this.team();
+    if (team.length === 0) return '';
+
+    // Se o time tiver apenas um Pokémon, use o tipo dele
+    if (team.length === 1) {
+      return `type-${team[0].type[0]}`;
+    }
+
+    // Se o time tiver vários Pokémon com tipos diferentes, use 'mixed'
+    const types = new Set<string>();
+    team.forEach((pokemon) => {
+      if (pokemon.type && pokemon.type.length > 0) {
+        types.add(pokemon.type[0]);
+      }
+    });
+
+    return types.size > 1 ? 'type-mixed' : `type-${Array.from(types)[0]}`;
+  }
+
+  // Método para obter a classe de tipo para um Pokémon específico
+  getPokemonTypeClass(pokemon: Pokemon): string {
+    if (!pokemon.type || pokemon.type.length === 0) return '';
+    return `type-${pokemon.type[0]}`;
+  }
+
   addPokemonToTeam(pokemon: Pokemon) {
     if (this.team().length < 6 && !this.team().includes(pokemon)) {
       // Criar uma cópia do Pokémon para evitar referências compartilhadas

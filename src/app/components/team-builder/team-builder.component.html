@@ -13,10 +13,12 @@
   </div>
 
   <h3>Time Atual</h3>
-  <div class="team-slots">
+  <div class="team-slots" [ngClass]="getTeamBackgroundClass()">
     <div *ngFor="let slot of [0, 1, 2, 3, 4, 5]" class="team-slot" [class.filled]="team()[slot]">
       <ng-container *ngIf="team()[slot]; else emptySlot">
-        <div class="pokemon-card" [class.fainted]="team()[slot].isFainted">
+        <div class="pokemon-card"
+             [class.fainted]="team()[slot].isFainted"
+             [ngClass]="getPokemonTypeClass(team()[slot])">
           <img [src]="team()[slot].image" [alt]="team()[slot].name" />
           <span>{{ team()[slot].name }}</span>
 
@@ -40,7 +42,6 @@
       <ng-template #emptySlot>
         <div class="empty-slot">
           <app-custom-icon name="question" size="lg" color="#ffcb05" class="empty-icon"></app-custom-icon>
-          <span>Slot {{ slot + 1 }}</span>
         </div>
       </ng-template>
     </div>

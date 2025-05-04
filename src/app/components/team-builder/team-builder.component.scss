@@ -70,12 +70,45 @@
 
   .team-slots {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
     width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.7);
+    transition: background 0.3s ease;
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    // Classes de background baseadas nos tipos
+    &.type-normal { background: linear-gradient(135deg, rgba(168, 168, 120, 0.2), rgba(168, 168, 120, 0.1)); }
+    &.type-fire { background: linear-gradient(135deg, rgba(240, 128, 48, 0.2), rgba(240, 128, 48, 0.1)); }
+    &.type-water { background: linear-gradient(135deg, rgba(104, 144, 240, 0.2), rgba(104, 144, 240, 0.1)); }
+    &.type-grass { background: linear-gradient(135deg, rgba(120, 200, 80, 0.2), rgba(120, 200, 80, 0.1)); }
+    &.type-electric { background: linear-gradient(135deg, rgba(248, 208, 48, 0.2), rgba(248, 208, 48, 0.1)); }
+    &.type-ice { background: linear-gradient(135deg, rgba(152, 216, 216, 0.2), rgba(152, 216, 216, 0.1)); }
+    &.type-fighting { background: linear-gradient(135deg, rgba(192, 48, 40, 0.2), rgba(192, 48, 40, 0.1)); }
+    &.type-poison { background: linear-gradient(135deg, rgba(160, 64, 160, 0.2), rgba(160, 64, 160, 0.1)); }
+    &.type-ground { background: linear-gradient(135deg, rgba(224, 192, 104, 0.2), rgba(224, 192, 104, 0.1)); }
+    &.type-flying { background: linear-gradient(135deg, rgba(168, 144, 240, 0.2), rgba(168, 144, 240, 0.1)); }
+    &.type-psychic { background: linear-gradient(135deg, rgba(248, 88, 136, 0.2), rgba(248, 88, 136, 0.1)); }
+    &.type-bug { background: linear-gradient(135deg, rgba(168, 184, 32, 0.2), rgba(168, 184, 32, 0.1)); }
+    &.type-rock { background: linear-gradient(135deg, rgba(184, 160, 56, 0.2), rgba(184, 160, 56, 0.1)); }
+    &.type-ghost { background: linear-gradient(135deg, rgba(112, 88, 152, 0.2), rgba(112, 88, 152, 0.1)); }
+    &.type-dragon { background: linear-gradient(135deg, rgba(112, 56, 248, 0.2), rgba(112, 56, 248, 0.1)); }
+    &.type-dark { background: linear-gradient(135deg, rgba(112, 88, 72, 0.2), rgba(112, 88, 72, 0.1)); }
+    &.type-steel { background: linear-gradient(135deg, rgba(184, 184, 208, 0.2), rgba(184, 184, 208, 0.1)); }
+    &.type-fairy { background: linear-gradient(135deg, rgba(238, 153, 172, 0.2), rgba(238, 153, 172, 0.1)); }
+    &.type-mixed { background: linear-gradient(135deg, rgba(120, 120, 120, 0.2), rgba(255, 255, 255, 0.1)); }
 
     .team-slot {
-      min-height: 200px;
+      min-height: 160px;
       border-radius: 10px;
       overflow: hidden;
       transition: all 0.3s ease;
@@ -86,25 +119,17 @@
 
       .empty-slot {
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         background-color: rgba(0, 0, 0, 0.05);
         border: 2px dashed #999;
         border-radius: 10px;
         height: 100%;
-        min-height: 200px;
-        padding: 15px;
+        min-height: 160px;
 
         .empty-icon {
           opacity: 0.5;
           filter: grayscale(100%);
-          margin-bottom: 10px;
-        }
-
-        span {
-          font-size: 0.9rem;
-          color: #666;
         }
       }
     }
@@ -131,8 +156,8 @@
     }
 
     img {
-      width: 70px;
-      height: 70px;
+      width: 60px;
+      height: 60px;
       object-fit: contain;
       margin-bottom: 5px;
     }
@@ -194,6 +219,26 @@
         z-index: 10;
       }
     }
+
+    // Classes de borda baseadas nos tipos
+    &.type-normal { border-color: #A8A878; }
+    &.type-fire { border-color: #F08030; }
+    &.type-water { border-color: #6890F0; }
+    &.type-grass { border-color: #78C850; }
+    &.type-electric { border-color: #F8D030; }
+    &.type-ice { border-color: #98D8D8; }
+    &.type-fighting { border-color: #C03028; }
+    &.type-poison { border-color: #A040A0; }
+    &.type-ground { border-color: #E0C068; }
+    &.type-flying { border-color: #A890F0; }
+    &.type-psychic { border-color: #F85888; }
+    &.type-bug { border-color: #A8B820; }
+    &.type-rock { border-color: #B8A038; }
+    &.type-ghost { border-color: #705898; }
+    &.type-dragon { border-color: #7038F8; }
+    &.type-dark { border-color: #705848; }
+    &.type-steel { border-color: #B8B8D0; }
+    &.type-fairy { border-color: #EE99AC; }
   }
 }
 
@@ -205,12 +250,12 @@
 
 @media (max-width: 768px) {
   .team-slots {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 480px) {
   .team-slots {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
