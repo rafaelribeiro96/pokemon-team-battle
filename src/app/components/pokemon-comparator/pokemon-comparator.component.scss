@@ -178,6 +178,69 @@ $stat-colors: (
   }
 }
 
+// Componente de seleção de geração
+.generation-selector {
+  margin-bottom: 30px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+
+  h3 {
+    font-size: 1.3rem;
+    color: $black-color;
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+
+  .generation-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+
+    .gen-button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 20px;
+      background-color: $white-color;
+      color: $black-color;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      &.active {
+        background: linear-gradient(to right, $primary-color, #2a56a5);
+        color: $white-color;
+        box-shadow: 0 4px 10px rgba($primary-color, 0.3);
+      }
+    }
+
+    .generation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 800px;
+
+      @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}
+
 .pokemon-selectors {
   margin-bottom: 40px;
   position: relative;
@@ -204,34 +267,74 @@ $stat-colors: (
       font-size: 1.1rem;
     }
 
-    select {
-      width: 100%;
-      padding: 12px 15px;
-      border-radius: $border-radius;
-      border: 2px solid rgba($primary-color, 0.3);
-      background-color: $white-color;
-      font-size: 1rem;
-      font-family: 'Poppins', sans-serif;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233D7DCA' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
-      background-size: 16px;
-      transition: all 0.3s ease;
+    // Componente de pesquisa
+    .search-container {
+      position: relative;
 
-      &:focus {
-        outline: none;
-        border-color: $primary-color;
-        box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
-      }
-
-      &:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-      }
-
-      option {
+      .search-input {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: $border-radius;
+        border: 2px solid rgba($primary-color, 0.3);
+        background-color: $white-color;
         font-size: 1rem;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-color;
+          box-shadow: 0 0 0 3px rgba($primary-color, 0.2);
+        }
+      }
+
+      .search-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background-color: $white-color;
+        border-radius: 0 0 $border-radius $border-radius;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+
+        .search-item {
+          padding: 10px 15px;
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+
+          &:hover {
+            background-color: rgba($primary-color, 0.1);
+          }
+
+          .pokemon-id {
+            font-size: 0.9rem;
+            color: rgba($black-color, 0.6);
+            margin-right: 10px;
+            font-weight: 500;
+          }
+
+          .pokemon-name {
+            font-size: 1rem;
+            color: $black-color;
+            font-weight: 500;
+          }
+
+          &.no-results {
+            text-align: center;
+            color: rgba($black-color, 0.6);
+            font-style: italic;
+            cursor: default;
+
+            &:hover {
+              background-color: transparent;
+            }
+          }
+        }
       }
     }
   }
@@ -351,6 +454,14 @@ $stat-colors: (
     font-size: 1.2rem;
     color: $black-color;
     font-weight: 500;
+    margin-bottom: 5px;
+    text-align: center;
+  }
+
+  .loading-subtitle {
+    font-size: 0.9rem;
+    color: rgba($black-color, 0.7);
+    font-weight: normal;
   }
 }
 
@@ -389,6 +500,11 @@ $stat-colors: (
       line-height: 1.5;
       text-align: center;
       color: $black-color;
+      margin-bottom: 10px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
   }
 }
@@ -813,6 +929,14 @@ $stat-colors: (
     }
   }
 
+  .generation-selector {
+    .generation-buttons {
+      .generation-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  }
+
   .pokemon-cards {
     flex-direction: column;
 
@@ -837,6 +961,14 @@ $stat-colors: (
     }
   }
 
+  .generation-selector {
+    .generation-buttons {
+      .generation-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
   .stat-bars {
     flex-direction: column;
     gap: 10px;
@@ -855,6 +987,12 @@ $stat-colors: (
 
     .stat-label {
       width: 100%;
+    }
+  }
+
+  .search-container {
+    .search-dropdown {
+      max-height: 200px;
     }
   }
 }

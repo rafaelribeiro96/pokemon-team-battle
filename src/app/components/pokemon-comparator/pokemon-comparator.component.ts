@@ -49,11 +49,31 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class PokemonComparatorComponent implements OnInit {
   pokemonList: { id: number; name: string }[] = [];
+  filteredPokemonList1: { id: number; name: string }[] = [];
+  filteredPokemonList2: { id: number; name: string }[] = [];
   selectedPokemon1Id: number | string = '';
   selectedPokemon2Id: number | string = '';
   pokemon1: PokemonDetail | null = null;
   pokemon2: PokemonDetail | null = null;
   loading: boolean = false;
+  initialLoading: boolean = true;
+  searchTerm1: string = '';
+  searchTerm2: string = '';
+  showDropdown1: boolean = false;
+  showDropdown2: boolean = false;
+  generations: { id: number; name: string; range: [number, number] }[] = [
+    { id: 1, name: 'Geração I (Kanto)', range: [1, 151] },
+    { id: 2, name: 'Geração II (Johto)', range: [152, 251] },
+    { id: 3, name: 'Geração III (Hoenn)', range: [252, 386] },
+    { id: 4, name: 'Geração IV (Sinnoh)', range: [387, 493] },
+    { id: 5, name: 'Geração V (Unova)', range: [494, 649] },
+    { id: 6, name: 'Geração VI (Kalos)', range: [650, 721] },
+    { id: 7, name: 'Geração VII (Alola)', range: [722, 809] },
+    { id: 8, name: 'Geração VIII (Galar)', range: [810, 905] },
+    { id: 9, name: 'Geração IX (Paldea)', range: [906, 1025] },
+  ];
+  selectedGeneration: number = 0; // 0 = todas as gerações
+  totalPokemonCount: number = 1025; // Número aproximado de Pokémon até a geração mais recente
   randomMode: boolean = false;
   statColors: { [key: string]: string } = {
     hp: '#FF5959',
@@ -92,11 +112,96 @@ export class PokemonComparatorComponent implements OnInit {
 
   async loadPokemonList(): Promise<void> {
     try {
-      // Carregar uma lista de Pokémon para os seletores
-      const pokemonList = await this.pokemonService.fetchPokemonList(0, 151);
+      this.initialLoading = true;
+      // Carregar todos os Pokémon disponíveis
+      const pokemonList = await this.pokemonService.fetchPokemonList(
+        0,
+        this.totalPokemonCount
+      );
       this.pokemonList = pokemonList.map((p) => ({ id: p.id, name: p.name }));
+      this.filteredPokemonList1 = [];
+      this.filteredPokemonList2 = [];
     } catch (error) {
       console.error('Erro ao carregar lista de Pokémon:', error);
+    } finally {
+      this.initialLoading = false;
+    }
+  }
+
+  filterPokemonList(listNumber: number): void {
+    const searchTerm =
+      listNumber === 1
+        ? this.searchTerm1.toLowerCase()
+        : this.searchTerm2.toLowerCase();
+
+    if (!searchTerm || searchTerm.length < 2) {
+      if (listNumber === 1) {
+        this.filteredPokemonList1 = [];
+        this.showDropdown1 = false;
+      } else {
+        this.filteredPokemonList2 = [];
+        this.showDropdown2 = false;
+      }
+      return;
+    }
+
+    const sourceList = [...this.pokemonList];
+
+    // Filtrar por geração se uma estiver selecionada
+    let filteredByGeneration = sourceList;
+    if (this.selectedGeneration > 0) {
+      const genRange = this.generations.find(
+        (g) => g.id === this.selectedGeneration
+      )?.range;
+      if (genRange) {
+        filteredByGeneration = sourceList.filter(
+          (p) => p.id >= genRange[0] && p.id <= genRange[1]
+        );
+      }
+    }
+
+    // Filtrar por termo de pesquisa
+    const filtered = filteredByGeneration.filter((pokemon) => {
+      // Verificar se o termo de pesquisa é um número (ID)
+      const isNumeric = /^\d+$/.test(searchTerm);
+
+      if (isNumeric) {
+        return pokemon.id.toString().includes(searchTerm);
+      } else {
+        return pokemon.name.toLowerCase().includes(searchTerm);
+      }
+    });
+
+    // Limitar a 20 resultados para performance
+    const limitedResults = filtered.slice(0, 20);
+
+    if (listNumber === 1) {
+      this.filteredPokemonList1 = limitedResults;
+      this.showDropdown1 = limitedResults.length > 0;
+    } else {
+      this.filteredPokemonList2 = limitedResults;
+      this.showDropdown2 = limitedResults.length > 0;
+    }
+  }
+
+  selectPokemon(
+    listNumber: number,
+    pokemon: { id: number; name: string }
+  ): void {
+    if (listNumber === 1) {
+      this.selectedPokemon1Id = pokemon.id;
+      this.searchTerm1 = `#${pokemon.id.toString().padStart(3, '0')} ${
+        pokemon.name
+      }`;
+      this.showDropdown1 = false;
+      this.loadPokemon(1);
+    } else {
+      this.selectedPokemon2Id = pokemon.id;
+      this.searchTerm2 = `#${pokemon.id.toString().padStart(3, '0')} ${
+        pokemon.name
+      }`;
+      this.showDropdown2 = false;
+      this.loadPokemon(2);
     }
   }
 
@@ -127,28 +232,69 @@ export class PokemonComparatorComponent implements OnInit {
     this.loading = true;
 
     try {
-      // Gerar dois IDs aleatórios entre 1 e 151
-      const id1 = Math.floor(Math.random() * 151) + 1;
-      let id2 = Math.floor(Math.random() * 151) + 1;
+      let minId = 1;
+      let maxId = this.totalPokemonCount;
+
+      // Se uma geração estiver selecionada, usar seu intervalo
+      if (this.selectedGeneration > 0) {
+        const genRange = this.generations.find(
+          (g) => g.id === this.selectedGeneration
+        )?.range;
+        if (genRange) {
+          minId = genRange[0];
+          maxId = genRange[1];
+        }
+      }
+
+      // Gerar dois IDs aleatórios dentro do intervalo
+      const id1 = Math.floor(Math.random() * (maxId - minId + 1)) + minId;
+      let id2 = Math.floor(Math.random() * (maxId - minId + 1)) + minId;
 
       // Garantir que os IDs sejam diferentes
       while (id2 === id1) {
-        id2 = Math.floor(Math.random() * 151) + 1;
+        id2 = Math.floor(Math.random() * (maxId - minId + 1)) + minId;
       }
 
       this.selectedPokemon1Id = id1;
       this.selectedPokemon2Id = id2;
 
-      // Carregar os Pokémon
-      const pokemon1 = await this.pokemonService.fetchPokemonById(id1);
-      const pokemon2 = await this.pokemonService.fetchPokemonById(id2);
+      // Atualizar os termos de pesquisa
+      const pokemon1 = this.pokemonList.find((p) => p.id === id1);
+      const pokemon2 = this.pokemonList.find((p) => p.id === id2);
 
-      this.pokemon1 = pokemon1;
-      this.pokemon2 = pokemon2;
+      if (pokemon1) {
+        this.searchTerm1 = `#${pokemon1.id.toString().padStart(3, '0')} ${
+          pokemon1.name
+        }`;
+      }
+
+      if (pokemon2) {
+        this.searchTerm2 = `#${pokemon2.id.toString().padStart(3, '0')} ${
+          pokemon2.name
+        }`;
+      }
+
+      // Carregar os Pokémon
+      const pokemonData1 = await this.pokemonService.fetchPokemonById(id1);
+      const pokemonData2 = await this.pokemonService.fetchPokemonById(id2);
+
+      this.pokemon1 = pokemonData1;
+      this.pokemon2 = pokemonData2;
     } catch (error) {
       console.error('Erro ao carregar Pokémon aleatórios:', error);
     } finally {
       this.loading = false;
+    }
+  }
+
+  changeGeneration(genId: number): void {
+    this.selectedGeneration = genId;
+    // Atualizar as listas filtradas se houver termos de pesquisa
+    if (this.searchTerm1) {
+      this.filterPokemonList(1);
+    }
+    if (this.searchTerm2) {
+      this.filterPokemonList(2);
     }
   }
 
@@ -238,5 +384,20 @@ export class PokemonComparatorComponent implements OnInit {
     this.pokemon2 = null;
     this.selectedPokemon1Id = '';
     this.selectedPokemon2Id = '';
+    this.searchTerm1 = '';
+    this.searchTerm2 = '';
+    this.showDropdown1 = false;
+    this.showDropdown2 = false;
+  }
+
+  // Método para fechar os dropdowns quando clicar fora deles
+  closeDropdowns(): void {
+    this.showDropdown1 = false;
+    this.showDropdown2 = false;
+  }
+
+  // Impedir que o clique no dropdown feche o próprio dropdown
+  stopPropagation(event: Event): void {
+    event.stopPropagation();
   }
 }
