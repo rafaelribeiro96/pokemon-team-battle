@@ -1,6 +1,6 @@
 /* battle.component.scss */
 .battle-container {
-  padding: 20px;
+  padding: 15px;
   background: linear-gradient(135deg, #3b4cca, #1a237e);
   background-image: url('/assets/images/battle-background.jpg');
   background-size: cover;
@@ -9,6 +9,10 @@
   min-height: 100vh;
   color: white;
   position: relative;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 
   &::before {
     content: '';
@@ -37,9 +41,32 @@
 
   @media (max-width: 1200px) {
     grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
 
     &.selection-mode {
       grid-template-columns: 1fr 0.3fr 1fr;
+    }
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    &.selection-mode {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .team-column.team-one {
+      order: 1;
+    }
+
+    .battle-arena {
+      order: 3;
+      grid-column: span 2;
+    }
+
+    .team-column.team-two {
+      order: 2;
     }
   }
 
@@ -48,6 +75,19 @@
 
     &.selection-mode {
       grid-template-columns: 1fr;
+    }
+
+    .team-column.team-one {
+      order: 1;
+    }
+
+    .battle-arena {
+      order: 2;
+      grid-column: span 1;
+    }
+
+    .team-column.team-two {
+      order: 3;
     }
   }
 }
@@ -63,6 +103,18 @@
   flex-direction: column;
   max-height: 80vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 768px) {
+    padding: 12px;
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px;
+    border-radius: 10px;
+  }
 
   h3 {
     text-align: center;
@@ -79,6 +131,17 @@
     background: rgba(255, 255, 255, 0.9);
     z-index: 10;
     padding: 10px 0;
+
+    @media (max-width: 768px) {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      padding: 8px 0;
+    }
   }
 
   &.winner {
@@ -89,6 +152,14 @@
 
     h3 {
       color: #2e7d32;
+    }
+
+    @media (max-width: 768px) {
+      transform: scale(1.01);
+    }
+
+    @media (max-width: 480px) {
+      transform: none;
     }
   }
 
@@ -105,8 +176,21 @@
         grid-template-columns: repeat(3, 1fr); // 3 colunas em telas muito grandes
       }
 
+      @media (max-width: 1200px) {
+        gap: 8px;
+      }
+
+      @media (max-width: 992px) {
+        grid-template-columns: repeat(3, 1fr); // 3 colunas em tablets
+      }
+
+      @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr); // 2 colunas em celulares
+      }
+
       @media (max-width: 480px) {
-        grid-template-columns: repeat(1, 1fr); // 1 coluna em telas muito pequenas
+        grid-template-columns: repeat(2, 1fr); // 2 colunas em celulares pequenos
+        gap: 6px;
       }
 
       .team-pokemon-card {
@@ -117,6 +201,24 @@
         &:hover {
           transform: scale(0.9);
           z-index: 5;
+        }
+
+        @media (max-width: 768px) {
+          transform: scale(0.9);
+          margin-bottom: 8px;
+
+          &:hover {
+            transform: scale(0.9);
+          }
+        }
+
+        @media (max-width: 480px) {
+          transform: none;
+          margin-bottom: 6px;
+
+          &:hover {
+            transform: none;
+          }
         }
       }
     }
@@ -135,6 +237,18 @@
   position: relative;
   overflow: hidden;
   transition: all 0.5s ease;
+
+  @media (max-width: 768px) {
+    padding: 15px;
+    gap: 15px;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    gap: 12px;
+    border-radius: 10px;
+  }
 
   &.slim-mode {
     padding: 10px;
@@ -169,6 +283,10 @@
     display: flex;
     justify-content: space-between;
     z-index: 2;
+
+    @media (max-width: 480px) {
+      top: 5px;
+    }
   }
 
   .gym-icon {
@@ -202,6 +320,16 @@
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 
+  @media (max-width: 768px) {
+    padding: 15px;
+    gap: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    gap: 12px;
+  }
+
   h2 {
     color: #ff5722;
     font-size: 1.8rem;
@@ -210,6 +338,16 @@
     display: flex;
     align-items: center;
     gap: 10px;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+      gap: 8px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 1.3rem;
+      gap: 6px;
+    }
   }
 }
 
@@ -219,6 +357,11 @@
   justify-content: space-around;
   width: 100%;
   position: relative;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 20px;
+  }
 
   &::before {
     content: '';
@@ -230,6 +373,15 @@
     background: linear-gradient(to right, transparent, #ffcb05, transparent);
     z-index: 0;
     transform: translateY(-50%);
+
+    @media (max-width: 768px) {
+      height: 100%;
+      width: 2px;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, transparent, #ffcb05, transparent);
+    }
   }
 
   .vs {
@@ -246,6 +398,19 @@
     justify-content: center;
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
     z-index: 2;
+
+    @media (max-width: 768px) {
+      font-size: 2rem;
+      width: 50px;
+      height: 50px;
+      margin: 10px 0;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 1.8rem;
+      width: 40px;
+      height: 40px;
+    }
   }
 
   app-pokemon-card {
@@ -258,6 +423,14 @@
       &:hover {
         transform: rotate(-5deg) scale(1.05);
       }
+
+      @media (max-width: 768px) {
+        transform: none;
+
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
     }
 
     &:last-child {
@@ -265,6 +438,14 @@
 
       &:hover {
         transform: rotate(5deg) scale(1.05);
+      }
+
+      @media (max-width: 768px) {
+        transform: none;
+
+        &:hover {
+          transform: scale(1.05);
+        }
       }
     }
   }
@@ -277,6 +458,18 @@
   margin: 25px 0;
   position: relative;
   z-index: 1;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 480px) {
+    gap: 12px;
+    margin: 15px 0;
+  }
 
   button {
     font-family: 'Press Start 2P', cursive, sans-serif;
@@ -292,6 +485,20 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    -webkit-tap-highlight-color: transparent;
+
+    @media (max-width: 768px) {
+      width: 100%;
+      max-width: 300px;
+      font-size: 1rem;
+      padding: 12px 25px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 0.9rem;
+      padding: 10px 20px;
+      gap: 8px;
+    }
 
     &.fight-button {
       background: linear-gradient(135deg, #ff5722, #ff9800);
@@ -299,6 +506,16 @@
       font-size: 1.3rem;
       padding: 20px 40px;
       box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+
+      @media (max-width: 768px) {
+        font-size: 1.2rem;
+        padding: 15px 30px;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 1.1rem;
+        padding: 12px 25px;
+      }
 
       &:hover:not([disabled]) {
         transform: translateY(-3px);
@@ -352,6 +569,12 @@
   background: rgba(0, 0, 0, 0.05);
   border-radius: 10px;
 
+  @media (max-width: 480px) {
+    gap: 8px;
+    padding: 8px;
+    margin-top: 12px;
+  }
+
   .pokeball-container {
     position: relative;
     display: flex;
@@ -359,6 +582,11 @@
     align-items: center;
     width: 40px;
     height: 40px;
+
+    @media (max-width: 480px) {
+      width: 35px;
+      height: 35px;
+    }
 
     app-pokemon-icon {
       transition: all 0.3s ease;
@@ -394,6 +622,13 @@
       max-width: 80px;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      @media (max-width: 480px) {
+        font-size: 0.6rem;
+        padding: 1px 4px;
+        margin-top: 3px;
+        max-width: 70px;
+      }
     }
   }
 }
@@ -498,131 +733,29 @@
   100% { transform: rotate(180deg) translateX(0); }
 }
 
-// Responsividade
-@media (max-width: 768px) {
-  .battle-cards {
-    flex-direction: column;
-    gap: 20px;
-
-    &::before {
-      height: 100%;
-      width: 2px;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(to bottom, transparent, #ffcb05, transparent);
-    }
-
-    .vs {
-      margin: 10px 0;
-    }
-
-    app-pokemon-card {
-      &:first-child, &:last-child {
-        transform: none;
-
-        &:hover {
-          transform: scale(1.05);
-        }
-      }
-    }
+/* Touch-friendly styles for mobile */
+@media (hover: none) {
+  .battle-controls button:hover {
+    transform: none;
   }
 
-  .battle-controls {
-    flex-direction: column;
-    align-items: center;
-
-    button {
-      width: 100%;
-      max-width: 300px;
-    }
+  .battle-controls button:active {
+    transform: translateY(2px);
   }
 
-  .team-cards .pokemon-list {
-    grid-template-columns: repeat(2, 1fr);
+  .battle-controls button.fight-button:hover:not([disabled]) {
+    transform: none;
   }
 
-  .team-column {
-    max-height: none;
-    margin-bottom: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .team-cards .pokemon-list {
-    grid-template-columns: 1fr;
+  .battle-controls button.fight-button:active:not([disabled]) {
+    transform: translateY(2px);
   }
 
-  .team-pokeballs {
-    .pokeball-container {
-      width: 30px;
-      height: 30px;
-    }
-  }
-}
-
-// Aumente a opacidade das cores de fundo dos ginásios
-.team-column.gym-selected {
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0.25; // Aumentado de 0.15 para 0.25
-    z-index: 0;
-    pointer-events: none;
+  .battle-cards app-pokemon-card:hover {
+    transform: none;
   }
 
-  &.gym-fire {
-    &::before {
-      background: linear-gradient(135deg, #F08030, #F5AC78);
-    }
-  }
-
-  &.gym-water {
-    &::before {
-      background: linear-gradient(135deg, #6890F0, #98D8D8);
-    }
-  }
-
-  &.gym-electric {
-    &::before {
-      background: linear-gradient(135deg, #F8D030, #FAE078);
-    }
-  }
-
-  &.gym-grass {
-    &::before {
-      background: linear-gradient(135deg, #78C850, #A7DB8D);
-    }
-  }
-
-  &.gym-psychic {
-    &::before {
-      background: linear-gradient(135deg, #F85888, #FA92B2);
-    }
-  }
-
-  &.gym-rock {
-    &::before {
-      background: linear-gradient(135deg, #B8A038, #D1C17D);
-    }
-  }
-
-  &.gym-poison {
-    &::before {
-      background: linear-gradient(135deg, #A040A0, #C183C1);
-    }
-  }
-
-  &.gym-ground {
-    &::before {
-      background: linear-gradient(135deg, #E0C068, #EBD69D);
-    }
+  .battle-cards app-pokemon-card:active {
+    transform: scale(0.98);
   }
 }

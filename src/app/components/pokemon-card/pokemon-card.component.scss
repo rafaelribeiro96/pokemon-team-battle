@@ -14,30 +14,73 @@
   overflow: hidden;
   width: 100%;
   max-width: 250px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  @media (max-width: 768px) {
+    max-width: 200px;
+    padding: 8px;
+  }
+
+  @media (max-width: 480px) {
+    max-width: 160px;
+    padding: 6px;
+  }
 
   &.compact {
     padding: 8px;
     max-width: 180px;
 
+    @media (max-width: 768px) {
+      max-width: 150px;
+      padding: 6px;
+    }
+
+    @media (max-width: 480px) {
+      max-width: 130px;
+      padding: 5px;
+    }
+
     .pokemon-name {
       font-size: 0.9rem;
+
+      @media (max-width: 480px) {
+        font-size: 0.8rem;
+      }
     }
 
     .pokemon-image img {
       max-height: 80px;
+
+      @media (max-width: 480px) {
+        max-height: 70px;
+      }
     }
 
     .type-badges .type-badge {
       padding: 2px 5px;
       font-size: 0.7rem;
+
+      @media (max-width: 480px) {
+        padding: 1px 4px;
+        font-size: 0.6rem;
+      }
     }
 
     .hp-label {
       font-size: 0.7rem;
+
+      @media (max-width: 480px) {
+        font-size: 0.6rem;
+      }
     }
 
     .stat-label, .stat-value {
       font-size: 0.7rem;
+
+      @media (max-width: 480px) {
+        font-size: 0.6rem;
+      }
     }
   }
 
@@ -67,6 +110,10 @@
       color: #ff0000;
       text-shadow: 1px 1px 2px #000;
       z-index: 10;
+
+      @media (max-width: 480px) {
+        font-size: 1.2rem;
+      }
     }
   }
 
@@ -185,6 +232,10 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     transform: rotate(-15deg);
     opacity: 0.8;
+
+    @media (max-width: 480px) {
+      font-size: 3.5rem;
+    }
   }
 }
 
@@ -192,10 +243,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   position: relative;
   z-index: 1;
   width: 100%;
+
+  @media (max-width: 480px) {
+    margin-bottom: 5px;
+  }
 }
 
 .pokemon-name {
@@ -210,18 +265,34 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.9rem;
+  }
+
   &.small-name {
     font-size: 0.9rem;
+
+    @media (max-width: 480px) {
+      font-size: 0.8rem;
+    }
   }
 }
 
 .card-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   position: relative;
   z-index: 1;
   width: 100%;
+
+  @media (max-width: 480px) {
+    gap: 5px;
+  }
 }
 
 .pokemon-image {
@@ -234,24 +305,48 @@
   overflow: hidden;
   transition: all 0.3s ease;
 
+  @media (max-width: 768px) {
+    height: 100px;
+  }
+
+  @media (max-width: 480px) {
+    height: 80px;
+  }
+
   img {
     max-height: 100px;
     max-width: 100%;
     object-fit: contain;
     transition: all 0.3s ease;
+
+    @media (max-width: 768px) {
+      max-height: 80px;
+    }
+
+    @media (max-width: 480px) {
+      max-height: 70px;
+    }
   }
 }
 
 .pokemon-info {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+
+  @media (max-width: 480px) {
+    gap: 5px;
+  }
 }
 
 .hp-bar {
   width: 100%;
   margin-top: 5px;
+
+  @media (max-width: 480px) {
+    margin-top: 3px;
+  }
 }
 
 .hp-container {
@@ -260,6 +355,10 @@
   background-color: #ccc;
   border-radius: 4px;
   overflow: hidden;
+
+  @media (max-width: 480px) {
+    height: 6px;
+  }
 }
 
 .hp {
@@ -282,6 +381,11 @@
   font-size: 0.8rem;
   color: #333;
   margin-bottom: 3px;
+
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+  }
 }
 
 .stat-row {
@@ -289,6 +393,11 @@
   justify-content: space-between;
   gap: 5px;
   margin-top: 5px;
+
+  @media (max-width: 480px) {
+    margin-top: 3px;
+    gap: 3px;
+  }
 }
 
 .stat {
@@ -299,17 +408,29 @@
   padding: 5px;
   border-radius: 5px;
   flex: 1;
+
+  @media (max-width: 480px) {
+    padding: 3px;
+  }
 }
 
 .stat-label {
   font-size: 0.7rem;
   color: #666;
+
+  @media (max-width: 480px) {
+    font-size: 0.6rem;
+  }
 }
 
 .stat-value {
   font-size: 0.9rem;
   font-weight: bold;
   color: #333;
+
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+  }
 }
 
 .type-badges {
@@ -318,6 +439,11 @@
   gap: 5px;
   flex-wrap: wrap;
   margin: 5px 0;
+
+  @media (max-width: 480px) {
+    gap: 3px;
+    margin: 3px 0;
+  }
 }
 
 .type-badge {
@@ -330,6 +456,12 @@
   display: flex;
   align-items: center;
   gap: 3px;
+
+  @media (max-width: 480px) {
+    font-size: 0.5rem;
+    padding: 1px 4px;
+    gap: 2px;
+  }
 
   &.fire { background-color: #F08030; }
   &.water { background-color: #6890F0; }
@@ -359,6 +491,12 @@
   flex-direction: column;
   gap: 5px;
   z-index: 10;
+
+  @media (max-width: 480px) {
+    top: 3px;
+    right: 3px;
+    gap: 3px;
+  }
 }
 
 .attack-effect {
@@ -382,6 +520,13 @@
   border-radius: 50%;
   font-size: 0.8rem;
   z-index: 10;
+
+  @media (max-width: 480px) {
+    top: 5px;
+    right: 5px;
+    padding: 2px 5px;
+    font-size: 0.7rem;
+  }
 }
 
 .super-effective {
@@ -398,12 +543,23 @@
   z-index: 15;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
   box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  white-space: nowrap;
+
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
 }
 
 .hp-text {
   font-size: 0.8rem;
   margin-top: 5px;
   font-weight: bold;
+
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    margin-top: 3px;
+  }
 }
 
 @keyframes attack-animation {
@@ -447,9 +603,13 @@
   100% { opacity: 0.5; }
 }
 
-// Responsividade
-@media (max-width: 768px) {
-  .pokemon-card {
-    max-width: 100%;
+/* Touch-friendly styles for mobile */
+@media (hover: none) {
+  .pokemon-card:hover {
+    transform: none;
+  }
+
+  .pokemon-card:active {
+    transform: scale(0.98);
   }
 }
