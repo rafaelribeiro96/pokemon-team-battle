@@ -6,21 +6,14 @@
       "use": "@vercel/static-build",
       "config": {
         "buildCommand": "ng build",
-        "outputDirectory": "dist/pokemon-team-battle"
+        "outputDirectory": "dist/pokemon-team-battle/browser"
       }
     }
   ],
   "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/favicon.ico", "dest": "/favicon.ico" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
