@@ -25,7 +25,6 @@ export const routes: Route[] = [
   { path: 'pokedex/:id', component: PokemonDetailComponent },
   { path: 'games', component: GamesComponent },
   { path: 'trainer', component: TrainerComponent },
-  // Adicionar novas rotas
   { path: 'comparator', component: PokemonComparatorComponent },
   { path: 'quiz', component: PokemonQuizComponent },
   { path: 'login', component: LoginComponent },
@@ -45,6 +44,5 @@ export const routes: Route[] = [
     component: TeamFormComponent,
     canActivate: [AuthGuard],
   },
-  // A rota curinga deve ser a ÚLTIMA rota
   { path: '**', component: NotFoundComponent },
 ];
