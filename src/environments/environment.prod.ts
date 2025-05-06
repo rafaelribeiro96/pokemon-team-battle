@@ -1,6 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl:
-    process.env['API_URL'] ||
-    'https://pokemon-backend-production.up.railway.app/api',
+  apiUrl: 'pokemon-backend-production-af7c.up.railway.app',
 };
