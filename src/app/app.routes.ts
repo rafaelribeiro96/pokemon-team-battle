@@ -1,3 +1,4 @@
+/* src/app/app.routes.ts */
 import { Route } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { BattleComponent } from './pages/battle/battle.component';
@@ -6,7 +7,6 @@ import { PokemonDetailComponent } from './pages/pokemon-detail/pokemon-detail.co
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { GamesComponent } from './pages/games/games.component';
 import { TrainerComponent } from './pages/trainer/trainer.component';
-// Importar os novos componentes
 import { PokemonComparatorComponent } from './components/pokemon-comparator/pokemon-comparator.component';
 import { PokemonQuizComponent } from './components/pokemon-quiz/pokemon-quiz.component';
 import { LoginComponent } from './components/auth/login/login.component';

@@ -1,3 +1,4 @@
+/* home.component.ts */
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
