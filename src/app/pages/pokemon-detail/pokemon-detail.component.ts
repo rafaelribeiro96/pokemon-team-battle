@@ -1,3 +1,4 @@
+/* pokemon-detail.component.ts */
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';

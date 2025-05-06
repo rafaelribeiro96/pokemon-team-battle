@@ -1,0 +1,71 @@
+<div class="container">
+  <div class="news-header">
+    <h1>Notícias Pokémon</h1>
+    <button *ngIf="isAdmin" class="btn btn-primary" routerLink="/news/new">Nova Notícia</button>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Carregando...</span>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Notícia em destaque -->
+  <div *ngIf="featuredNews && !isLoading" class="featured-news">
+    <div class="featured-news-image">
+      <img [src]="featuredNews.image || '/assets/images/news-placeholder.jpg'" alt="{{ featuredNews.title }}">
+      <div class="featured-badge">Destaque</div>
+    </div>
+    <div class="featured-news-content">
+      <h2>{{ featuredNews.title }}</h2>
+      <div class="news-meta">
+        <span class="news-date">{{ formatDate(featuredNews.created_at) }}</span>
+        <span *ngIf="featuredNews.categories?.length" class="news-categories">
+          <span *ngFor="let category of featuredNews.categories" class="category-badge">{{ category.name }}</span>
+        </span>
+      </div>
+      <p>{{ featuredNews.content.substring(0, 300) }}{{ featuredNews.content.length > 300 ? '...' : '' }}</p>
+      <div class="news-actions">
+        <a [routerLink]="['/news', featuredNews.id]" class="btn btn-outline-primary">Ler mais</a>
+        <div *ngIf="isAdmin" class="admin-actions">
+          <a [routerLink]="['/news/edit', featuredNews.id]" class="btn btn-sm btn-outline-secondary">Editar</a>
+          <button (click)="deleteNews(featuredNews.id)" class="btn btn-sm btn-outline-danger">Excluir</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de notícias -->
+  <div *ngIf="!isLoading" class="news-grid">
+    <div *ngFor="let news of newsList" class="news-card">
+      <div class="news-image">
+        <img [src]="news.image || '/assets/images/news-placeholder.jpg'" alt="{{ news.title }}">
+      </div>
+      <div class="news-content">
+        <h3>{{ news.title }}</h3>
+        <div class="news-meta">
+          <span class="news-date">{{ formatDate(news.created_at) }}</span>
+          <span *ngIf="news.categories?.length" class="news-categories">
+            <span *ngFor="let category of news.categories" class="category-badge">{{ category.name }}</span>
+          </span>
+        </div>
+        <p>{{ news.content.substring(0, 150) }}{{ news.content.length > 150 ? '...' : '' }}</p>
+        <div class="news-actions">
+          <a [routerLink]="['/news', news.id]" class="btn btn-sm btn-outline-primary">Ler mais</a>
+          <div *ngIf="isAdmin" class="admin-actions">
+            <a [routerLink]="['/news/edit', news.id]" class="btn btn-sm btn-outline-secondary">Editar</a>
+            <button (click)="deleteNews(news.id)" class="btn btn-sm btn-outline-danger">Excluir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && newsList.length === 0 && !featuredNews" class="no-news">
+    <p>Nenhuma notícia encontrada.</p>
+  </div>
+</div>

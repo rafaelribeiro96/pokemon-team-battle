@@ -1,0 +1,88 @@
+<div class="profile-container">
+  <div class="profile-card">
+    <h2>Perfil</h2>
+
+    <div class="row">
+      <div class="col-md-4">
+        <div class="avatar-container">
+          <img
+            [src]="previewUrl || user?.avatar || '/assets/images/default-avatar.png'"
+            alt="Avatar"
+            class="avatar-image"
+          >
+
+          <div class="avatar-upload">
+            <input
+              type="file"
+              id="avatar"
+              (change)="onFileSelected($event)"
+              accept="image/*"
+              class="file-input"
+            >
+            <label for="avatar" class="btn btn-outline-primary">Escolher imagem</label>
+
+            <button
+              class="btn btn-primary mt-2"
+              (click)="uploadAvatar()"
+              [disabled]="!selectedFile || isUploading"
+            >
+              <span *ngIf="isUploading" class="spinner-border spinner-border-sm mr-1"></span>
+              Enviar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+          <div class="form-group">
+            <label for="username">Nome de usuário</label>
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              class="form-control"
+              [ngClass]="{'is-invalid': profileForm.get('username')?.invalid && profileForm.get('username')?.touched}"
+            >
+            <div class="invalid-feedback" *ngIf="profileForm.get('username')?.invalid && profileForm.get('username')?.touched">
+              <span *ngIf="profileForm.get('username')?.errors?.['required']">Nome de usuário é obrigatório</span>
+              <span *ngIf="profileForm.get('username')?.errors?.['minlength']">Nome de usuário deve ter pelo menos 3 caracteres</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="form-control"
+              [ngClass]="{'is-invalid': profileForm.get('email')?.invalid && profileForm.get('email')?.touched}"
+            >
+            <div class="invalid-feedback" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+              <span *ngIf="profileForm.get('email')?.errors?.['required']">Email é obrigatório</span>
+              <span *ngIf="profileForm.get('email')?.errors?.['email']">Email inválido</span>
+            </div>
+          </div>
+
+          <div class="alert alert-danger" *ngIf="errorMessage">
+            {{ errorMessage }}
+          </div>
+
+          <div class="alert alert-success" *ngIf="successMessage">
+            {{ successMessage }}
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="profileForm.invalid || isSaving"
+          >
+            <span *ngIf="isSaving" class="spinner-border spinner-border-sm mr-1"></span>
+            Salvar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

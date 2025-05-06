@@ -9,6 +9,14 @@ import { TrainerComponent } from './pages/trainer/trainer.component';
 // Importar os novos componentes
 import { PokemonComparatorComponent } from './components/pokemon-comparator/pokemon-comparator.component';
 import { PokemonQuizComponent } from './components/pokemon-quiz/pokemon-quiz.component';
+import { LoginComponent } from './components/auth/login/login.component';
+import { RegisterComponent } from './components/auth/register/register.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { NewsFormComponent } from './components/news/news-form/news-form.component';
+import { AuthGuard } from './guards/auth.guard';
+import { TeamListComponent } from './components/teams/team-list/team-list.component';
+import { NewsListComponent } from './components/news/news-list/news-list.component';
+import { TeamFormComponent } from './components/teams/team-form/team-form.component';
 
 export const routes: Route[] = [
   { path: '', component: HomeComponent },
@@ -20,5 +28,23 @@ export const routes: Route[] = [
   // Adicionar novas rotas
   { path: 'comparator', component: PokemonComparatorComponent },
   { path: 'quiz', component: PokemonQuizComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
+  { path: 'news', component: NewsListComponent },
+  { path: 'news/new', component: NewsFormComponent, canActivate: [AuthGuard] },
+  {
+    path: 'news/edit/:id',
+    component: NewsFormComponent,
+    canActivate: [AuthGuard],
+  },
+  { path: 'teams', component: TeamListComponent },
+  { path: 'teams/new', component: TeamFormComponent, canActivate: [AuthGuard] },
+  {
+    path: 'teams/edit/:id',
+    component: TeamFormComponent,
+    canActivate: [AuthGuard],
+  },
+  // A rota curinga deve ser a ÚLTIMA rota
   { path: '**', component: NotFoundComponent },
 ];

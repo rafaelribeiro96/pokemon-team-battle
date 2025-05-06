@@ -1,19 +1,29 @@
-/* pokemon.service.ts */
 import { Injectable, signal } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import {
+  BehaviorSubject,
+  Observable,
+  from,
+  of,
+  catchError,
+  map,
+  tap,
+  firstValueFrom,
+  lastValueFrom,
+} from 'rxjs';
+import { environment } from '../../environments/environment';
 import {
   Pokemon,
   PokemonDetail,
   PokemonListResponse,
   EvolutionPokemon,
 } from '../models/pokemon.model';
-import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PokemonService {
-  private apiUrl = 'https://pokeapi.co/api/v2';
+  private apiUrl = `${environment.apiUrl}/pokemon`;
   private cachedPokemon: Map<number, PokemonDetail> = new Map();
   private cachedList: Pokemon[] = [];
   private cachedTypes: string[] = [];
@@ -25,45 +35,26 @@ export class PokemonService {
   private isLoadingComplete = new BehaviorSubject<boolean>(false);
   private isPreloadingActive = false;
 
-  // Tempo de validade do cache em milissegundos (7 dias)
-  private cacheValidityPeriod = 7 * 24 * 60 * 60 * 1000;
-
-  constructor(private storageService: StorageService) {
-    // Iniciar carregamento dos dados do IndexedDB e depois verificar se precisa atualizar
-    this.initializeFromStorage();
+  constructor(private http: HttpClient) {
+    // Iniciar carregamento dos dados
+    this.initializeData();
   }
 
-  private async initializeFromStorage(): Promise<void> {
+  private async initializeData(): Promise<void> {
     try {
-      // Verificar se temos dados armazenados e se estão atualizados
-      const lastUpdate = await this.storageService.getLastUpdateTimestamp();
-      const currentTime = Date.now();
+      // Verificar se o backend tem dados em cache
+      const response = await firstValueFrom(
+        this.http.get<{ hasCache: boolean }>(`${this.apiUrl}/cache-status`)
+      );
 
-      if (
-        lastUpdate &&
-        currentTime - lastUpdate.timestamp < this.cacheValidityPeriod &&
-        lastUpdate.count > 1000
-      ) {
-        // Carregar dados do IndexedDB
-        const storedPokemon = await this.storageService.loadPokemonList();
-
-        if (storedPokemon.length > 0) {
-          this.cachedList = storedPokemon;
-          this.cachedList.sort((a, b) => a.id - b.id);
-
-          // Atualizar o sinal de carregamento completo
-          this.isLoadingComplete.next(true);
-          this.loadingProgress.next(100);
-
-          // Não precisamos pré-carregar novamente
-          return;
-        }
+      if (response.hasCache) {
+        this.isLoadingComplete.next(true);
+        this.loadingProgress.next(100);
+      } else {
+        this.preloadAllPokemon();
       }
-
-      // Se não temos dados armazenados ou estão desatualizados, iniciar pré-carregamento
-      this.preloadAllPokemon();
     } catch (error) {
-      // Em caso de erro, iniciar pré-carregamento normal
+      // Em caso de erro, iniciar pré-carregamento
       this.preloadAllPokemon();
     }
   }
@@ -77,89 +68,36 @@ export class PokemonService {
     this.isPreloadingActive = true;
 
     try {
-      // Primeiro, obter o número total de Pokémon
-      const totalCount = await this.getTotalPokemonCount();
-
-      // Definir o tamanho do lote para não sobrecarregar a API
-      const batchSize = 50;
-      const totalBatches = Math.ceil(totalCount / batchSize);
-
-      // Carregar Pokémon regulares em lotes
-      for (let i = 0; i < totalBatches; i++) {
-        const offset = i * batchSize;
-        const limit = Math.min(batchSize, totalCount - offset);
-
-        await this.fetchPokemonList(offset, limit);
-
-        // Atualizar o progresso (90% para Pokémon regulares)
-        const progress = Math.min(
-          90,
-          Math.round((((i + 1) * batchSize) / totalCount) * 90)
-        );
-        this.loadingProgress.next(progress);
-
-        // Pequena pausa para não sobrecarregar a API
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-
-      // Agora carregar Pokémon especiais (IDs 10001+)
-      await this.loadSpecialPokemon();
-
-      // Salvar todos os Pokémon no armazenamento local
-      await this.storageService.savePokemonList(this.cachedList);
+      // Solicitar ao backend para pré-carregar os dados
+      await firstValueFrom(
+        this.http.post<{ success: boolean }>(`${this.apiUrl}/preload`, {})
+      );
 
       this.isLoadingComplete.next(true);
-    } catch (error) {
-      // Erro silencioso
-    } finally {
-      this.isPreloadingActive = false;
-    }
-  }
+      this.loadingProgress.next(100);
 
-  // Método para carregar Pokémon especiais (IDs 10001+)
-  private async loadSpecialPokemon(): Promise<void> {
-    try {
-      // IDs conhecidos de Pokémon especiais (10001-10277)
-      const startId = 10001;
-      const endId = 10277;
+      // Monitorar o progresso do pré-carregamento
+      const progressInterval = setInterval(async () => {
+        try {
+          const response = await firstValueFrom(
+            this.http.get<{ progress: number }>(`${this.apiUrl}/preload-status`)
+          );
 
-      // Carregar em lotes menores para não sobrecarregar a API
-      const batchSize = 20;
-      const totalSpecial = endId - startId + 1;
-
-      for (let i = 0; i < totalSpecial; i += batchSize) {
-        const batchPromises = [];
-
-        for (let j = 0; j < batchSize && i + j < totalSpecial; j++) {
-          const id = startId + i + j;
-          batchPromises.push(this.fetchBasicPokemonData(id).catch(() => null));
-        }
-
-        const batchResults = await Promise.all(batchPromises);
-        const validResults = batchResults.filter((pokemon) => pokemon !== null);
-
-        // Adicionar ao cache
-        for (const pokemon of validResults) {
-          if (pokemon && !this.cachedList.some((p) => p.id === pokemon.id)) {
-            this.cachedList.push(pokemon);
+          this.loadingProgress.next(response.progress);
+          if (response.progress >= 100) {
+            clearInterval(progressInterval);
+            this.isLoadingComplete.next(true);
+            this.isPreloadingActive = false;
           }
+        } catch (error) {
+          clearInterval(progressInterval);
+          this.isLoadingComplete.next(true);
+          this.isPreloadingActive = false;
         }
-
-        // Atualizar progresso (90-100% para Pokémon especiais)
-        const specialProgress = Math.min(
-          10,
-          Math.round(((i + batchSize) / totalSpecial) * 10)
-        );
-        this.loadingProgress.next(90 + specialProgress);
-
-        // Pausa para não sobrecarregar a API
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      // Ordenar a lista completa por ID
-      this.cachedList.sort((a, b) => a.id - b.id);
+      }, 2000);
     } catch (error) {
-      // Erro silencioso
+      this.isPreloadingActive = false;
+      this.isLoadingComplete.next(true);
     }
   }
 
@@ -175,19 +113,21 @@ export class PokemonService {
   // Método para compatibilidade com TeamBuilderComponent
   async fetchPokemons(limit: number = 151): Promise<Pokemon[]> {
     try {
-      // Se já temos todos os Pokémon em cache, use-os
-      if (this.cachedList.length >= limit) {
-        const result = this.cachedList.slice(0, limit);
-        this._pokemons.set(result);
-        return result;
-      }
+      const pokemons = await firstValueFrom(
+        this.http.get<Pokemon[]>(`${this.apiUrl}?limit=${limit}`).pipe(
+          catchError((error) => {
+            console.error('Erro ao buscar Pokémon:', error);
+            return of([]);
+          })
+        )
+      );
 
-      // Caso contrário, busque-os
-      const pokemonList = await this.fetchPokemonList(0, limit);
-      this._pokemons.set(pokemonList);
-      return pokemonList;
+      this._pokemons.set(pokemons);
+      this.cachedList = pokemons;
+      return pokemons;
     } catch (error) {
-      throw error;
+      console.error('Erro ao buscar Pokémon:', error);
+      return [];
     }
   }
 
@@ -200,61 +140,53 @@ export class PokemonService {
     offset: number = 0,
     limit: number = 20
   ): Promise<Pokemon[]> {
+    // Se já temos os Pokémon em cache, retornamos do cache
+    if (this.cachedList.length > offset + limit) {
+      return this.cachedList.slice(offset, offset + limit);
+    }
+
     try {
-      // Se já temos os Pokémon em cache, retornamos do cache
-      if (this.cachedList.length > offset + limit) {
-        return this.cachedList.slice(offset, offset + limit);
-      }
-
-      const response = await fetch(
-        `${this.apiUrl}/pokemon?offset=${offset}&limit=${limit}`
+      const pokemons = await firstValueFrom(
+        this.http
+          .get<Pokemon[]>(`${this.apiUrl}?offset=${offset}&limit=${limit}`)
+          .pipe(
+            catchError((error) => {
+              console.error('Erro ao buscar lista de Pokémon:', error);
+              return of([]);
+            })
+          )
       );
-
-      if (!response.ok) {
-        throw new Error(
-          `Erro na API: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data: PokemonListResponse = await response.json();
-
-      const pokemonPromises = data.results.map(async (result) => {
-        const id = this.extractIdFromUrl(result.url);
-        return this.fetchBasicPokemonData(id);
-      });
-
-      const pokemonList = await Promise.all(pokemonPromises);
 
       // Atualizar cache
       if (offset === 0) {
-        this.cachedList = pokemonList;
+        this.cachedList = pokemons;
       } else {
-        // Garantir que não haja duplicatas e manter a ordem correta
-        const newPokemon = pokemonList.filter(
+        // Garantir que não haja duplicatas
+        const newPokemon = pokemons.filter(
           (pokemon) => !this.cachedList.some((p) => p.id === pokemon.id)
         );
-
-        // Adicionar os novos Pokémon ao cache
         this.cachedList = [...this.cachedList, ...newPokemon];
-
-        // Ordenar por ID
         this.cachedList.sort((a, b) => a.id - b.id);
       }
 
-      return pokemonList;
+      return pokemons;
     } catch (error) {
-      throw error;
+      console.error('Erro ao buscar lista de Pokémon:', error);
+      return [];
     }
   }
 
   // Método para obter o número total de Pokémon
   async getTotalPokemonCount(): Promise<number> {
     try {
-      const response = await fetch(`${this.apiUrl}/pokemon?limit=1`);
-      const data = await response.json();
-      return data.count;
+      const response = await firstValueFrom(
+        this.http.get<{ count: number }>(`${this.apiUrl}/count`).pipe(
+          catchError(() => of({ count: 1025 })) // Valor padrão caso ocorra erro
+        )
+      );
+      return response.count;
     } catch (error) {
-      return 1025; // Valor padrão caso ocorra erro (atualizado para incluir todas as gerações)
+      return 1025; // Valor padrão caso ocorra erro
     }
   }
 
@@ -275,41 +207,44 @@ export class PokemonService {
     }
 
     try {
-      const response = await fetch(`${this.apiUrl}/type`);
-      const data = await response.json();
-
-      const types = data.results
-        .map((type: { name: string }) => type.name)
-        .filter((type: string) => !['unknown', 'shadow'].includes(type));
+      const types = await firstValueFrom(
+        this.http.get<string[]>(`${this.apiUrl}/types`).pipe(
+          catchError((error) => {
+            console.error('Erro ao buscar tipos de Pokémon:', error);
+            return of([]);
+          })
+        )
+      );
 
       this.cachedTypes = types;
       return types;
     } catch (error) {
-      throw error;
+      console.error('Erro ao buscar tipos de Pokémon:', error);
+      return [];
     }
   }
 
   async fetchPokemonByType(type: string): Promise<Pokemon[]> {
+    // Se temos todos os Pokémon em cache, filtramos localmente
+    if (this.isLoadingComplete.value && this.cachedList.length > 0) {
+      const filteredPokemon = this.cachedList.filter((pokemon) =>
+        pokemon.type.includes(type)
+      );
+      return filteredPokemon;
+    }
+
     try {
-      // Se temos todos os Pokémon em cache, filtramos localmente
-      if (this.isLoadingComplete.value) {
-        return this.cachedList.filter((pokemon) => pokemon.type.includes(type));
-      }
-
-      // Caso contrário, buscamos da API
-      const response = await fetch(`${this.apiUrl}/type/${type}`);
-      const data = await response.json();
-
-      const pokemonPromises = data.pokemon
-        .slice(0, 100) // Aumentado para 100 para mostrar mais Pokémon por tipo
-        .map(async (entry: { pokemon: { name: string; url: string } }) => {
-          const id = this.extractIdFromUrl(entry.pokemon.url);
-          return this.fetchBasicPokemonData(id);
-        });
-
-      return await Promise.all(pokemonPromises);
+      return await firstValueFrom(
+        this.http.get<Pokemon[]>(`${this.apiUrl}/type/${type}`).pipe(
+          catchError((error) => {
+            console.error(`Erro ao buscar Pokémon do tipo ${type}:`, error);
+            return of([]);
+          })
+        )
+      );
     } catch (error) {
-      throw error;
+      console.error(`Erro ao buscar Pokémon do tipo ${type}:`, error);
+      return [];
     }
   }
 
@@ -320,34 +255,53 @@ export class PokemonService {
 
     query = query.toLowerCase();
 
-    try {
-      // Se for um número, buscar por ID
-      if (/^\d+$/.test(query)) {
-        const id = parseInt(query);
-        try {
-          const pokemon = await this.fetchBasicPokemonData(id);
-          return [pokemon];
-        } catch {
-          return [];
-        }
+    // Se for um número, buscar por ID
+    if (/^\d+$/.test(query)) {
+      const id = parseInt(query);
+      try {
+        const pokemon = await this.getPokemonById(id);
+        return pokemon ? [pokemon] : [];
+      } catch (error) {
+        return [];
       }
+    }
 
-      // Se temos Pokémon em cache, usamos o cache para pesquisa
-      if (this.cachedList.length > 0) {
-        return this.cachedList.filter((pokemon) =>
-          pokemon.name.toLowerCase().includes(query)
-        );
-      }
-
-      // Caso contrário, carregamos mais Pokémon para a pesquisa
-      await this.fetchPokemonList(0, 500); // Carregar mais Pokémon para pesquisa
-
-      // Filtrar por nome parcial
-      return this.cachedList.filter((pokemon) =>
+    // Se temos Pokémon em cache, usamos o cache para pesquisa
+    if (this.cachedList.length > 0) {
+      const filteredPokemon = this.cachedList.filter((pokemon) =>
         pokemon.name.toLowerCase().includes(query)
       );
+      return filteredPokemon;
+    }
+
+    try {
+      return await firstValueFrom(
+        this.http.get<Pokemon[]>(`${this.apiUrl}/search?term=${query}`).pipe(
+          catchError((error) => {
+            console.error('Erro ao buscar Pokémon:', error);
+            return of([]);
+          })
+        )
+      );
     } catch (error) {
-      throw error;
+      console.error('Erro ao buscar Pokémon:', error);
+      return [];
+    }
+  }
+
+  async getPokemonById(id: number): Promise<Pokemon | null> {
+    try {
+      return await firstValueFrom(
+        this.http.get<Pokemon>(`${this.apiUrl}/${id}`).pipe(
+          catchError((error) => {
+            console.error(`Erro ao buscar Pokémon com ID ${id}:`, error);
+            return of(null);
+          })
+        )
+      );
+    } catch (error) {
+      console.error(`Erro ao buscar Pokémon com ID ${id}:`, error);
+      return null;
     }
   }
 
@@ -358,85 +312,15 @@ export class PokemonService {
     }
 
     try {
-      // Verificar cache no IndexedDB
-      const storedPokemon = await this.storageService.loadPokemonDetail(id);
-      if (storedPokemon) {
-        // Adicionar ao cache em memória
-        this.cachedPokemon.set(id, storedPokemon);
-        return storedPokemon;
-      }
-
-      // Se não estiver em cache, buscar da API
-      const response = await fetch(`${this.apiUrl}/pokemon/${id}`);
-
-      if (!response.ok) {
-        throw new Error(
-          `Erro na API: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-
-      const hp = data.stats.find(
-        (stat: { stat: { name: string } }) => stat.stat.name === 'hp'
-      ).base_stat;
-
-      const pokemon: PokemonDetail = {
-        id: data.id,
-        name: data.name,
-        image:
-          data.sprites.other['official-artwork'].front_default ||
-          data.sprites.front_default,
-        type: data.types.map(
-          (type: { type: { name: string } }) => type.type.name
-        ),
-        height: data.height,
-        weight: data.weight,
-        abilities: data.abilities.map(
-          (ability: { ability: { name: string } }) => ability.ability.name
-        ),
-        sprites: {
-          front_default: data.sprites.front_default,
-          front_shiny: data.sprites.front_shiny,
-          other: {
-            'official-artwork': {
-              front_default:
-                data.sprites.other['official-artwork'].front_default,
-              front_shiny: data.sprites.other['official-artwork'].front_shiny,
-            },
-          },
-        },
-        stats: {
-          hp: hp,
-          attack: data.stats.find(
-            (stat: { stat: { name: string } }) => stat.stat.name === 'attack'
-          ).base_stat,
-          defense: data.stats.find(
-            (stat: { stat: { name: string } }) => stat.stat.name === 'defense'
-          ).base_stat,
-          specialAttack: data.stats.find(
-            (stat: { stat: { name: string } }) =>
-              stat.stat.name === 'special-attack'
-          ).base_stat,
-          specialDefense: data.stats.find(
-            (stat: { stat: { name: string } }) =>
-              stat.stat.name === 'special-defense'
-          ).base_stat,
-          speed: data.stats.find(
-            (stat: { stat: { name: string } }) => stat.stat.name === 'speed'
-          ).base_stat,
-          maxHp: hp,
-        },
-      };
+      const pokemon = await firstValueFrom(
+        this.http.get<PokemonDetail>(`${this.apiUrl}/${id}/details`)
+      );
 
       // Adicionar ao cache em memória
       this.cachedPokemon.set(id, pokemon);
-
-      // Salvar no IndexedDB
-      await this.storageService.savePokemonDetail(pokemon);
-
       return pokemon;
     } catch (error) {
+      console.error(`Erro ao buscar detalhes do Pokémon com ID ${id}:`, error);
       throw error;
     }
   }
@@ -448,137 +332,29 @@ export class PokemonService {
     }
 
     try {
-      // Verificar cache no IndexedDB
-      const storedEvolutions = await this.storageService.loadEvolutionChain(
-        pokemonId
+      const evolutions = await firstValueFrom(
+        this.http
+          .get<EvolutionPokemon[]>(`${this.apiUrl}/${pokemonId}/evolution`)
+          .pipe(
+            catchError((error) => {
+              console.error(
+                `Erro ao buscar cadeia de evolução do Pokémon com ID ${pokemonId}:`,
+                error
+              );
+              return of([]);
+            })
+          )
       );
-      if (storedEvolutions) {
-        // Adicionar ao cache em memória
-        this.cachedEvolutions.set(pokemonId, storedEvolutions);
-        return storedEvolutions;
-      }
-
-      // Primeiro, precisamos obter a espécie do Pokémon
-      const speciesResponse = await fetch(
-        `${this.apiUrl}/pokemon-species/${pokemonId}`
-      );
-
-      if (!speciesResponse.ok) {
-        throw new Error(
-          `Erro na API de espécies: ${speciesResponse.status} ${speciesResponse.statusText}`
-        );
-      }
-
-      const speciesData = await speciesResponse.json();
-
-      // Obter URL da cadeia de evolução
-      const evolutionChainUrl = speciesData.evolution_chain.url;
-
-      // Buscar dados da cadeia de evolução
-      const evolutionResponse = await fetch(evolutionChainUrl);
-
-      if (!evolutionResponse.ok) {
-        throw new Error(
-          `Erro na API de evolução: ${evolutionResponse.status} ${evolutionResponse.statusText}`
-        );
-      }
-
-      const evolutionData = await evolutionResponse.json();
-
-      // Processar a cadeia de evolução
-      const evolutionChain: EvolutionPokemon[] = [];
-
-      // Função recursiva para processar a cadeia
-      const processEvolutionChain = async (chain: any) => {
-        const pokemonId = this.extractIdFromUrl(chain.species.url);
-        try {
-          const pokemon = await this.fetchBasicPokemonData(pokemonId);
-
-          evolutionChain.push({
-            id: pokemon.id,
-            name: pokemon.name,
-            image: pokemon.image,
-          });
-
-          // Processar próximas evoluções
-          if (chain.evolves_to && chain.evolves_to.length > 0) {
-            for (const evolution of chain.evolves_to) {
-              await processEvolutionChain(evolution);
-            }
-          }
-        } catch (error) {
-          // Erro silencioso
-        }
-      };
-
-      await processEvolutionChain(evolutionData.chain);
 
       // Adicionar ao cache em memória
-      this.cachedEvolutions.set(pokemonId, evolutionChain);
-
-      // Salvar no IndexedDB
-      await this.storageService.saveEvolutionChain(pokemonId, evolutionChain);
-
-      return evolutionChain;
+      this.cachedEvolutions.set(pokemonId, evolutions);
+      return evolutions;
     } catch (error) {
+      console.error(
+        `Erro ao buscar cadeia de evolução do Pokémon com ID ${pokemonId}:`,
+        error
+      );
       return [];
     }
-  }
-
-  private async fetchBasicPokemonData(id: number): Promise<Pokemon> {
-    try {
-      const response = await fetch(`${this.apiUrl}/pokemon/${id}`);
-
-      if (!response.ok) {
-        throw new Error(
-          `Erro na API: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-
-      const hp = data.stats.find(
-        (stat: { stat: { name: string } }) => stat.stat.name === 'hp'
-      ).base_stat;
-
-      return {
-        id: data.id,
-        name: data.name,
-        image:
-          data.sprites.other['official-artwork'].front_default ||
-          data.sprites.front_default,
-        type: data.types.map(
-          (type: { type: { name: string } }) => type.type.name
-        ),
-        stats: {
-          hp: hp,
-          attack: data.stats.find(
-            (stat: { stat: { name: string } }) => stat.stat.name === 'attack'
-          ).base_stat,
-          defense: data.stats.find(
-            (stat: { stat: { name: string } }) => stat.stat.name === 'defense'
-          ).base_stat,
-          specialAttack: data.stats.find(
-            (stat: { stat: { name: string } }) =>
-              stat.stat.name === 'special-attack'
-          ).base_stat,
-          specialDefense: data.stats.find(
-            (stat: { stat: { name: string } }) =>
-              stat.stat.name === 'special-defense'
-          ).base_stat,
-          speed: data.stats.find(
-            (stat: { stat: { name: string } }) => stat.stat.name === 'speed'
-          ).base_stat,
-          maxHp: hp,
-        },
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  private extractIdFromUrl(url: string): number {
-    const matches = url.match(/\/(\d+)\/?$/);
-    return matches ? parseInt(matches[1]) : 0;
   }
 }

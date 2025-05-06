@@ -1,43 +1,41 @@
 import { Injectable } from '@angular/core';
-import type { Pokemon } from '../models/pokemon.model';
-
-export interface SavedTeam {
-  name: string;
-  trainerAvatar: string;
-  pokemons: Pokemon[];
-}
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TeamService {
-  private readonly STORAGE_KEY = 'pokemon_saved_team';
+  private apiUrl = `${environment.apiUrl}/teams`;
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
-  saveTeam(team: SavedTeam): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(team));
-    } catch (error) {
-      console.error('Erro ao salvar o time:', error);
-    }
+  getAllPublicTeams(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/public`);
   }
 
-  loadTeam(): SavedTeam | null {
-    try {
-      const savedTeam = localStorage.getItem(this.STORAGE_KEY);
-      return savedTeam ? JSON.parse(savedTeam) : null;
-    } catch (error) {
-      console.error('Erro ao carregar o time:', error);
-      return null;
-    }
+  getUserTeams(): Observable<any> {
+    return this.http.get(this.apiUrl);
   }
 
-  deleteTeam(): void {
-    try {
-      localStorage.removeItem(this.STORAGE_KEY);
-    } catch (error) {
-      console.error('Erro ao excluir o time:', error);
-    }
+  getTeamById(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
+  }
+
+  createTeam(teamData: any): Observable<any> {
+    return this.http.post(this.apiUrl, teamData);
+  }
+
+  updateTeam(id: number, teamData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, teamData);
+  }
+
+  deleteTeam(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  getAllTeams(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl);
   }
 }
