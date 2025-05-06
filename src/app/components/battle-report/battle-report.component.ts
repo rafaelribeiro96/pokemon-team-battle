@@ -215,7 +215,7 @@ export class BattleReportComponent implements OnChanges {
   // Determina se um Pokémon pertence ao Time 1 com base no contexto
   isTeamOnePokemon(pokemon: string, opponent?: string): boolean {
     // Lógica para determinar a qual equipe um Pokémon pertence
-    // Esta é uma implementação simplificada que assume que o primeiro Pokémon mencionado em um confronto é do Time 1
+    // Assume que o primeiro Pokémon mencionado em um confronto é do Time 1
     for (const entry of this.log) {
       if (entry.includes('enfrenta')) {
         const parts = entry.split(': ')[1].split(' enfrenta ');

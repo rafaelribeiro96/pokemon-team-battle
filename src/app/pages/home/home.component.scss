@@ -867,7 +867,6 @@ $type-colors: (
   }
 }
 
-// Responsividade
 @media (max-width: 1200px) {
   .game-modes-section .game-modes-container {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

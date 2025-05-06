@@ -319,18 +319,18 @@ export class PokemonCardComponent implements OnChanges, OnInit {
       } else {
         const currentHp = this.pokemon.stats?.hp || 0;
         if (this.lastHp !== currentHp) {
-          // Calculate damage
+          // Calcular dano
           this.damageAmount = Math.max(0, this.lastHp - currentHp);
 
           if (this.damageAmount > 0) {
-            // Show damage animation
+            // Mostrar animação de dano
             this.damageState = 'active';
             setTimeout(() => {
               this.damageState = 'inactive';
             }, 500);
           }
 
-          // Animate HP change
+          // Animação de mudança de HP
           this.animateHpChange(currentHp);
           this.lastHp = currentHp;
         }
@@ -341,7 +341,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
     }
 
     if (changes['isDefending'] && this.isDefending) {
-      // Show attack effect based on pokemon type
+      // Mostrar animação de defesa
       const type = this.getFirstType().toLowerCase();
       if (type === 'fire') {
         this.attackEffectState = 'fire';
@@ -394,7 +394,7 @@ export class PokemonCardComponent implements OnChanges, OnInit {
   animateHpChange(targetHp: number) {
     const startHp = this.displayHp;
     const diff = startHp - targetHp;
-    const duration = 500; // ms
+    const duration = 500;
     const startTime = performance.now();
 
     const updateHp = (currentTime: number) => {
