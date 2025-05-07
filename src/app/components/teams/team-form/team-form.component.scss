@@ -38,6 +38,8 @@
     padding: 20px;
     flex: 1;
     min-width: 300px;
+    max-width: 100%; // Garantir que não ultrapasse a largura do container
+    overflow: hidden; // Impedir que o conteúdo vaze
   }
 }
 
@@ -170,7 +172,7 @@
     margin-bottom: 5px;
     font-weight: 500;
     font-size: 0.9rem;
-    color: #333; /* Texto mais escuro para melhor legibilidade */
+    color: #333;
   }
 
   .form-control {
@@ -179,7 +181,8 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 0.95rem;
-    color: #333; /* Texto mais escuro */
+    color: #333;
+    box-sizing: border-box; // Garantir que padding não aumente a largura
 
     &:focus {
       border-color: #3c5aa6;

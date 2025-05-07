@@ -50,7 +50,7 @@ export class TeamFormComponent implements OnInit {
   ) {
     this.teamForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
-      description: ['', [Validators.required, Validators.minLength(10)]],
+      description: [''],
       pokemons: this.fb.array([]),
     });
   }
@@ -91,13 +91,13 @@ export class TeamFormComponent implements OnInit {
     this.isLoading = true;
     this.teamService.getTeamById(teamId).subscribe({
       next: (team) => {
-        console.log('Time recebido:', team); // Log para debug
+        console.log('Time recebido:', team);
         this.isLoading = false;
 
         // Atualizar os campos básicos do time
         this.teamForm.patchValue({
           name: team.name,
-          description: team.description || '', // Garantir que não seja null
+          description: team.description || '',
         });
 
         // Limpar o FormArray existente
@@ -111,16 +111,24 @@ export class TeamFormComponent implements OnInit {
             // Mapear corretamente os campos do Pokémon
             const pokemonData = {
               id: pokemon.id,
-              name: pokemon.pokemon_name, // Usar pokemon_name em vez de name
-              image: pokemon.pokemon_image,
-              level: pokemon.level || 50, // Usar valor padrão se não existir
+              name: pokemon.pokemon_name,
+              image: pokemon.pokemon_image || '',
+              level: pokemon.level || 50,
               pokemon_id: pokemon.pokemon_id,
-              imageLoaded: true, // Marcar como carregado para imagens existentes
+              imageLoaded: false, // Iniciar como false para forçar o carregamento
             };
 
-            console.log('Adicionando Pokémon ao form:', pokemonData); // Log para debug
+            console.log('Adicionando Pokémon ao form:', pokemonData);
             const pokemonGroup = this.createPokemonFormGroup(pokemonData);
             this.pokemonsFormArray.push(pokemonGroup);
+
+            // Forçar o carregamento da imagem se tiver pokemon_id
+            if (pokemon.pokemon_id) {
+              this.loadPokemonImage(
+                pokemon.pokemon_id,
+                this.pokemonsFormArray.length - 1
+              );
+            }
           });
         }
 
@@ -129,7 +137,6 @@ export class TeamFormComponent implements OnInit {
           this.addPokemonSlot();
         }
 
-        // Forçar detecção de mudanças
         this.teamForm.updateValueAndValidity();
       },
       error: (error) => {
@@ -215,27 +222,65 @@ export class TeamFormComponent implements OnInit {
   async loadPokemonImage(pokemonId: number, index: number): Promise<void> {
     const pokemonGroup = this.pokemonsFormArray.at(index);
 
+    // Se já temos uma imagem e não é a imagem padrão, apenas marcar como carregada
+    const currentImage = pokemonGroup.get('image')?.value;
+    if (
+      currentImage &&
+      currentImage !== 'assets/images/imagemDefault.png' &&
+      currentImage !== 'assets/images/pokemon-placeholder.png'
+    ) {
+      // Verificar se a imagem existe
+      const img = new Image();
+      img.onload = () => {
+        pokemonGroup.patchValue({ imageLoaded: true });
+      };
+      img.onerror = () => {
+        // Se a imagem falhar, tentar buscar uma nova
+        this.fetchNewPokemonImage(pokemonId, index);
+      };
+      img.src = currentImage;
+      return;
+    }
+
+    // Se não temos imagem ou é a imagem padrão, buscar uma nova
+    this.fetchNewPokemonImage(pokemonId, index);
+  }
+
+  // Novo método para buscar uma nova imagem
+  private fetchNewPokemonImage(pokemonId: number, index: number): void {
+    const pokemonGroup = this.pokemonsFormArray.at(index);
+
     try {
-      // Usar o método getBestPokemonImageUrl para obter a melhor imagem disponível
       this.pokemonService
-        .getBestPokemonImageUrl(pokemonId, '')
-        .subscribe((imageUrl) => {
-          if (imageUrl) {
+        .getBestPokemonImageUrl(
+          pokemonId,
+          'assets/images/pokemon-placeholder.png'
+        )
+        .subscribe({
+          next: (imageUrl) => {
+            if (imageUrl) {
+              pokemonGroup.patchValue({
+                image: imageUrl,
+                imageLoaded: true,
+              });
+            } else {
+              pokemonGroup.patchValue({
+                image: 'assets/images/pokemon-placeholder.png',
+                imageLoaded: true,
+              });
+            }
+          },
+          error: () => {
             pokemonGroup.patchValue({
-              image: imageUrl,
-            });
-          } else {
-            // Se não encontrar imagem, usar o fallback
-            pokemonGroup.patchValue({
-              image: 'assets/images/imagemDefault.png',
+              image: 'assets/images/pokemon-placeholder.png',
               imageLoaded: true,
             });
-          }
+          },
         });
     } catch (error) {
       console.error('Erro ao carregar imagem do Pokémon:', error);
       pokemonGroup.patchValue({
-        image: 'assets/images/imagemDefault.png',
+        image: 'assets/images/pokemon-placeholder.png',
         imageLoaded: true,
       });
     }
