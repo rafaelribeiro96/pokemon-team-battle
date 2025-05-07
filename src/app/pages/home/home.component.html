@@ -13,15 +13,39 @@
     <div *ngFor="let slide of heroSlides; let i = index"
          class="hero-slide"
          [class.active]="i === currentSlide"
-         [style.background-image]="'url(' + slide.image + ')'"
+         [ngClass]="'theme-' + slide.theme"
          [@heroAnimation]="i === currentSlide ? 'active' : 'inactive'">
+
+      <!-- Elementos decorativos temáticos -->
+      <div class="theme-elements">
+        <div class="pokemon-silhouette" [style.background-image]="'url(' + slide.pokemonSilhouette + ')'"></div>
+        <div class="element-circles"></div>
+        <div class="element-shapes"></div>
+      </div>
+
       <div class="hero-content">
+        <div class="badge" [style.background-color]="slide.badgeColor">{{ slide.badge }}</div>
         <h1>{{ slide.title }}</h1>
         <p>{{ slide.subtitle }}</p>
-        <button [routerLink]="slide.buttonLink" class="hero-button" [style.background-color]="slide.color">
-          {{ slide.buttonText }}
-          <mat-icon>arrow_forward</mat-icon>
-        </button>
+        <div class="hero-cta">
+          <button [routerLink]="slide.buttonLink" class="hero-button" [style.background-color]="slide.color">
+            {{ slide.buttonText }}
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+          <a [routerLink]="slide.secondaryLink" class="hero-link">{{ slide.secondaryText }}</a>
+        </div>
+
+        <!-- Pokémon destacados -->
+        <div class="featured-pokemon">
+          <div *ngFor="let pokemon of slide.featuredPokemon" class="pokemon-avatar" [title]="pokemon.name">
+            <img [src]="pokemon.image" [alt]="pokemon.name" fallback="assets/images/imagemDefault.png">
+          </div>
+        </div>
+      </div>
+
+      <!-- Imagem principal do Pokémon -->
+      <div class="hero-pokemon">
+        <img [src]="slide.pokemonImage" [alt]="slide.title" class="main-pokemon" fallback="assets/images/imagemDefault.png">
       </div>
     </div>
 
@@ -41,6 +65,7 @@
            (click)="setSlide(i)"></div>
     </div>
   </section>
+
 
   <!-- Modos de Jogo Principais -->
   <section class="game-modes-section">
