@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   BehaviorSubject,
-  type Observable,
+  Observable,
   of,
   catchError,
   firstValueFrom,
@@ -326,6 +326,53 @@ export class PokemonService {
     }
   }
 
+  // Adicione este método ao seu PokemonService
+
+  // Método para pesquisa sem carregar imagens
+  async searchPokemonNamesOnly(query: string): Promise<any[]> {
+    if (!query) {
+      return [];
+    }
+
+    query = query.toLowerCase();
+
+    // Se for um número, buscar por ID
+    if (/^\d+$/.test(query)) {
+      const id = Number.parseInt(query);
+      try {
+        const pokemon = await this.getPokemonById(id);
+        return pokemon ? [{ id: pokemon.id, name: pokemon.name }] : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    // Se temos Pokémon em cache, usamos o cache para pesquisa
+    if (this.cachedList.length > 0) {
+      const filteredPokemon = this.cachedList
+        .filter((pokemon) => pokemon.name.toLowerCase().includes(query))
+        .map((pokemon) => ({ id: pokemon.id, name: pokemon.name }));
+      return filteredPokemon;
+    }
+
+    try {
+      // Modificar a chamada de API para solicitar apenas os dados básicos
+      return await firstValueFrom(
+        this.http
+          .get<any[]>(`${this.apiUrl}/search?term=${query}&basic=true`)
+          .pipe(
+            catchError((error) => {
+              console.error('Erro ao buscar Pokémon:', error);
+              return of([]);
+            })
+          )
+      );
+    } catch (error) {
+      console.error('Erro ao buscar Pokémon:', error);
+      return [];
+    }
+  }
+
   async getPokemonById(id: number): Promise<Pokemon | null> {
     try {
       const pokemon = await firstValueFrom(
@@ -475,11 +522,52 @@ export class PokemonService {
       return of(this.imageCache.get(pokemonId.toString())!);
     }
 
-    // Caso contrário, verificamos as imagens e retornamos a melhor
-    this.verifyAndCacheImage(pokemonId, fallbackUrl);
+    // Verificar se o Pokémon está no cache local
+    const cachedPokemon = this.cachedList.find((p) => p.id === pokemonId);
+    if (cachedPokemon && cachedPokemon.image) {
+      this.imageCache.set(pokemonId.toString(), cachedPokemon.image);
+      return of(cachedPokemon.image);
+    }
 
-    // Retornamos a URL de fallback enquanto verificamos
-    return of(fallbackUrl);
+    // Tentar cada fonte de imagem sequencialmente
+    return new Observable<string>((observer) => {
+      let imageFound = false;
+      let currentSourceIndex = 0;
+
+      const tryNextSource = () => {
+        if (currentSourceIndex >= this.imageSources.length) {
+          // Se nenhuma fonte funcionar, usar o fallback
+          this.imageCache.set(
+            pokemonId.toString(),
+            fallbackUrl || '/assets/images/imagemDefault.png'
+          );
+          observer.next(fallbackUrl || '/assets/images/imagemDefault.png');
+          observer.complete();
+          return;
+        }
+
+        const imageUrl = this.imageSources[currentSourceIndex](pokemonId);
+
+        this.checkImageExists(imageUrl).then((exists) => {
+          if (exists) {
+            this.imageCache.set(pokemonId.toString(), imageUrl);
+            observer.next(imageUrl);
+            observer.complete();
+            imageFound = true;
+          } else {
+            currentSourceIndex++;
+            tryNextSource();
+          }
+        });
+      };
+
+      tryNextSource();
+
+      // Retornar uma função de limpeza
+      return () => {
+        imageFound = true; // Impedir mais tentativas se o observador for cancelado
+      };
+    });
   }
 
   // Método para pré-carregar imagens para um conjunto de Pokémon
