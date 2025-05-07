@@ -2,20 +2,15 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   BehaviorSubject,
-  Observable,
-  from,
+  type Observable,
   of,
   catchError,
-  map,
-  tap,
   firstValueFrom,
-  lastValueFrom,
 } from 'rxjs';
 import { environment } from '../../environments/environment';
-import {
+import type {
   Pokemon,
   PokemonDetail,
-  PokemonListResponse,
   EvolutionPokemon,
 } from '../models/pokemon.model';
 
@@ -29,6 +24,19 @@ export class PokemonService {
   private cachedTypes: string[] = [];
   private cachedEvolutions: Map<number, EvolutionPokemon[]> = new Map();
   private _pokemons = signal<Pokemon[]>([]);
+
+  // Cache para URLs de imagens
+  private imageCache: Map<string, string> = new Map();
+
+  // Fontes de imagens em ordem de preferência
+  private imageSources = [
+    (id: number) =>
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+    (id: number) =>
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${id}.png`,
+    (id: number) =>
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+  ];
 
   // Observables para monitorar o progresso do carregamento
   private loadingProgress = new BehaviorSubject<number>(0);
@@ -111,7 +119,7 @@ export class PokemonService {
   }
 
   // Método para compatibilidade com TeamBuilderComponent
-  async fetchPokemons(limit: number = 151): Promise<Pokemon[]> {
+  async fetchPokemons(limit = 151): Promise<Pokemon[]> {
     try {
       const pokemons = await firstValueFrom(
         this.http.get<Pokemon[]>(`${this.apiUrl}?limit=${limit}`).pipe(
@@ -121,6 +129,13 @@ export class PokemonService {
           })
         )
       );
+
+      // Pré-verificar imagens para os Pokémon carregados
+      for (const pokemon of pokemons) {
+        if (pokemon.id && pokemon.image) {
+          this.verifyAndCacheImage(pokemon.id, pokemon.image);
+        }
+      }
 
       this._pokemons.set(pokemons);
       this.cachedList = pokemons;
@@ -136,10 +151,7 @@ export class PokemonService {
     return this._pokemons();
   }
 
-  async fetchPokemonList(
-    offset: number = 0,
-    limit: number = 20
-  ): Promise<Pokemon[]> {
+  async fetchPokemonList(offset = 0, limit = 20): Promise<Pokemon[]> {
     // Se já temos os Pokémon em cache, retornamos do cache
     if (this.cachedList.length > offset + limit) {
       return this.cachedList.slice(offset, offset + limit);
@@ -156,6 +168,13 @@ export class PokemonService {
             })
           )
       );
+
+      // Pré-verificar imagens para os Pokémon carregados
+      for (const pokemon of pokemons) {
+        if (pokemon.id && pokemon.image) {
+          this.verifyAndCacheImage(pokemon.id, pokemon.image);
+        }
+      }
 
       // Atualizar cache
       if (offset === 0) {
@@ -234,7 +253,7 @@ export class PokemonService {
     }
 
     try {
-      return await firstValueFrom(
+      const pokemons = await firstValueFrom(
         this.http.get<Pokemon[]>(`${this.apiUrl}/type/${type}`).pipe(
           catchError((error) => {
             console.error(`Erro ao buscar Pokémon do tipo ${type}:`, error);
@@ -242,6 +261,15 @@ export class PokemonService {
           })
         )
       );
+
+      // Pré-verificar imagens para os Pokémon carregados
+      for (const pokemon of pokemons) {
+        if (pokemon.id && pokemon.image) {
+          this.verifyAndCacheImage(pokemon.id, pokemon.image);
+        }
+      }
+
+      return pokemons;
     } catch (error) {
       console.error(`Erro ao buscar Pokémon do tipo ${type}:`, error);
       return [];
@@ -257,7 +285,7 @@ export class PokemonService {
 
     // Se for um número, buscar por ID
     if (/^\d+$/.test(query)) {
-      const id = parseInt(query);
+      const id = Number.parseInt(query);
       try {
         const pokemon = await this.getPokemonById(id);
         return pokemon ? [pokemon] : [];
@@ -275,7 +303,7 @@ export class PokemonService {
     }
 
     try {
-      return await firstValueFrom(
+      const pokemons = await firstValueFrom(
         this.http.get<Pokemon[]>(`${this.apiUrl}/search?term=${query}`).pipe(
           catchError((error) => {
             console.error('Erro ao buscar Pokémon:', error);
@@ -283,6 +311,15 @@ export class PokemonService {
           })
         )
       );
+
+      // Pré-verificar imagens para os resultados da pesquisa
+      for (const pokemon of pokemons) {
+        if (pokemon.id && pokemon.image) {
+          this.verifyAndCacheImage(pokemon.id, pokemon.image);
+        }
+      }
+
+      return pokemons;
     } catch (error) {
       console.error('Erro ao buscar Pokémon:', error);
       return [];
@@ -291,7 +328,7 @@ export class PokemonService {
 
   async getPokemonById(id: number): Promise<Pokemon | null> {
     try {
-      return await firstValueFrom(
+      const pokemon = await firstValueFrom(
         this.http.get<Pokemon>(`${this.apiUrl}/${id}`).pipe(
           catchError((error) => {
             console.error(`Erro ao buscar Pokémon com ID ${id}:`, error);
@@ -299,6 +336,12 @@ export class PokemonService {
           })
         )
       );
+
+      if (pokemon && pokemon.id && pokemon.image) {
+        this.verifyAndCacheImage(pokemon.id, pokemon.image);
+      }
+
+      return pokemon;
     } catch (error) {
       console.error(`Erro ao buscar Pokémon com ID ${id}:`, error);
       return null;
@@ -315,6 +358,11 @@ export class PokemonService {
       const pokemon = await firstValueFrom(
         this.http.get<PokemonDetail>(`${this.apiUrl}/${id}/details`)
       );
+
+      // Verificar e cachear a imagem
+      if (pokemon && pokemon.image) {
+        this.verifyAndCacheImage(id, pokemon.image);
+      }
 
       // Adicionar ao cache em memória
       this.cachedPokemon.set(id, pokemon);
@@ -346,6 +394,13 @@ export class PokemonService {
           )
       );
 
+      // Verificar e cachear imagens para cada Pokémon na cadeia de evolução
+      for (const evolution of evolutions) {
+        if (evolution.id && evolution.image) {
+          this.verifyAndCacheImage(evolution.id, evolution.image);
+        }
+      }
+
       // Adicionar ao cache em memória
       this.cachedEvolutions.set(pokemonId, evolutions);
       return evolutions;
@@ -356,5 +411,103 @@ export class PokemonService {
       );
       return [];
     }
+  }
+
+  // NOVOS MÉTODOS PARA GERENCIAMENTO DE IMAGENS
+
+  // Método para verificar e cachear imagens
+  private verifyAndCacheImage(
+    pokemonId: number,
+    initialImageUrl: string
+  ): void {
+    // Se já temos uma imagem cacheada para este Pokémon, não fazemos nada
+    if (this.imageCache.has(pokemonId.toString())) {
+      return;
+    }
+
+    // Primeiro, tentamos a URL inicial
+    this.checkImageExists(initialImageUrl).then((exists) => {
+      if (exists) {
+        this.imageCache.set(pokemonId.toString(), initialImageUrl);
+        return;
+      }
+
+      // Se a imagem inicial não existir, tentamos as fontes alternativas
+      this.tryAlternativeImageSources(pokemonId);
+    });
+  }
+
+  private async tryAlternativeImageSources(pokemonId: number): Promise<void> {
+    for (const sourceGenerator of this.imageSources) {
+      const imageUrl = sourceGenerator(pokemonId);
+      const exists = await this.checkImageExists(imageUrl);
+
+      if (exists) {
+        this.imageCache.set(pokemonId.toString(), imageUrl);
+        return;
+      }
+    }
+
+    // Se nenhuma imagem funcionar, usamos o placeholder
+    this.imageCache.set(
+      pokemonId.toString(),
+      '/assets/images/imagemDefault.png'
+    );
+  }
+
+  // Método para verificar se uma imagem existe
+  private checkImageExists(url: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  // Método público para obter a melhor URL de imagem para um Pokémon
+  getBestPokemonImageUrl(
+    pokemonId: number,
+    fallbackUrl: string
+  ): Observable<string> {
+    // Se já temos uma imagem cacheada, retornamos ela
+    if (this.imageCache.has(pokemonId.toString())) {
+      return of(this.imageCache.get(pokemonId.toString())!);
+    }
+
+    // Caso contrário, verificamos as imagens e retornamos a melhor
+    this.verifyAndCacheImage(pokemonId, fallbackUrl);
+
+    // Retornamos a URL de fallback enquanto verificamos
+    return of(fallbackUrl);
+  }
+
+  // Método para pré-carregar imagens para um conjunto de Pokémon
+  preloadPokemonImages(pokemonIds: number[]): void {
+    for (const id of pokemonIds) {
+      // Se já temos a imagem em cache, pulamos
+      if (this.imageCache.has(id.toString())) {
+        continue;
+      }
+
+      // Tentamos cada fonte de imagem
+      for (const sourceGenerator of this.imageSources) {
+        const imageUrl = sourceGenerator(id);
+        this.checkImageExists(imageUrl).then((exists) => {
+          if (exists && !this.imageCache.has(id.toString())) {
+            this.imageCache.set(id.toString(), imageUrl);
+          }
+        });
+      }
+    }
+  }
+
+  // Método para atualizar a imagem de um Pokémon no cache
+  updatePokemonImage(pokemonId: number, newImageUrl: string): void {
+    this.checkImageExists(newImageUrl).then((exists) => {
+      if (exists) {
+        this.imageCache.set(pokemonId.toString(), newImageUrl);
+      }
+    });
   }
 }

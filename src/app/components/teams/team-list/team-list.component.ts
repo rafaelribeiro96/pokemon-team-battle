@@ -1,14 +1,14 @@
-/* team-list.component.ts */
-import { Component, OnInit } from '@angular/core';
+import { Component, type OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TeamService } from '../../../services/team.service';
 import { AuthService } from '../../../services/auth.service';
+import { ImgFallbackDirective } from '../../../directives/fallback-image.directive';
 
 @Component({
   selector: 'app-team-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ImgFallbackDirective],
   templateUrl: './team-list.component.html',
   styleUrls: ['./team-list.component.scss'],
 })
@@ -30,16 +30,32 @@ export class TeamListComponent implements OnInit {
 
   loadTeams(): void {
     this.isLoading = true;
+
     this.teamService.getAllTeams().subscribe({
       next: (teams) => {
         this.isLoading = false;
-        this.teams = teams;
+
+        // Adicionar propriedade de controle de carregamento de imagem
+        this.teams = teams.map((team) => ({
+          ...team,
+          pokemons: team.pokemons.map((pokemon: any) => ({
+            ...pokemon,
+            imageLoaded: false,
+          })),
+        }));
+
+        console.log('Times carregados:', this.teams);
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error.message || 'Erro ao carregar times';
+        console.error('Erro ao carregar times:', error);
+        this.errorMessage = error.error?.message || 'Erro ao carregar times';
       },
     });
+  }
+
+  onImageLoad(pokemon: any): void {
+    pokemon.imageLoaded = true;
   }
 
   deleteTeam(id: number): void {
@@ -49,7 +65,7 @@ export class TeamListComponent implements OnInit {
           this.loadTeams(); // Recarregar a lista após excluir
         },
         error: (error) => {
-          this.errorMessage = error.error.message || 'Erro ao excluir time';
+          this.errorMessage = error.error?.message || 'Erro ao excluir time';
         },
       });
     }

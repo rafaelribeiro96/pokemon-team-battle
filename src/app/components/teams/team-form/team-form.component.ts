@@ -1,10 +1,9 @@
-/* team-form.component.ts */
-import { Component, OnInit } from '@angular/core';
+import { Component, type OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
-  FormGroup,
-  FormArray,
+  type FormGroup,
+  type FormArray,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
@@ -144,11 +143,18 @@ export class TeamFormComponent implements OnInit {
 
   selectPokemon(pokemon: any, index: number): void {
     const pokemonGroup = this.pokemonsFormArray.at(index);
-    pokemonGroup.patchValue({
-      name: pokemon.name,
-      image: pokemon.image,
-      pokemon_id: pokemon.id,
-    });
+
+    // Verificar a melhor imagem disponível
+    this.pokemonService
+      .getBestPokemonImageUrl(pokemon.id, pokemon.image)
+      .subscribe((bestImageUrl) => {
+        pokemonGroup.patchValue({
+          name: pokemon.name,
+          image: bestImageUrl,
+          pokemon_id: pokemon.id,
+        });
+      });
+
     this.searchResults = [];
     this.searchTerm = '';
   }
@@ -158,14 +164,21 @@ export class TeamFormComponent implements OnInit {
       return;
     }
 
-    // Filtrar slots vazios de Pokémon
+    // Filtrar slots vazios de Pokémon e garantir que todos os campos estejam definidos corretamente
     const formValue = { ...this.teamForm.value };
-    formValue.pokemons = formValue.pokemons.filter(
-      (pokemon: any) => pokemon.name
-    );
+    formValue.pokemons = formValue.pokemons
+      .filter((pokemon: any) => pokemon.name)
+      .map((pokemon: any) => ({
+        pokemon_id: pokemon.pokemon_id || 0, // Garantir que não seja undefined
+        pokemon_name: pokemon.name,
+        pokemon_image: pokemon.image || null, // Converter string vazia para null
+        position: pokemon.position || null, // Deixar null para usar o índice no backend
+      }));
 
     this.isSaving = true;
     this.errorMessage = null;
+
+    console.log('Enviando dados para o servidor:', formValue);
 
     const saveObservable = this.isEditMode
       ? this.teamService.updateTeam(this.teamId!, formValue)
@@ -178,7 +191,8 @@ export class TeamFormComponent implements OnInit {
       },
       error: (error) => {
         this.isSaving = false;
-        this.errorMessage = error.error.message || 'Erro ao salvar time';
+        console.error('Erro detalhado:', error);
+        this.errorMessage = error.error?.message || 'Erro ao salvar time';
       },
     });
   }

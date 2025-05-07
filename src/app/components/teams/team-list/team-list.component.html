@@ -1,4 +1,3 @@
-<!-- src/app/components/teams/team-list/team-list.component.html -->
 <div class="container">
   <div class="teams-header">
     <h1>Times Pokémon</h1>
@@ -36,16 +35,29 @@
 
       <div class="team-pokemon">
         <div *ngFor="let pokemon of team.pokemons" class="pokemon-item">
-          <img [src]="pokemon.image || '/assets/images/pokemon-placeholder.png'" [alt]="pokemon.name">
+          <div class="pokemon-image-container">
+            <!-- Indicador de carregamento -->
+            <div class="loading-spinner" *ngIf="!pokemon.imageLoaded"></div>
+
+            <!-- Imagem com fallback e lazy loading -->
+            <img
+              [src]="pokemon.pokemon_image || '/assets/images/pokemon-placeholder.png'"
+              [alt]="pokemon.pokemon_name"
+              fallback="/assets/images/pokemon-placeholder.png"
+              loading="lazy"
+              (load)="onImageLoad(pokemon)"
+              [ngClass]="{'loaded': pokemon.imageLoaded}"
+            >
+          </div>
           <div class="pokemon-info">
-            <span class="pokemon-name">{{ pokemon.name }}</span>
-            <span class="pokemon-level">Nv. {{ pokemon.level }}</span>
+            <span class="pokemon-name">{{ pokemon.pokemon_name }}</span>
+            <span class="pokemon-level">Nv. {{ pokemon.level || 50 }}</span>
           </div>
         </div>
       </div>
 
       <div class="team-footer">
-        <span class="team-creator">Criado por: {{ team.user?.username || 'Usuário desconhecido' }}</span>
+        <span class="team-creator">Criado por: {{ team.user_name || 'Usuário desconhecido' }}</span>
         <a [routerLink]="['/teams', team.id]" class="btn btn-sm btn-outline-primary">Ver detalhes</a>
       </div>
     </div>
