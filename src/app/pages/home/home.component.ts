@@ -1,5 +1,5 @@
 /* home.component.ts */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -108,9 +108,11 @@ interface FeaturedPokemon {
     ]),
   ],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   currentSlide = 0;
   activeTab = 0;
+  private slideInterval: any; // Para armazenar a referência do intervalo
+  private readonly SLIDE_DURATION = 6000; // Duração em ms entre slides
 
   // Modos de jogo principais
   gameModes: GameMode[] = [
@@ -365,25 +367,53 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     // Iniciar o carrossel automático
-    setInterval(() => {
-      this.nextSlide();
-    }, 6000);
+    this.startSlideTimer();
 
     // Adicionar efeito de flutuação aos elementos
     this.setupFloatingElements();
   }
 
+  ngOnDestroy() {
+    // Limpar o intervalo quando o componente for destruído
+    this.clearSlideTimer();
+  }
+
+  // Método para iniciar o temporizador do slide
+  private startSlideTimer() {
+    // Limpar qualquer temporizador existente primeiro
+    this.clearSlideTimer();
+
+    // Iniciar um novo temporizador
+    this.slideInterval = setInterval(() => {
+      this.nextSlide();
+    }, this.SLIDE_DURATION);
+  }
+
+  // Método para limpar o temporizador
+  private clearSlideTimer() {
+    if (this.slideInterval) {
+      clearInterval(this.slideInterval);
+      this.slideInterval = null;
+    }
+  }
+
   nextSlide() {
     this.currentSlide = (this.currentSlide + 1) % this.heroSlides.length;
+    // Resetar o temporizador após mudar o slide manualmente
+    this.startSlideTimer();
   }
 
   prevSlide() {
     this.currentSlide =
       (this.currentSlide - 1 + this.heroSlides.length) % this.heroSlides.length;
+    // Resetar o temporizador após mudar o slide manualmente
+    this.startSlideTimer();
   }
 
   setSlide(index: number) {
     this.currentSlide = index;
+    // Resetar o temporizador após mudar o slide manualmente
+    this.startSlideTimer();
   }
 
   getTypeClass(type: string): string {
