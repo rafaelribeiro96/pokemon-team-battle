@@ -1,5 +1,5 @@
 /* src/app/components/header/header.component.scss */
-:root {
+:host {
   --pokemon-red: #e51c23;
   --pokemon-blue: #3c5aa6;
   --pokemon-yellow: #ffcb05;
@@ -422,5 +422,54 @@
         gap: 5px;
       }
     }
+  }
+}
+
+/* Estilos para o menu dropdown */
+::ng-deep {
+  .mat-mdc-menu-panel.user-profile-menu {
+    min-width: 200px !important;
+    max-width: 280px !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+
+    .mat-mdc-menu-content {
+      padding: 8px !important;
+
+      .mat-mdc-menu-item {
+        border-radius: 8px !important;
+        margin: 4px 0 !important;
+
+        &:hover {
+          background-color: rgba(60, 90, 166, 0.1) !important;
+        }
+
+        .mat-icon {
+          margin-right: 12px !important;
+          color: var(--pokemon-blue) !important;
+        }
+      }
+    }
+  }
+
+  .cdk-overlay-container {
+    z-index: 1001 !important;
+  }
+
+  .cdk-overlay-pane {
+    z-index: 1001 !important;
+  }
+
+  .cdk-overlay-backdrop {
+    z-index: 1000 !important;
+
+    &.cdk-overlay-backdrop-showing {
+      opacity: 0.48 !important;
+    }
+  }
+
+  .menu-backdrop {
+    background-color: rgba(0, 0, 0, 0.3) !important;
   }
 }

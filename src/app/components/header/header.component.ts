@@ -1,13 +1,24 @@
 /* header.component.ts */
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  type OnInit,
+  type OnDestroy,
+  HostListener,
+  ViewContainerRef,
+  ViewChild,
+  ElementRef,
+  type AfterViewInit,
+  Renderer2,
+  Inject,
+} from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatMenuModule, type MatMenuTrigger } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../services/auth.service';
-import { Subscription } from 'rxjs';
+import type { Subscription } from 'rxjs';
 import { ImgFallbackDirective } from '../../directives/fallback-image.directive';
 
 @Component({
@@ -25,23 +36,32 @@ import { ImgFallbackDirective } from '../../directives/fallback-image.directive'
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent implements OnInit, OnDestroy {
-  isPlaying: boolean = false;
+export class HeaderComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('menuTrigger') menuTrigger!: MatMenuTrigger;
+  @ViewChild('menuTrigger', { read: ElementRef }) menuTriggerEl!: ElementRef;
+
+  isPlaying = false;
   audio: HTMLAudioElement | null = null;
-  volume: number = 0.5;
-  previousVolume: number = 0.5;
-  isMuted: boolean = false;
-  isMobileMenuOpen: boolean = false;
+  volume = 0.5;
+  previousVolume = 0.5;
+  isMuted = false;
+  isMobileMenuOpen = false;
 
   // Usuário logado
   user: any = null;
   private userSubscription: Subscription | null = null;
 
   // Armazenar o estado do scroll anterior
-  private lastScrollTop: number = 0;
-  private headerVisible: boolean = true;
+  private lastScrollTop = 0;
+  private headerVisible = true;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private viewContainerRef: ViewContainerRef,
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document
+  ) {}
 
   ngOnInit(): void {
     this.audio = new Audio('/assets/music/pokemon-abertura.mp3');
@@ -54,6 +74,68 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Inscrever-se para mudanças no usuário logado
     this.userSubscription = this.authService.currentUser$.subscribe((user) => {
       this.user = user;
+    });
+
+    // Adicionar um ouvinte global para fechar o menu quando clicar fora
+    this.renderer.listen('document', 'click', (event) => {
+      if (this.menuTrigger?.menuOpen) {
+        const clickTarget = event.target as HTMLElement;
+        const menuContainer = this.document.querySelector(
+          '.cdk-overlay-container'
+        );
+        const triggerEl = this.menuTriggerEl?.nativeElement;
+
+        if (
+          menuContainer &&
+          !menuContainer.contains(clickTarget) &&
+          triggerEl &&
+          !triggerEl.contains(clickTarget)
+        ) {
+          this.menuTrigger.closeMenu();
+        }
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    // Configurar o menu após a visualização ser inicializada
+    if (this.menuTrigger) {
+      // Adicionar listener para quando o menu abrir
+      this.menuTrigger.menuOpened.subscribe(() => {
+        // Forçar reposicionamento do menu
+        setTimeout(() => {
+          const overlayPane = this.document.querySelector('.cdk-overlay-pane');
+          const menuContent = this.document.querySelector(
+            '.mat-mdc-menu-content'
+          );
+          const triggerRect =
+            this.menuTriggerEl.nativeElement.getBoundingClientRect();
+
+          if (overlayPane && menuContent) {
+            // Calcular posição manualmente
+            const topPosition = triggerRect.bottom + 10; // 10px abaixo do botão
+            const rightPosition = window.innerWidth - triggerRect.right;
+
+            // Garantir que o menu esteja visível e posicionado corretamente
+            this.renderer.setStyle(overlayPane, 'position', 'fixed');
+            this.renderer.setStyle(overlayPane, 'top', `${topPosition}px`);
+            this.renderer.setStyle(overlayPane, 'right', `${rightPosition}px`);
+            this.renderer.setStyle(overlayPane, 'transform', 'none');
+            this.renderer.setStyle(menuContent, 'max-height', '300px');
+          }
+        }, 0);
+      });
+    }
+  }
+
+  onMenuClosed(): void {
+    // Limpar qualquer estilo personalizado que possa estar causando problemas
+    const overlayElements = this.document.querySelectorAll(
+      '.cdk-overlay-container, .cdk-overlay-backdrop'
+    );
+    overlayElements.forEach((el) => {
+      this.renderer.removeStyle(el, 'position');
+      this.renderer.removeStyle(el, 'bottom');
     });
   }
 

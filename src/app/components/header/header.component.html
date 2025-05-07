@@ -59,7 +59,7 @@
 
       <!-- Usuário logado -->
       <div class="user-section" *ngIf="isLoggedIn()">
-        <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+        <button #menuTrigger="matMenuTrigger" mat-button [matMenuTriggerFor]="userMenu" class="user-button">
           <div class="avatar" [matBadge]="'1'" matBadgeSize="small" matBadgeColor="warn" matBadgeOverlap="true">
             <img [src]="user?.avatar || '/assets/images/default-avatar.png'" alt="Avatar" class="avatar-img" fallback="assets/images/default-avatar.png">
           </div>
@@ -67,7 +67,12 @@
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 
-        <mat-menu #userMenu="matMenu" xPosition="before">
+        <mat-menu #userMenu="matMenu"
+        class="user-profile-menu"
+        [class.menu-open]="menuTrigger.menuOpen"
+        backdropClass="menu-backdrop"
+        (closed)="onMenuClosed()">
+        <div class="menu-container">
           <button mat-menu-item routerLink="/profile">
             <mat-icon>person</mat-icon>
             <span>Meu Perfil</span>
@@ -84,7 +89,8 @@
             <mat-icon>exit_to_app</mat-icon>
             <span>Sair</span>
           </button>
-        </mat-menu>
+        </div>
+      </mat-menu>
       </div>
     </div>
   </div>
