@@ -10,10 +10,11 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   intercept(
     request: HttpRequest<unknown>,
@@ -32,9 +33,8 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          // Token expirado ou inválido
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          // Token expirado ou inválido - usar o serviço de autenticação para logout
+          this.authService.logout();
           this.router.navigate(['/login']);
         }
         return throwError(() => error);

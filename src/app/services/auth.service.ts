@@ -38,15 +38,29 @@ export class AuthService {
     const token = localStorage.getItem('token');
 
     if (userJson && token) {
-      const user = JSON.parse(userJson);
-      this.currentUserSubject.next(user);
+      try {
+        const user = JSON.parse(userJson);
+        this.currentUserSubject.next(user);
 
-      // Verificar se há um tempo de expiração salvo
-      const expirationTime = localStorage.getItem('tokenExpiration');
-      if (expirationTime) {
-        this.autoLogout(
-          new Date(expirationTime).getTime() - new Date().getTime()
-        );
+        // Verificar se há um tempo de expiração salvo
+        const expirationTime = localStorage.getItem('tokenExpiration');
+        if (expirationTime) {
+          const remainingTime =
+            new Date(expirationTime).getTime() - new Date().getTime();
+          if (remainingTime > 0) {
+            // Verificar se "lembrar acesso" está ativado
+            const rememberMe = localStorage.getItem('rememberMe') === 'true';
+            if (!rememberMe) {
+              this.autoLogout(remainingTime);
+            }
+          } else {
+            // Token expirado, fazer logout
+            this.logout();
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar usuário do localStorage:', error);
+        this.logout();
       }
     }
   }
@@ -62,7 +76,7 @@ export class AuthService {
         email,
         password,
       })
-      .pipe(tap((response) => this.handleAuthResponse(response)));
+      .pipe(tap((response) => this.handleAuthResponse(response, false)));
   }
 
   login(
@@ -82,14 +96,13 @@ export class AuthService {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('tokenExpiration');
+    localStorage.removeItem('rememberMe');
     this.currentUserSubject.next(null);
 
     if (this.tokenExpirationTimer) {
       clearTimeout(this.tokenExpirationTimer);
       this.tokenExpirationTimer = null;
     }
-
-    this.router.navigate(['/login']);
   }
 
   isLoggedIn(): boolean {
@@ -115,8 +128,14 @@ export class AuthService {
     rememberMe: boolean = false
   ): void {
     if (response && response.token) {
+      // Salvar token e usuário no localStorage
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
+
+      // Salvar a preferência de "lembrar acesso"
+      localStorage.setItem('rememberMe', rememberMe.toString());
+
+      // Atualizar o BehaviorSubject
       this.currentUserSubject.next(response.user);
 
       // Configurar expiração do token
@@ -129,13 +148,22 @@ export class AuthService {
       );
       localStorage.setItem('tokenExpiration', expirationDate.toISOString());
 
-      this.autoLogout(expirationDuration);
+      // Configurar o auto logout apenas se não for "lembrar acesso"
+      if (!rememberMe) {
+        this.autoLogout(expirationDuration);
+      }
+
+      // Navegar para a página inicial após o login
+      setTimeout(() => {
+        this.router.navigate(['/']);
+      }, 100);
     }
   }
 
   private autoLogout(expirationDuration: number): void {
     this.tokenExpirationTimer = setTimeout(() => {
       this.logout();
+      this.router.navigate(['/login']);
     }, expirationDuration);
   }
 }

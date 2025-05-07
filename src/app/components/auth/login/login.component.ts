@@ -61,11 +61,10 @@ export class LoginComponent {
     this.authService.login(email, password, rememberMe).subscribe({
       next: () => {
         this.isLoading = false;
-        this.router.navigate(['/']);
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error.message || 'Erro ao fazer login';
+        this.errorMessage = error.error?.message || 'Erro ao fazer login';
       },
     });
   }
