@@ -1,10 +1,14 @@
 /* header.component.ts */
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
+import { MatBadgeModule } from '@angular/material/badge';
+import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
+import { ImgFallbackDirective } from '../../directives/fallback-image.directive';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +19,8 @@ import { MatButtonModule } from '@angular/material/button';
     MatIconModule,
     MatMenuModule,
     MatButtonModule,
+    MatBadgeModule,
+    ImgFallbackDirective,
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
@@ -25,12 +31,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
   volume: number = 0.5;
   previousVolume: number = 0.5;
   isMuted: boolean = false;
-  userName: string = 'Ash Ketchum';
   isMobileMenuOpen: boolean = false;
+
+  // Usuário logado
+  user: any = null;
+  private userSubscription: Subscription | null = null;
 
   // Armazenar o estado do scroll anterior
   private lastScrollTop: number = 0;
   private headerVisible: boolean = true;
+
+  constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.audio = new Audio('/assets/music/pokemon-abertura.mp3');
@@ -39,11 +50,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     // Verificar se há preferências salvas
     this.loadAudioPreferences();
+
+    // Inscrever-se para mudanças no usuário logado
+    this.userSubscription = this.authService.currentUser$.subscribe((user) => {
+      this.user = user;
+    });
   }
 
   ngOnDestroy(): void {
     this.stopMusic();
     this.saveAudioPreferences();
+
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
 
   @HostListener('window:scroll', [])
@@ -133,6 +153,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+    this.closeMobileMenu();
+  }
+
   // Salvar preferências de áudio no localStorage
   private saveAudioPreferences(): void {
     const preferences = {
@@ -173,5 +199,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (window.innerWidth > 768 && this.isMobileMenuOpen) {
       this.closeMobileMenu();
     }
+  }
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
   }
 }

@@ -14,6 +14,11 @@
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: transform 0.3s ease;
+
+  &.header-hidden {
+    transform: translateY(-100%);
+  }
 
   .header-container {
     max-width: 1200px;
@@ -209,6 +214,46 @@
         }
       }
 
+      .auth-buttons {
+        display: flex;
+        gap: 10px;
+
+        .login-button, .register-button {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 12px;
+          border-radius: 20px;
+          text-decoration: none;
+          font-weight: 600;
+          transition: all 0.3s ease;
+
+          .button-text {
+            @media (max-width: 768px) {
+              display: none;
+            }
+          }
+        }
+
+        .login-button {
+          background-color: rgba(0, 0, 0, 0.2);
+          color: white;
+
+          &:hover {
+            background-color: rgba(0, 0, 0, 0.3);
+          }
+        }
+
+        .register-button {
+          background-color: var(--pokemon-yellow);
+          color: var(--pokemon-black);
+
+          &:hover {
+            background-color: darken(#ffcb05, 10%);
+          }
+        }
+      }
+
       .user-section {
         .user-button {
           display: flex;
@@ -245,6 +290,10 @@
 
           .username {
             font-weight: 600;
+
+            @media (max-width: 768px) {
+              display: none;
+            }
           }
         }
       }
@@ -354,10 +403,6 @@
           .volume-control {
             display: none;
           }
-        }
-
-        .user-section .user-button .username {
-          display: none;
         }
       }
     }

@@ -17,9 +17,9 @@
         <li><a routerLink="/battle" routerLinkActive="active" (click)="closeMobileMenu()">Batalha</a></li>
         <li><a routerLink="/pokedex" routerLinkActive="active" (click)="closeMobileMenu()">Pokédex</a></li>
         <li><a routerLink="/games" routerLinkActive="active" (click)="closeMobileMenu()">Jogos</a></li>
-        <li><a routerLink="/trainer" routerLinkActive="active" (click)="closeMobileMenu()">Perfil</a></li>
         <li><a routerLink="/comparator" routerLinkActive="active" (click)="closeMobileMenu()">Comparador</a></li>
         <li><a routerLink="/quiz" routerLinkActive="active" (click)="closeMobileMenu()">Quiz</a></li>
+        <li><a routerLink="/teams" routerLinkActive="active" (click)="closeMobileMenu()">Times</a></li>
       </ul>
     </nav>
 
@@ -45,25 +45,42 @@
         </div>
       </div>
 
-      <div class="user-section">
+      <!-- Usuário não logado -->
+      <div class="auth-buttons" *ngIf="!isLoggedIn()">
+        <a routerLink="/login" class="login-button">
+          <mat-icon>login</mat-icon>
+          <span class="button-text">Entrar</span>
+        </a>
+        <a routerLink="/register" class="register-button">
+          <mat-icon>person_add</mat-icon>
+          <span class="button-text">Registrar</span>
+        </a>
+      </div>
+
+      <!-- Usuário logado -->
+      <div class="user-section" *ngIf="isLoggedIn()">
         <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
-          <div class="avatar">
-            <img src="/assets/images/pikachu-loading.gif" alt="Avatar" class="avatar-img">
+          <div class="avatar" [matBadge]="'1'" matBadgeSize="small" matBadgeColor="warn" matBadgeOverlap="true">
+            <img [src]="user?.avatar || '/assets/images/default-avatar.png'" alt="Avatar" class="avatar-img" fallback="assets/images/default-avatar.png">
           </div>
-          <span class="username">{{ userName }}</span>
+          <span class="username">{{ user?.username || 'Treinador' }}</span>
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 
         <mat-menu #userMenu="matMenu" xPosition="before">
-          <button mat-menu-item routerLink="/trainer">
+          <button mat-menu-item routerLink="/profile">
             <mat-icon>person</mat-icon>
             <span>Meu Perfil</span>
           </button>
-          <button mat-menu-item>
-            <mat-icon>settings</mat-icon>
-            <span>Configurações</span>
+          <button mat-menu-item routerLink="/teams">
+            <mat-icon>groups</mat-icon>
+            <span>Meus Times</span>
           </button>
-          <button mat-menu-item>
+          <button mat-menu-item routerLink="/battle">
+            <mat-icon>sports_esports</mat-icon>
+            <span>Batalhar</span>
+          </button>
+          <button mat-menu-item (click)="logout()">
             <mat-icon>exit_to_app</mat-icon>
             <span>Sair</span>
           </button>

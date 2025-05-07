@@ -1,89 +1,241 @@
-<!-- profile.component.html -->
+<!-- components/profile/profile.component.html -->
 <div class="profile-container">
-  <div class="profile-card">
-    <h2>Perfil</h2>
-
-    <div class="row">
-      <div class="col-md-4">
-        <div class="avatar-container">
-          <img
-            [src]="previewUrl || user?.avatar || '/assets/images/default-avatar.png'"
-            alt="Avatar"
-            class="avatar-image"
-          >
-
-          <div class="avatar-upload">
-            <input
-              type="file"
-              id="avatar"
-              (change)="onFileSelected($event)"
-              accept="image/*"
-              class="file-input"
-            >
-            <label for="avatar" class="btn btn-outline-primary">Escolher imagem</label>
-
-            <button
-              class="btn btn-primary mt-2"
-              (click)="uploadAvatar()"
-              [disabled]="!selectedFile || isUploading"
-            >
-              <span *ngIf="isUploading" class="spinner-border spinner-border-sm mr-1"></span>
-              Enviar
-            </button>
-          </div>
+  <div class="profile-header">
+    <div class="trainer-card">
+      <div class="trainer-avatar">
+        <img
+          [src]="previewUrl || user?.avatar || '/assets/images/default-avatar.png'"
+          alt="Avatar"
+          class="avatar-image"
+          fallback="assets/images/default-avatar.png"
+        >
+        <div class="trainer-level" matTooltip="Nível do Treinador">
+          <span>{{trainerLevel}}</span>
         </div>
       </div>
 
-      <div class="col-md-8">
-        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
-          <div class="form-group">
-            <label for="username">Nome de usuário</label>
-            <input
-              type="text"
-              id="username"
-              formControlName="username"
-              class="form-control"
-              [ngClass]="{'is-invalid': profileForm.get('username')?.invalid && profileForm.get('username')?.touched}"
-            >
-            <div class="invalid-feedback" *ngIf="profileForm.get('username')?.invalid && profileForm.get('username')?.touched">
-              <span *ngIf="profileForm.get('username')?.errors?.['required']">Nome de usuário é obrigatório</span>
-              <span *ngIf="profileForm.get('username')?.errors?.['minlength']">Nome de usuário deve ter pelo menos 3 caracteres</span>
-            </div>
-          </div>
+      <div class="trainer-info">
+        <h2 class="trainer-name">{{user?.username || 'Carregando...'}}</h2>
+        <div class="trainer-exp">
+          <div class="exp-label">EXP: {{experience}}/{{nextLevelExp}}</div>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="getExpPercentage()"
+            class="exp-bar"
+          ></mat-progress-bar>
+        </div>
 
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              formControlName="email"
-              class="form-control"
-              [ngClass]="{'is-invalid': profileForm.get('email')?.invalid && profileForm.get('email')?.touched}"
-            >
-            <div class="invalid-feedback" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
-              <span *ngIf="profileForm.get('email')?.errors?.['required']">Email é obrigatório</span>
-              <span *ngIf="profileForm.get('email')?.errors?.['email']">Email inválido</span>
-            </div>
+        <div class="trainer-badges">
+          <div *ngFor="let badge of badges" class="badge-item" [class.earned]="badge.earned">
+            <img [src]="badge.icon" [alt]="badge.name" [matTooltip]="badge.name">
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="alert alert-danger" *ngIf="errorMessage">
-            {{ errorMessage }}
-          </div>
-
-          <div class="alert alert-success" *ngIf="successMessage">
-            {{ successMessage }}
-          </div>
-
-          <button
-            type="submit"
-            class="btn btn-primary"
-            [disabled]="profileForm.invalid || isSaving"
-          >
-            <span *ngIf="isSaving" class="spinner-border spinner-border-sm mr-1"></span>
-            Salvar
-          </button>
-        </form>
+    <div class="trainer-stats">
+      <div class="stat-item">
+        <div class="stat-value">{{stats.battles}}</div>
+        <div class="stat-label">Batalhas</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{stats.wins}}</div>
+        <div class="stat-label">Vitórias</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{stats.teams}}</div>
+        <div class="stat-label">Times</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">{{stats.quizzes}}</div>
+        <div class="stat-label">Quizzes</div>
       </div>
     </div>
   </div>
+
+  <mat-card class="profile-content">
+    <mat-tab-group [(selectedIndex)]="activeTab" animationDuration="300ms">
+      <!-- Aba de Informações do Perfil -->
+      <mat-tab label="Perfil">
+        <div class="tab-content">
+          <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+            <div class="form-group">
+              <label for="username">Nome de treinador</label>
+              <input
+                type="text"
+                id="username"
+                formControlName="username"
+                class="form-control"
+                [ngClass]="{'is-invalid': profileForm.get('username')?.invalid && profileForm.get('username')?.touched}"
+              >
+              <div class="invalid-feedback" *ngIf="profileForm.get('username')?.invalid && profileForm.get('username')?.touched">
+                <span *ngIf="profileForm.get('username')?.errors?.['required']">Nome de treinador é obrigatório</span>
+                <span *ngIf="profileForm.get('username')?.errors?.['minlength']">Nome de treinador deve ter pelo menos 3 caracteres</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                class="form-control"
+                [ngClass]="{'is-invalid': profileForm.get('email')?.invalid && profileForm.get('email')?.touched}"
+              >
+              <div class="invalid-feedback" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+                <span *ngIf="profileForm.get('email')?.errors?.['required']">Email é obrigatório</span>
+                <span *ngIf="profileForm.get('email')?.errors?.['email']">Email inválido</span>
+              </div>
+            </div>
+
+            <div class="alert alert-danger" *ngIf="errorMessage">
+              {{ errorMessage }}
+            </div>
+
+            <div class="alert alert-success" *ngIf="successMessage">
+              {{ successMessage }}
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="profileForm.invalid || isSaving"
+            >
+              <span *ngIf="isSaving" class="spinner-border spinner-border-sm mr-1"></span>
+              Salvar
+            </button>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Aba de Avatar -->
+      <mat-tab label="Avatar">
+        <div class="tab-content">
+          <div class="avatar-container">
+            <div class="current-avatar">
+              <h3>Avatar Atual</h3>
+              <img
+                [src]="previewUrl || user?.avatar || '/assets/images/default-avatar.png'"
+                alt="Avatar"
+                class="avatar-preview"
+                fallback="assets/images/default-avatar.png"
+              >
+            </div>
+
+            <div class="avatar-upload">
+              <h3>Alterar Avatar</h3>
+              <input
+                type="file"
+                id="avatar"
+                (change)="onFileSelected($event)"
+                accept="image/*"
+                class="file-input"
+              >
+              <label for="avatar" class="btn btn-outline-primary">Escolher imagem</label>
+
+              <button
+                class="btn btn-primary mt-2"
+                (click)="uploadAvatar()"
+                [disabled]="!selectedFile || isUploading"
+              >
+                <span *ngIf="isUploading" class="spinner-border spinner-border-sm mr-1"></span>
+                Enviar
+              </button>
+            </div>
+          </div>
+
+          <div class="trainer-icons">
+            <h3>Ícones de Treinador</h3>
+            <p>Escolha um ícone de treinador para representá-lo:</p>
+
+            <div class="icons-grid">
+              <div *ngFor="let icon of trainerIcons" class="trainer-icon-item" (click)="selectTrainerIcon(icon)">
+                <img [src]="icon.path" [alt]="icon.name" [title]="icon.name">
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Aba de Segurança -->
+      <mat-tab label="Segurança">
+        <div class="tab-content">
+          <h3>Alterar Senha</h3>
+
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <div class="form-group">
+              <label for="currentPassword">Senha Atual</label>
+              <input
+                type="password"
+                id="currentPassword"
+                formControlName="currentPassword"
+                class="form-control"
+                [ngClass]="{'is-invalid': passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched}"
+              >
+              <div class="invalid-feedback" *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
+                <span *ngIf="passwordForm.get('currentPassword')?.errors?.['required']">Senha atual é obrigatória</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="newPassword">Nova Senha</label>
+              <input
+                type="password"
+                id="newPassword"
+                formControlName="newPassword"
+                class="form-control"
+                [ngClass]="{'is-invalid': passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched}"
+              >
+              <div class="invalid-feedback" *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+                <span *ngIf="passwordForm.get('newPassword')?.errors?.['required']">Nova senha é obrigatória</span>
+                <span *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Nova senha deve ter pelo menos 6 caracteres</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword">Confirmar Nova Senha</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                class="form-control"
+                [ngClass]="{'is-invalid': (passwordForm.get('confirmPassword')?.invalid || passwordForm.hasError('mismatch')) && passwordForm.get('confirmPassword')?.touched}"
+              >
+              <div class="invalid-feedback" *ngIf="(passwordForm.get('confirmPassword')?.invalid || passwordForm.hasError('mismatch')) && passwordForm.get('confirmPassword')?.touched">
+                <span *ngIf="passwordForm.get('confirmPassword')?.errors?.['required']">Confirmação de senha é obrigatória</span>
+                <span *ngIf="passwordForm.hasError('mismatch')">As senhas não coincidem</span>
+              </div>
+            </div>
+
+            <div class="alert alert-danger" *ngIf="passwordErrorMessage">
+              {{ passwordErrorMessage }}
+            </div>
+
+            <div class="alert alert-success" *ngIf="passwordSuccessMessage">
+              {{ passwordSuccessMessage }}
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="passwordForm.invalid || isChangingPassword"
+            >
+              <span *ngIf="isChangingPassword" class="spinner-border spinner-border-sm mr-1"></span>
+              Alterar Senha
+            </button>
+          </form>
+
+          <div class="logout-section">
+            <h3>Sair da Conta</h3>
+            <p>Deseja encerrar sua sessão?</p>
+            <button class="btn btn-danger" (click)="logout()">
+              <mat-icon>exit_to_app</mat-icon>
+              Sair
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
 </div>
